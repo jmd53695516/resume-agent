@@ -166,6 +166,101 @@
 
 ## Traceability
 
-<!-- Populated by the roadmapper agent once ROADMAP.md is created. Maps each REQ-ID to the phase that delivers it. -->
+Each v1 requirement is mapped to exactly one phase. Coverage: 94/94.
 
-(pending roadmap creation)
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| GATE-01 | Phase 1 | Pending |
+| GATE-02 | Phase 1 | Pending |
+| GATE-03 | Phase 1 | Pending |
+| GATE-04 | Phase 1 | Pending |
+| GATE-05 | Phase 1 | Pending |
+| CHAT-01 | Phase 2 | Pending |
+| CHAT-02 | Phase 2 | Pending |
+| CHAT-03 | Phase 1 | Pending |
+| CHAT-04 | Phase 1 | Pending |
+| CHAT-05 | Phase 1 | Pending |
+| CHAT-06 | Phase 2 | Pending |
+| CHAT-07 | Phase 2 | Pending |
+| CHAT-08 | Phase 2 | Pending |
+| CHAT-09 | Phase 2 | Pending |
+| CHAT-10 | Phase 2 | Pending |
+| CHAT-11 | Phase 2 | Pending |
+| CHAT-12 | Phase 2 | Pending |
+| CHAT-13 | Phase 3 | Pending |
+| CHAT-14 | Phase 2 | Pending |
+| VOICE-01 | Phase 1 | Pending |
+| VOICE-02 | Phase 1 | Pending |
+| VOICE-03 | Phase 1 | Pending |
+| VOICE-04 | Phase 1 | Pending |
+| VOICE-05 | Phase 1 | Pending |
+| VOICE-06 | Phase 1 | Pending |
+| VOICE-07 | Phase 1 | Pending |
+| VOICE-08 | Phase 1 | Pending |
+| VOICE-09 | Phase 1 | Pending |
+| VOICE-10 | Phase 1 | Pending |
+| VOICE-11 | Phase 2 | Pending |
+| VOICE-12 | Phase 1 | Pending |
+| TOOL-01 | Phase 3 | Pending |
+| TOOL-02 | Phase 3 | Pending |
+| TOOL-03 | Phase 3 | Pending |
+| TOOL-04 | Phase 3 | Pending |
+| TOOL-05 | Phase 3 | Pending |
+| TOOL-06 | Phase 3 | Pending |
+| TOOL-07 | Phase 3 | Pending |
+| TOOL-08 | Phase 3 | Pending |
+| TOOL-09 | Phase 3 | Pending |
+| TOOL-10 | Phase 3 | Pending |
+| TOOL-11 | Phase 3 | Pending |
+| SAFE-01 | Phase 2 | Pending |
+| SAFE-02 | Phase 2 | Pending |
+| SAFE-03 | Phase 2 | Pending |
+| SAFE-04 | Phase 2 | Pending |
+| SAFE-05 | Phase 2 | Pending |
+| SAFE-06 | Phase 2 | Pending |
+| SAFE-07 | Phase 2 | Pending |
+| SAFE-08 | Phase 2 | Pending |
+| SAFE-09 | Phase 2 | Pending |
+| SAFE-10 | Phase 2 | Pending |
+| SAFE-11 | Phase 1 | Pending |
+| SAFE-12 | Phase 2 | Pending |
+| SAFE-13 | Phase 2 | Pending |
+| SAFE-14 | Phase 1 | Pending |
+| SAFE-15 | Phase 2 | Pending |
+| OBSV-01 | Phase 4 | Pending |
+| OBSV-02 | Phase 4 | Pending |
+| OBSV-03 | Phase 4 | Pending |
+| OBSV-04 | Phase 4 | Pending |
+| OBSV-05 | Phase 4 | Pending |
+| OBSV-06 | Phase 4 | Pending |
+| OBSV-07 | Phase 3 | Pending |
+| OBSV-08 | Phase 4 | Pending |
+| OBSV-09 | Phase 4 | Pending |
+| OBSV-10 | Phase 3 | Pending |
+| OBSV-11 | Phase 3 | Pending |
+| OBSV-12 | Phase 3 | Pending |
+| OBSV-13 | Phase 4 | Pending |
+| OBSV-14 | Phase 4 | Pending |
+| OBSV-15 | Phase 4 | Pending |
+| OBSV-16 | Phase 3 | Pending |
+| EVAL-01 | Phase 5 | Pending |
+| EVAL-02 | Phase 5 | Pending |
+| EVAL-03 | Phase 5 | Pending |
+| EVAL-04 | Phase 5 | Pending |
+| EVAL-05 | Phase 5 | Pending |
+| EVAL-06 | Phase 5 | Pending |
+| EVAL-07 | Phase 5 | Pending |
+| EVAL-08 | Phase 5 | Pending |
+| EVAL-09 | Phase 5 | Pending |
+| EVAL-10 | Phase 5 | Pending |
+| EVAL-11 | Phase 5 | Pending |
+| EVAL-12 | Phase 5 | Pending |
+| EVAL-13 | Phase 5 | Pending |
+| EVAL-14 | Phase 5 | Pending |
+| LAUNCH-01 | Phase 5 | Pending |
+| LAUNCH-02 | Phase 5 | Pending |
+| LAUNCH-03 | Phase 5 | Pending |
+| LAUNCH-04 | Phase 5 | Pending |
+| LAUNCH-05 | Phase 5 | Pending |
+| LAUNCH-06 | Phase 5 | Pending |
+| LAUNCH-07 | Phase 5 | Pending |
