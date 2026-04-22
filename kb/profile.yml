@@ -1,0 +1,19 @@
+# PLACEHOLDER — populated by Joe in Plan 04 (content-acquisition track).
+# Schema per spec §4: name, location, YoE, target roles, links, contact prefs.
+name: "Joe Dollinger"
+location: "TBD (populated by Joe)"
+years_experience: 0
+target_roles:
+  - "TBD"
+links:
+  linkedin: "TBD"
+  github: "TBD"
+  personal_site: "TBD"
+contact:
+  email_for_recruiters: "TBD (populated by Joe)"
+  preferred_contact_method: "email"
+# The agent uses this as a name-token allow-list in Phase 5 eval cat 1
+# (deterministic fabrication check). Companies/roles/tools Joe has actually
+# worked with are added here by Plan 04.
+companies: []
+tools: []
