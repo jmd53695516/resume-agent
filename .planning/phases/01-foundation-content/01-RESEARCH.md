@@ -1108,30 +1108,35 @@ No test framework install needed beyond the packages listed in Standard Stack.
 
 **All other claims in this research are either VERIFIED via `npm view` on 2026-04-21 or CITED to primary documentation.**
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Does `create-next-app@16.2.4 .` accept a non-empty cwd with `--yes`?**
    - What we know: `create-next-app` historically refuses non-empty dirs.
    - What's unclear: Whether a 2026 flag (`--force`, `--empty`, or `--yes` override) handles this.
    - Recommendation: Plan should try `--yes` first, fall back to "scaffold in `joe-agent-temp/`, `mv *` into root" if that fails. Test in a throwaway clone before running on the real repo.
+   - **RESOLVED:** Plan 01 Task 1 handles via temp-directory scaffold + rsync merge.
 
 2. **Should the Phase 1 plan create the `/chat` stub with a minimal `useChat` scaffold, or truly a "coming soon" static placeholder?**
    - What we know: CONTEXT.md D-B-04 says "placeholder 'chat coming in Phase 2'."
    - What's unclear: How minimal is "placeholder"? Does reading `sessionStorage.getItem('session_id')` count as real code or stub?
    - Recommendation: Stub reads `session_id` from `sessionStorage` and displays "Welcome — your session id is <XYZ>. Chat coming in Phase 2." This exercises GATE-04 (sessionStorage read) end-to-end without pulling in the AI SDK.
+   - **RESOLVED:** Plan 03 Task 3 Step 5 implements a minimal stub that reads sessionStorage.session_id and displays it (exercises GATE-04 without pulling AI SDK).
 
 3. **Does `guardrails.md` get a Joe-signed footer in plain text, or is "Joe-signed" just a git commit from Joe's account?**
    - What we know: CONTEXT.md D-C-06 says "Joe-authored and Joe-signed."
    - What's unclear: Literal signature text vs. git-blame evidence.
    - Recommendation: Treat it as a manual gate — `01-CONTENT-STATUS.md` checkbox "Joe reviewed and approved `guardrails.md`" + git commit authored by Joe. No digital signature needed for a solo project.
+   - **RESOLVED:** Plan 04 Task 4 implements both a literal "Signed:" line in kb/guardrails.md AND an author-match verify against git config user.email.
 
 4. **Phase 2 hand-off: should `lib/system-prompt.ts` already embed a `// PHASE 2: cache_control breakpoint here` comment, or leave it uncommented and let Phase 2 refactor?**
    - Recommendation: Add the comment marker. Zero runtime cost, high future-readability. The marker makes Phase 2's first commit a one-line change at an obvious anchor.
+   - **RESOLVED:** Plan 02 Task 3 system-prompt.ts includes a "// PHASE 2:" comment for the one-line Phase 2 refactor when cache_control is wired.
 
 5. **Is `sessions` RLS left enabled with no policies the correct Phase 1 posture?**
    - What we know: Service role bypasses RLS. RLS-enabled + zero-policies means the anon key is completely blocked — which is exactly what we want in Phase 1 (no anon writes should happen).
    - What's unclear: Whether a Phase 5 Supabase dashboard warning about "table has RLS enabled but no policies" becomes noise.
    - Recommendation: Accept the dashboard warning; it's informational. Add policies in Phase 4.
+   - **RESOLVED:** Plan 03 Task 1 Step 1 migration enables RLS on sessions and messages with no policies; service-role key bypasses RLS for server-side INSERT (Phase 4 adds admin read policies).
 
 ## Sources
 
