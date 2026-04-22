@@ -23,3 +23,11 @@ agent would then silently narrate around (see
   VOICE-\*, SAFE-\*, etc.).
 - `.planning/phases/01-foundation-content/01-CONTEXT.md` — Phase 1 decisions
   and boundaries; start here for current-phase specifics.
+
+## Interview Protocols
+
+Content acquisition protocols live in this folder:
+
+- `docs/interview-protocol-voice.md` — 30-min voice interview (Plan 04)
+- `docs/interview-protocol-selection.md` — case-study selection session (Plan 04)
+- `docs/interview-protocol-case-study.md` — 45-min per-case-study interview (Plan 04)
