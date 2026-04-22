@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. A pre-commit hook scans for `NEXT_PUBLIC_` secret leaks and blocks on any match
 **Plans:** 4 plans
 Plans:
-- [ ] 01-01-PLAN.md — Next.js scaffold, Tailwind v4 + shadcn/ui, Vitest/Playwright, env + Supabase clients + hashIp + pre-commit secret-scanning hook (SAFE-14)
+- [x] 01-01-PLAN.md — Next.js scaffold, Tailwind v4 + shadcn/ui, Vitest/Playwright, env + Supabase clients + hashIp + pre-commit secret-scanning hook (SAFE-14)
 - [ ] 01-02-PLAN.md — KB scaffold (10 files + fixture) + deterministic kb-loader + pure buildSystemPrompt + determinism and forbidden-pattern tests (CHAT-03, CHAT-04, CHAT-05, SAFE-11, VOICE-01)
 - [ ] 01-03-PLAN.md — Supabase migration, /api/session route, landing page with framing + disclaimer + email gate, /chat stub, VOICE-12 SSOT note (GATE-01..05, VOICE-12)
 - [ ] 01-04-PLAN.md — Interview protocol docs + content-status tracker + frontmatter validator, then Joe-time content population: voice interview, voice/stances seeding, self-authored prose pack, selection session, case-study interviews, voice-pass sign-off (VOICE-02..10)
