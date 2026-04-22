@@ -16,5 +16,6 @@ export default defineConfig({
     environment: 'node', // component tests can override via // @vitest-environment jsdom
     include: ['tests/**/*.test.{ts,tsx}'],
     globals: false,
+    pool: 'vmThreads', // vitest 4.1.5 default pool is broken on Node 25.x; vmThreads works on 22/24/25
   },
 });
