@@ -36,20 +36,31 @@ if [[ -n "$staged_files" ]]; then
 fi
 
 # (1) (2) (3) Scan staged content for forbidden patterns
-# We use git diff --cached (only staged changes) and look at added lines only (+).
-diff_output="$(git diff --cached -U0 --no-color -- ':(exclude).env.example' ':(exclude)scripts/install-pre-commit-hook.sh' ':(exclude)scripts/test-pre-commit-hook.sh' || true)"
+# Added lines only (+ lines in unified diff). Two-stage filter (grep '^\+' then
+# grep -v '^\+\+\+' then pattern) avoids a regex backtracking failure seen with
+# '^\+[^+].*PATTERN' when PATTERN starts at column 2.
+#
+# Two diff scopes:
+#   - VALUES (patterns 2 & 3 — real secret shapes): scan everything except the
+#     hook installer, the hook self-test, and .env.example (which contains only
+#     placeholders). If an actual sk-ant-* or JWT appears anywhere else, block.
+#   - NAMES (pattern 1 — env var names like NEXT_PUBLIC_*KEY): additionally
+#     exclude planning docs (.planning/**) and design specs (docs/superpowers/**)
+#     where referencing env var names is legitimate design documentation, not
+#     a secret-leak vector. The values that those names would hold are still
+#     covered by patterns 2 & 3.
+diff_output_values="$(git diff --cached -U0 --no-color -- ':(exclude).env.example' ':(exclude)scripts/install-pre-commit-hook.sh' ':(exclude)scripts/test-pre-commit-hook.sh' || true)"
+diff_output_names="$(git diff --cached -U0 --no-color -- ':(exclude).env.example' ':(exclude)scripts/install-pre-commit-hook.sh' ':(exclude)scripts/test-pre-commit-hook.sh' ':(exclude).planning/**' ':(exclude)docs/superpowers/**' || true)"
 
-if [[ -z "$diff_output" ]]; then
+if [[ -z "$diff_output_values" ]] && [[ -z "$diff_output_names" ]]; then
   exit 0
 fi
 
 check_pattern() {
-  local pattern="$1"
-  local label="$2"
-  # Filter to added lines (start with '+') and strip diff file-headers ('+++'),
-  # then match the forbidden pattern. Two-stage filter avoids regex backtracking
-  # failures seen with '^\+[^+].*PATTERN' when PATTERN starts at column 2.
-  matches="$(printf '%s\n' "$diff_output" | grep -E '^\+' | grep -v -E '^\+\+\+' | grep -E "$pattern" || true)"
+  local diff_input="$1"
+  local pattern="$2"
+  local label="$3"
+  matches="$(printf '%s\n' "$diff_input" | grep -E '^\+' | grep -v -E '^\+\+\+' | grep -E "$pattern" || true)"
   if [[ -n "$matches" ]]; then
     echo "error: commit blocked — detected $label in staged changes:" >&2
     echo "$matches" | head -5 >&2
@@ -62,9 +73,9 @@ check_pattern() {
 }
 
 fail=0
-check_pattern 'NEXT_PUBLIC_[A-Z_]*(KEY|SECRET|TOKEN|PASSWORD|PASS)' 'NEXT_PUBLIC_ secret name' || fail=1
-check_pattern 'sk-ant-[A-Za-z0-9_-]{20,}' 'Anthropic API key (sk-ant-*)' || fail=1
-check_pattern 'eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+' 'JWT (possible Supabase service-role key)' || fail=1
+check_pattern "$diff_output_names"  'NEXT_PUBLIC_[A-Z_]*(KEY|SECRET|TOKEN|PASSWORD|PASS)'       'NEXT_PUBLIC_ secret name' || fail=1
+check_pattern "$diff_output_values" 'sk-ant-[A-Za-z0-9_-]{20,}'                                 'Anthropic API key (sk-ant-*)' || fail=1
+check_pattern "$diff_output_values" 'eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+' 'JWT (possible Supabase service-role key)' || fail=1
 
 exit $fail
 HOOK_EOF
