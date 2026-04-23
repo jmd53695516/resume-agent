@@ -1523,32 +1523,39 @@ N/A — Phase 2 is net-new code (no rename/refactor/migration).
 | A9 | `after()` from `next/server` (Next 15.1+) is available in Next 16.2 and works inside an App Router `POST` handler after `return deflectionResponse(...)` | Pattern 2, optional for deflection persistence | [VERIFIED: Vercel docs show `after()` as the Next 15.1+ recommended replacement for `waitUntil`]. Low risk. |
 | A10 | `@marsidev/react-turnstile` API is stable between v1.5 and whatever version is current at Phase 5 | D-J-01 | [ASSUMED]. Library is small, maintained. Risk contained to Turnstile wiring which is feature-flagged off. |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+All five questions have explicit disposition paths in the committed plans. Statuses below; the underlying text of each question is preserved for history.
 
 1. **Exact v6 chunk types in `createUIMessageStream`.**
    - What we know: docs describe `text-start`/`text-delta`/`text-end` pattern, verified against `ai-sdk.dev/docs/reference/ai-sdk-ui/create-ui-message-stream-response`.
    - What's unclear: the full type surface (is there a `text-content` alternative? `tool-*` parts for Phase 3?).
    - Recommendation: Phase 2 first task is a smoke test — minimal deflection route + `useChat` client — verify the text renders end-to-end. Update code based on actual v6 types.
+   - **RESOLVED:** Plan 02-01 Task 10 ships the smoke-test route `src/app/api/_smoke-ui-stream/route.ts` that exercises `createUIMessageStream` end-to-end with the `useChat` client. Plan 02-02 Task 1 reuses the proven pattern. Any surprise in the chunk-type surface is caught by the smoke before any deflection or hot-path work lands.
 
 2. **Does v6 `streamText` still call `onFinish` when the client aborts mid-stream?**
    - What we know: v5 fired `onError`/`onAbort`, not `onFinish`. (Pitfall G covers this.)
    - What's unclear: v6 release notes don't explicitly re-confirm.
    - Recommendation: Plan Task to add an `onError` + `onAbort` handler that inserts a `turn_errored` row. Even if v6 changed behavior, the handlers are cheap.
+   - **RESOLVED:** Plan 02-02 Task 1 "Adjustment 2" wires both `onError` and `onAbort`. The adjustment block now includes explicit runtime verification steps: if TypeScript rejects `onAbort` in v6, the executor must (a) check the v6 type surface for renamed equivalents, (b) run a tab-close-mid-stream browser test and observe whether `onError` fires with `AbortError`, and (c) document the resolution in `02-02-SMOKE.md`. Pitfall G mitigation is preserved either way — if the abort handler is genuinely unavailable, the threat model entry T-02-02-12 is marked REGRESSED to "accept" with a Phase 4 TODO for HTTP-level abort tracking.
 
 3. **Should we add `providerOptions.anthropic.cacheControl: { ttl: '1h' }` in Phase 2?**
    - What we know: Traffic pattern (3 visits/day spaced) makes 5-min TTL ineffective; 1-hour write costs 2x vs 1.25x for 5-min.
    - What's unclear: Is the 1h TTL economically better for our specific traffic? Break-even is 2 reads per write. If a session has 3+ turns, 1h wins.
    - Recommendation: Ship Phase 2 with 5-min TTL (default). Add a `TODO(phase-5-cost-review)` comment. Phase 5 eval-run data will tell us the real hit rate.
+   - **RESOLVED:** Ship with 5-min TTL (Anthropic default) in Phase 2. Plan 02-02 includes the `TODO(phase-5-cost-review)` comment at the cacheControl providerOptions site. Phase 5 eval-data analysis decides whether to bump to 1h.
 
 4. **Does `after()` work inside a `createUIMessageStream` `execute` callback?**
    - What we know: Docs confirm `after()` in App Router route handlers.
    - What's unclear: Whether `after()` called inside a stream's `execute` fires after the stream completes vs. after the response first-byte.
    - Recommendation: For Phase 2, use `await persistDeflectionTurn(...)` inline inside `execute` before writing the text chunks. Slightly blocks first-byte (one Supabase insert, ~50ms) but is deterministic. Swap to `after()` in Phase 4 if latency matters.
+   - **RESOLVED:** Phase 2 uses `await persistDeflectionTurn()` inline — deterministic behavior, worth the ~50ms first-byte delay. Phase 4 can migrate to `after()` when observability work pays for the investigation.
 
 5. **The Turnstile wiring details (widget render, server token verification).**
    - What we know: `@marsidev/react-turnstile` provides `<Turnstile />` with `onSuccess` callback giving the token. `/api/session` posts token to `https://challenges.cloudflare.com/turnstile/v0/siteverify` with secret key.
    - What's unclear: Exact integration sequence since the widget lives below the email input in EmailGate.tsx.
    - Recommendation: Plan writes one task for Turnstile wiring with the feature flag OFF by default — keeps the plan fully deterministic and the feature ready to flip.
+   - **RESOLVED:** Plan 02-04 (wave 3) ships the full Turnstile wiring — Task 1 installs the package, Task 2 conditionally renders the widget in EmailGate.tsx, Task 3 verifies tokens server-side in `/api/session` with fail-closed misconfig handling, Task 4 is a 5-case unit test, Task 5 documents env vars in `.env.example`. Feature flag `NEXT_PUBLIC_TURNSTILE_ENABLED` defaults false.
 
 ## Security Domain
 
