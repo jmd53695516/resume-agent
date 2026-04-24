@@ -36,12 +36,12 @@
 
 ### VOICE-08 — About Me + Management Philosophy
 
-- [ ] `kb/about_me.md` placeholder replaced
-- [ ] `about_me.md` wordcount: ______ (must be 400-600)
-- [ ] `about_me.md` first-person, warm register (Joe confirms)
-- [ ] `kb/management_philosophy.md` placeholder replaced
-- [ ] `management_philosophy.md` wordcount: ______ (must be 600-1000)
-- [ ] `management_philosophy.md` opinionated and concrete (Joe confirms: "could a PM I respect disagree with me here?")
+- [x] `kb/about_me.md` placeholder replaced
+- [x] `about_me.md` wordcount: 592 (must be 400-600)
+- [x] `about_me.md` first-person, warm register (Joe confirms)
+- [x] `kb/management_philosophy.md` placeholder replaced
+- [x] `management_philosophy.md` wordcount: 865 (must be 600-1000)
+- [x] `management_philosophy.md` opinionated and concrete (Joe confirms: "could a PM I respect disagree with me here?")
 
 ### VOICE-09 — `kb/guardrails.md` Joe-authored and Joe-signed
 
