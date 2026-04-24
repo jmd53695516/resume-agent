@@ -40,3 +40,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# interview transcripts (Joe's local source material; may contain
+# coworker / former-employer detail; never commit)
+/docs/transcripts/

@@ -17,7 +17,7 @@
 ### VOICE-05 — Voice interview complete
 
 - [x] Voice interview recorded (tool: __________ ) — *Joe to fill in recording tool name*
-- [x] Transcript produced (stored locally, NOT committed if confidential) — *pasted in-chat only; not archived*
+- [x] Transcript produced (stored locally, NOT committed if confidential) — *archived at `docs/transcripts/voice-2026-04-23.md` (gitignored via `/docs/transcripts/` pattern)*
 - [x] Transcript date: 2026-04-23
 - [x] `voice.md` seeded from transcript (same as VOICE-04)
 - [x] 2-3 `stances.md` entries seeded from transcript (3 seeds)
