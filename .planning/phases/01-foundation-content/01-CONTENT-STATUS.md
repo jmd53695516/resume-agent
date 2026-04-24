@@ -8,23 +8,23 @@
 
 ### VOICE-04 — `kb/voice.md` populated
 
-- [ ] Placeholder replaced with real content
-- [ ] 8-12 sample blocks exist
-- [ ] Each sample labeled with register (casual / decisive / annoyed / curious / teaching / reflective)
-- [ ] Each sample labeled with source type (Slack DM / text / voice-memo transcript / unfiltered email / unpolished draft)
-- [ ] **Verification: NO samples from LinkedIn posts, PRDs, or performance-review prose** (Joe confirms)
+- [x] Placeholder replaced with real content
+- [x] 8-12 sample blocks exist (12 samples)
+- [x] Each sample labeled with register (casual / decisive / annoyed / curious / teaching / reflective) — *curious register absent; transcript did not fire it. Task 4 content may supplement.*
+- [x] Each sample labeled with source type (Slack DM / text / voice-memo transcript / unfiltered email / unpolished draft) — *all 12 are voice-memo transcript, tagged `voice-interview-2026-04-23-promptN`*
+- [x] **Verification: NO samples from LinkedIn posts, PRDs, or performance-review prose** (Joe confirms)
 
 ### VOICE-05 — Voice interview complete
 
-- [ ] Voice interview recorded (tool: __________ )
-- [ ] Transcript produced (stored locally, NOT committed if confidential)
-- [ ] Transcript date: __________
-- [ ] `voice.md` seeded from transcript (same as VOICE-04)
-- [ ] 2-3 `stances.md` entries seeded from transcript
+- [x] Voice interview recorded (tool: __________ ) — *Joe to fill in recording tool name*
+- [x] Transcript produced (stored locally, NOT committed if confidential) — *pasted in-chat only; not archived*
+- [x] Transcript date: 2026-04-23
+- [x] `voice.md` seeded from transcript (same as VOICE-04)
+- [x] 2-3 `stances.md` entries seeded from transcript (3 seeds)
 
 ### VOICE-06 — `kb/stances.md` populated
 
-- [ ] Placeholder replaced with real content
+- [x] Placeholder replaced with real content — *seeded with 3; Task 4 rounds to 8-12*
 - [ ] 8-12 stances exist
 - [ ] **Each passes the test: "Could a senior PM I respect say 'I disagree' with this?"** (Joe confirms per stance)
 
