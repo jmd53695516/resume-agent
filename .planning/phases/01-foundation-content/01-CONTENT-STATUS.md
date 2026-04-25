@@ -52,38 +52,38 @@
 
 ### Selection session complete
 
-- [ ] `kb/brainstorm/case-study-candidates.md` has 8-10 candidates
-- [ ] Final 4-6 block at bottom with slug list and rubric tags
-- [ ] Coverage rubric verified on final 4-6:
-  - [ ] ≥1 failure or killed project
-  - [ ] ≥1 leadership-without-authority
-  - [ ] ≥1 data-rooted decision
-  - [ ] ≥1 cross-functional conflict
-  - [ ] ≥1 recent (<2y)
-  - [ ] ≥1 long-arc (>12mo)
+- [x] `kb/brainstorm/case-study-candidates.md` has 8-10 candidates — *9 candidates documented on 2026-04-24 (Task 5)*
+- [x] Final 4-6 block at bottom with slug list and rubric tags — *5 selected*
+- [x] Coverage rubric verified on final 4-6:
+  - [x] ≥1 failure or killed project — *ua-project-rescue, gap-brand-hierarchy-consolidation*
+  - [x] ≥1 leadership-without-authority — *gap-brand-hierarchy-consolidation*
+  - [x] ≥1 data-rooted decision — *snowflake-edw-migration, cortex-ai-client-win, snowflake-marketplace-datashare*
+  - [x] ≥1 cross-functional conflict — *ua-project-rescue, cortex-ai-client-win, gap-brand-hierarchy-consolidation, snowflake-marketplace-datashare*
+  - [x] ≥1 recent (<2y) — *cortex-ai-client-win, snowflake-marketplace-datashare*
+  - [x] ≥1 long-arc (>12mo) — *snowflake-edw-migration, snowflake-marketplace-datashare*
 
 ### VOICE-02 — Case studies (4-6 files)
 
-Fill in slugs as chosen in selection session:
+Slugs selected in Task 5 selection session (2026-04-24):
 
-- [ ] Case study 1: `kb/case_studies/________.md` — ≥300 words, all template sections, frontmatter valid
-- [ ] Case study 2: `kb/case_studies/________.md` — ≥300 words, all template sections, frontmatter valid
-- [ ] Case study 3: `kb/case_studies/________.md` — ≥300 words, all template sections, frontmatter valid
-- [ ] Case study 4: `kb/case_studies/________.md` — ≥300 words, all template sections, frontmatter valid
-- [ ] Case study 5 (optional): `kb/case_studies/________.md` — ≥300 words
-- [ ] Case study 6 (optional): `kb/case_studies/________.md` — ≥300 words
+- [ ] Case study 1: `kb/case_studies/snowflake-edw-migration.md` — ≥300 words, all template sections, frontmatter valid
+- [ ] Case study 2: `kb/case_studies/ua-project-rescue.md` — ≥300 words, all template sections, frontmatter valid (slug may be refined in Task 6)
+- [ ] Case study 3: `kb/case_studies/cortex-ai-client-win.md` — ≥300 words, all template sections, frontmatter valid
+- [ ] Case study 4: `kb/case_studies/gap-brand-hierarchy-consolidation.md` — ≥300 words, all template sections, frontmatter valid
+- [ ] Case study 5 (optional): `kb/case_studies/snowflake-marketplace-datashare.md` — ≥300 words
+- [ ] Case study 6 (optional): N/A — final selection landed at 5
 - [ ] `npx tsx scripts/validate-kb-frontmatter.ts` exits 0
 
 ### VOICE-03 — Coverage rubric satisfied across the final case studies
 
-Mark which slug fills which rubric bucket (a slug may fill multiple):
+Mark which slug fills which rubric bucket (a slug may fill multiple). Mapping fixed at selection (2026-04-24); checkboxes flip during Task 7 voice-pass once case-study drafts confirm coverage:
 
-- [ ] Failure: ________
-- [ ] Leadership-without-authority: ________
-- [ ] Data-rooted: ________
-- [ ] Cross-functional conflict: ________
-- [ ] Recent (<2y): ________
-- [ ] Long-arc (>12mo): ________
+- [ ] Failure: `ua-project-rescue`
+- [ ] Leadership-without-authority: `gap-brand-hierarchy-consolidation`
+- [ ] Data-rooted: `snowflake-edw-migration`, `cortex-ai-client-win`, `snowflake-marketplace-datashare`
+- [ ] Cross-functional conflict: `ua-project-rescue`, `cortex-ai-client-win`, `gap-brand-hierarchy-consolidation`, `snowflake-marketplace-datashare`
+- [ ] Recent (<2y): `cortex-ai-client-win`, `snowflake-marketplace-datashare`
+- [ ] Long-arc (>12mo): `snowflake-edw-migration`, `snowflake-marketplace-datashare`
 - [ ] **Final rubric sign-off (Joe):** _______________________ (initials + date)
 
 ### VOICE-10 — Voice-pass final read
