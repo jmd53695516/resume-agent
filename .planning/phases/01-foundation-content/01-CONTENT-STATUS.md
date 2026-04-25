@@ -24,9 +24,9 @@
 
 ### VOICE-06 — `kb/stances.md` populated
 
-- [x] Placeholder replaced with real content — *seeded with 3; Task 4 rounds to 8-12*
-- [ ] 8-12 stances exist
-- [ ] **Each passes the test: "Could a senior PM I respect say 'I disagree' with this?"** (Joe confirms per stance)
+- [x] Placeholder replaced with real content — *12 stances total as of 2026-04-24 (Task 4 Sitting 2)*
+- [x] 8-12 stances exist — *12*
+- [x] **Each passes the test: "Could a senior PM I respect say 'I disagree' with this?"** (Joe confirms per stance) — *Joe approved each of the 9 new stances by group/individual signoff in Sitting 2 chat*
 
 ### VOICE-07 — `kb/faq.md` populated
 
