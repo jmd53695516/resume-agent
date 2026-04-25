@@ -30,9 +30,9 @@
 
 ### VOICE-07 — `kb/faq.md` populated
 
-- [ ] Placeholder replaced with real content
-- [ ] 15 Q/A entries exist
-- [ ] Coverage includes: visa / work authorization, remote work, timezone, compensation (→ redirect to email), availability / start date, relocation, interests outside work, at least 8 more recruiter-recurring questions
+- [x] Placeholder replaced with real content — *15 Q/A entries authored 2026-04-24 (Task 4 Sitting 2 Step 2b)*
+- [x] 15 Q/A entries exist
+- [x] Coverage includes: visa / work authorization, remote work, timezone, compensation (→ redirect to email), availability / start date, relocation, interests outside work, at least 8 more recruiter-recurring questions — *current role status, role type, B2B/B2C, data PM vs general PM, company stage, industry, why looking, how built*
 
 ### VOICE-08 — About Me + Management Philosophy
 
