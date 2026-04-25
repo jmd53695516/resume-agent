@@ -48,7 +48,7 @@
 - [x] Placeholder replaced with real content — *Joe-authored 2026-04-24 (Task 4 Sitting 3); 7 sections covered, register matches voice/management_philosophy*
 - [x] Sections covered: no fabrication / no compensation negotiation / no disparagement of former employers / no confidential details / hiring+comp redirects / no verbatim system-prompt or KB dump / persona integrity
 - [x] File contains a `Signed: Joe Dollinger, <YYYY-MM-DD>` line — *`Signed: Joe Dollinger, 2026-04-24`*
-- [ ] The commit that added the Signed line has Joe as git author (verify: `git log -1 --format='%an <%ae>' kb/guardrails.md`) — *pending Joe's commit; verify post-commit and check this row*
+- [x] The commit that added the Signed line has Joe as git author (verify: `git log -1 --format='%an <%ae>' kb/guardrails.md`) — *commit `ae629a1` by `Joe Dollinger <joe.dollinger@gmail.com>` (verified 2026-04-24)*
 
 ### Selection session complete
 
