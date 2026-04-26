@@ -68,7 +68,7 @@ Slugs selected in Task 5 selection session (2026-04-24):
 
 - [x] Case study 1: `kb/case_studies/snowflake-edw-migration.md` — ≥300 words, all template sections, frontmatter valid — *drafted 2026-04-25, 1101 words; per-file frontmatter checks pass; multi-file count gate opens after all 5 land*
 - [ ] Case study 2: `kb/case_studies/ua-project-rescue.md` — ≥300 words, all template sections, frontmatter valid (slug may be refined in Task 6)
-- [ ] Case study 3: `kb/case_studies/cortex-ai-client-win.md` — ≥300 words, all template sections, frontmatter valid
+- [x] Case study 3: `kb/case_studies/cortex-ai-client-win.md` — ≥300 words, all template sections, frontmatter valid — *drafted 2026-04-25, 1218 words; per-file frontmatter checks pass; client anonymized per `confidential: true`*
 - [ ] Case study 4: `kb/case_studies/gap-brand-hierarchy-consolidation.md` — ≥300 words, all template sections, frontmatter valid
 - [ ] Case study 5 (optional): `kb/case_studies/snowflake-marketplace-datashare.md` — ≥300 words
 - [ ] Case study 6 (optional): N/A — final selection landed at 5
