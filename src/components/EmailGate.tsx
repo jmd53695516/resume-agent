@@ -8,7 +8,7 @@
 // - Button label: "Let's chat" per CONTEXT.md specifics.
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,10 @@ export function EmailGate() {
   const [touched, setTouched] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  // Synchronous double-submit guard. The `submitting` state alone races with
+  // rapid Enter keystrokes because state updates are async — ref flips
+  // immediately so the second call short-circuits (REVIEW WR-03).
+  const submittingRef = useRef(false);
 
   const result = EmailSchema.safeParse(email);
   const showInlineError = touched && !result.success && email.length > 0;
@@ -32,7 +36,8 @@ export function EmailGate() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!result.success || submitting) return;
+    if (submittingRef.current || !result.success) return;
+    submittingRef.current = true;
     setSubmitting(true);
     setServerError(null);
     try {
@@ -52,6 +57,7 @@ export function EmailGate() {
     } catch {
       setServerError('Network trouble. Try again?');
     } finally {
+      submittingRef.current = false;
       setSubmitting(false);
     }
   }
@@ -64,6 +70,7 @@ export function EmailGate() {
       <Input
         id="email"
         type="email"
+        maxLength={254}
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         onBlur={() => setTouched(true)}
