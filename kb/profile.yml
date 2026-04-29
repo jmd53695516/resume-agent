@@ -15,9 +15,11 @@ links:
   github: "https://github.com/jmd53695516"
   personal_sites:
     - url: "https://app-mlb-api-dvrdlepwwy8a8yvw92psnu.streamlit.app/"
-      label: "A No Doubter — MLB home-run baseball Streamlit app"
+      label: "A No Doubter — MLB home-run Streamlit app"
+      description: "Streamlit web-scraping app that calls the MLB API for Statcast home-run data. Pick a year, then a team, then a player; it shows every home run that player hit with location, launch angle, exit velocity, and total distance, and overlays the hits onto the player's home field. You can swap in any other ballpark to see whether each ball would still have left the yard. Built as a learning exercise."
     - url: "https://web-production-d8773.up.railway.app/"
-      label: "Web-based golf game scoring app (Railway)"
+      label: "Golf scorecard auto-scorer (Railway)"
+      description: "Web app for golf scoring. Pick a game type (Nassau, Vegas, Quota), upload a photo of the scorecard, and it returns the automated final: Nassau decides which team won; Vegas/Quota totals points per hole. Built as a learning exercise — has settled a few on-course betting disputes in real life."
 contact:
   email_for_recruiters: "joe.dollinger@gmail.com"
   preferred_contact_method: "email"
