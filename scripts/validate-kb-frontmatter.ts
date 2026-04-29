@@ -8,9 +8,44 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import matter from 'gray-matter';
+import yaml from 'js-yaml';
 
 const CASE_DIR = path.join(process.cwd(), 'kb', 'case_studies');
+const PROFILE_YML = path.join(process.cwd(), 'kb', 'profile.yml');
 const REQUIRED_FIELDS = ['slug', 'hook', 'role', 'timeframe', 'confidential'] as const;
+
+// Anonymization allow-list pulled from kb/profile.yml at script start.
+// When a case study is confidential:true, its role string must not name any
+// company from this list. Lets the check stay accurate as Joe's history
+// evolves without hardcoding company names in the validator (REVIEW WR-02).
+function loadCompanyAllowList(): string[] {
+  try {
+    const parsed = yaml.load(readFileSync(PROFILE_YML, 'utf-8')) as { companies?: unknown };
+    if (Array.isArray(parsed?.companies)) {
+      return parsed.companies.filter((c): c is string => typeof c === 'string' && c.length > 0);
+    }
+  } catch {
+    // Missing or unparseable profile.yml: skip the check silently so the
+    // validator still runs the rest of its required-field gates.
+  }
+  return [];
+}
+
+const COMPANY_ALLOW_LIST = loadCompanyAllowList();
+
+// Returns the first company name found in `text` (word-boundary, case-insensitive)
+// or null if none. Strips leading/trailing non-word chars from each allow-list
+// entry so the closing \b boundary fires against names that end in punctuation
+// (e.g. "Gap Inc." -> matches "Gap Inc" or "Gap Inc." in role text).
+function detectCompanyMention(text: string, companies: string[]): string | null {
+  for (const c of companies) {
+    const stem = c.replace(/^[^\w]+|[^\w]+$/g, '');
+    if (!stem) continue;
+    const escaped = stem.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (new RegExp(`\\b${escaped}\\b`, 'i').test(text)) return c;
+  }
+  return null;
+}
 
 type Failure = { file: string; issues: string[] };
 
@@ -38,6 +73,16 @@ function validateFile(file: string): Failure | null {
 
   if (data.confidential !== undefined && typeof data.confidential !== 'boolean') {
     issues.push(`confidential must be a boolean (got: ${typeof data.confidential})`);
+  }
+
+  // REVIEW WR-02: when confidential:true, role string must not name any company
+  // from the profile.yml allow-list. Author-time discipline (per the case-study
+  // interview protocol) is not enough — this is the actual gate.
+  if (data.confidential === true && typeof data.role === 'string' && COMPANY_ALLOW_LIST.length > 0) {
+    const hit = detectCompanyMention(data.role, COMPANY_ALLOW_LIST);
+    if (hit) {
+      issues.push(`role mentions "${hit}" but file is confidential — anonymize role string`);
+    }
   }
 
   for (const field of ['hook', 'role', 'timeframe']) {
