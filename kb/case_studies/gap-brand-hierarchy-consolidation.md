@@ -2,7 +2,7 @@
 slug: gap-brand-hierarchy-consolidation
 hook: "Quarterbacked the deprecation of dual brand-specific data hierarchies at Gap that had outlived their MDM by 3 years — 14 reports, 4 warehouse models, and 4 pipelines retired; first month-end close came in at zero support tickets against a 3-year baseline of six."
 role: "Head of Data Product — Supply Chain, Gap (also pseudo Chief of Staff to the VP of Data Engineering)"
-timeframe: "2020 Q3"
+timeframe: "2022 Q3"
 confidential: false
 ---
 
