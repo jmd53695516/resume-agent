@@ -12,7 +12,7 @@ target_roles:
   - "Go-to-market PM helping drive a data platform product"
 links:
   linkedin: "https://linkedin.com/in/joe-dollinger/"
-  github: null  # Joe to provide if any; kb/github.md still a placeholder
+  github: "https://github.com/jmd53695516"
   personal_sites:
     - url: "https://app-mlb-api-dvrdlepwwy8a8yvw92psnu.streamlit.app/"
       label: "A No Doubter — MLB home-run baseball Streamlit app"
