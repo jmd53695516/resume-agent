@@ -59,12 +59,12 @@
 - **Rubric bucket(s) it could fill:** failure, leadership, cross-functional rescue
 - **Status:** **SELECTED** for final 5
 
-## Candidate: Hiring Will on a flyer
+## Candidate: Hiring an analyst on a flyer
 
 - **Role / timeframe:** Under Armour
-- **One-line hook:** Hired Will from a non-data team because he was constantly improving processes around him without being asked — tools can be taught, curiosity can't.
+- **One-line hook:** Hired an analyst from a non-data team because he was constantly improving processes around him without being asked — tools can be taught, curiosity can't.
 - **Why this one?:** Hiring philosophy in action; defending a non-obvious hire
-- **Rough outcome:** Will succeeded on Joe's team
+- **Rough outcome:** Hire succeeded on Joe's team
 - **Confidentiality concerns:** None
 - **Freshness:** UA tenure (>2y old)
 - **Rubric bucket(s) it could fill:** leadership, hiring philosophy
@@ -129,7 +129,7 @@ Rubric coverage verified: ✅ failure ✅ leadership-w/o-authority ✅ data-root
 **Cut from candidate pool:**
 - Tableau finance sandbox — subsumed by EDW migration narrative
 - Black Friday flash-report — narrow scope; mention inside EDW migration if relevant
-- Hiring Will on a flyer — already canonized in kb/management_philosophy.md
+- Hiring an analyst on a flyer — already canonized in kb/management_philosophy.md
 - Comp advocacy for underpaid analyst — already canonized in kb/management_philosophy.md
 
 **Slug for #2 is generic (`ua-project-rescue`) and may be refined during the case-study interview in Task 6 once the project itself is named (per guardrails: don't name the original VP).**

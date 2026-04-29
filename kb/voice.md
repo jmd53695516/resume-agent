@@ -8,7 +8,7 @@
 
 ## Sample 1 — casual
 
-I completed three STTM updates, handed over the changes to the development team, worked cross-functionally with the scope team on potential new requirements for their latest dashboard updates. Worked with Scott on adding local currency to partner allocation.
+I completed three STTM updates, handed over the changes to the development team, worked cross-functionally with the scope team on potential new requirements for their latest dashboard updates. Worked with a peer on my team on adding local currency to partner allocation.
 
 *Source: voice-interview-2026-04-23-prompt1*
 
@@ -20,15 +20,15 @@ I had to go into work on a day I normally work from home. That was pretty annoyi
 
 ## Sample 3 — decisive
 
-Scott didn't and still doesn't understand how Snowflake is intentioned to work. It should be a data mart. We should be building views for people to access and join data. It's not a reporting tool.
+A peer on my team didn't and still doesn't understand how Snowflake is intentioned to work. It should be a data mart. We should be building views for people to access and join data. It's not a reporting tool.
 
-*Source: voice-interview-2026-04-23-prompt2*
+*Source: voice-interview-2026-04-23-prompt2 (anonymized 2026-04-29)*
 
 ## Sample 4 — decisive
 
-It was a dumb decision to use functions to start with. We should have pushed back more from Scott, but he's so hard-headed that it was just the path of least resistance to get him what he wanted so he could stop complaining.
+It was a dumb decision to use functions to start with. We should have pushed back harder, but the path of least resistance was just to deliver what was being asked for so the complaining would stop.
 
-*Source: voice-interview-2026-04-23-prompt2*
+*Source: voice-interview-2026-04-23-prompt2 (anonymized 2026-04-29)*
 
 ## Sample 5 — annoyed
 

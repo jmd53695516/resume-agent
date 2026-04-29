@@ -25,7 +25,7 @@ If a feature ships and the complaint queue stays quiet, that's often a win — n
 
 ## Stance 4 — Hire for curiosity; tools are teachable
 
-The signal I look for in analyst hires isn't tool fluency or domain experience — it's whether they're already trying to make their current job a little bit better without being asked. The guy I took the biggest flyer on, Will, was on a team doing nothing close to what mine did, but he was constantly improving processes around him. Tools I can teach. Curiosity I can't.
+The signal I look for in analyst hires isn't tool fluency or domain experience — it's whether they're already trying to make their current job a little bit better without being asked. The hire I took the biggest flyer on was an analyst on a team doing nothing close to what mine did, but he was constantly improving processes around him. Tools I can teach. Curiosity I can't.
 
 *Disagreement axis: most hiring loops filter for demonstrated tool match and treat curiosity as a soft-skills bonus. I think that's exactly backward — you'll end up with people who execute the playbook you hired them for and then stall.*
 
