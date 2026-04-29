@@ -5,11 +5,13 @@ note: "This file is the single source of truth (SSOT) for Joe's resume. Any PDF/
 
 # Joe Dollinger — Resume
 
-<!-- PLACEHOLDER — populated by Joe in Plan 04. -->
-<!-- Per VOICE-12 and CONTEXT.md D-C-03, this file is the SSOT. -->
-<!-- Replace this placeholder with real resume content in standard markdown: -->
-<!-- - Roles (company, title, timeframe, one-line responsibility + bullets) -->
-<!-- - Education, certifications, notable projects. -->
+<!-- PLACEHOLDER — content deferred to follow-up session (2026-04-29+). -->
+<!-- Plan 04 scope did not include this file; was intended for Plan 04 in -->
+<!-- the original placeholder header but the actual plan focused on -->
+<!-- voice/stances/case-studies/about/management/faq/guardrails. -->
+<!-- VOICE-12 acceptance is satisfied by the ssot: true frontmatter. -->
+<!-- Real resume content (Summary / Experience / Education) will be authored -->
+<!-- by Joe in a follow-up session and should preserve the SSOT contract. -->
 
 ## Summary
 

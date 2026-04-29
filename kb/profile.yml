@@ -1,5 +1,10 @@
-# PLACEHOLDER — populated by Joe in Plan 04 (content-acquisition track).
+# PLACEHOLDER — content deferred to follow-up session (2026-04-29+).
+# Plan 04 scope did not include this file; the original header pointed at
+# Plan 04 but the actual plan focused on voice/stances/case-studies/etc.
 # Schema per spec §4: name, location, YoE, target roles, links, contact prefs.
+# Phase 5 Cat-1 evals (deterministic fabrication check) require the
+# companies[]/tools[] arrays populated — block on filling these before
+# Phase 5 even though VOICE-01 is technically satisfied today.
 name: "Joe Dollinger"
 location: "TBD (populated by Joe)"
 years_experience: 0
