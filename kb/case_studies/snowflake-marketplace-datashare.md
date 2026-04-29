@@ -1,7 +1,7 @@
 ---
 slug: snowflake-marketplace-datashare
 hook: "Inherited a Snowflake data-share product for PE clients and made it the alternative to quarterly Excel attachments — 18 months in, 5 accounting systems and 7 clients live."
-role: "Lead Product Owner — Data Cloud Product (current role)"
+role: "Senior Consultant, Nimbl Digital — PM on SEI Data Cloud"
 timeframe: "2024 Q4 – present"
 confidential: false
 ---
