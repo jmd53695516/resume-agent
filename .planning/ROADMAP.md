@@ -12,7 +12,7 @@ Five-phase path from empty repo to a publicly linked, eval-gated chat agent atta
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation & Content** - Scaffold, deterministic KB-backed system prompt, email-gated landing page, and voice-first content populated into `kb/`
+- [x] **Phase 1: Foundation & Content** - Scaffold, deterministic KB-backed system prompt, email-gated landing page, and voice-first content populated into `kb/`
 - [ ] **Phase 2: Safe Chat Core** - Streaming chat with Sonnet, Haiku classifier preflight, spend cap and multi-key rate limits live before any tools exist
 - [ ] **Phase 3: Tools & Resilience** - Three agentic tools (pitch, case study, metric) with trace panel, metric card, health endpoint, and plain-HTML fallback
 - [ ] **Phase 4: Admin & Observability** - GitHub-OAuth-gated admin dashboard with transcripts, cost tracker, abuse log, alarm emails, and external synthetic monitor
