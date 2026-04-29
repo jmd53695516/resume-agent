@@ -94,16 +94,16 @@ For each case study, Joe reads aloud and confirms conversational register (not L
 - [x] Case study 2 passes voice-pass
 - [x] Case study 3 passes voice-pass
 - [x] Case study 4 passes voice-pass
-- [ ] Case study 5 (optional) passes voice-pass
-- [ ] Case study 6 (optional) passes voice-pass
+- [x] Case study 5 passes voice-pass — *snowflake-marketplace-datashare; voice-passed 2026-04-28 with the others*
+- [x] Case study 6 (optional): N/A — final selection landed at 5
 - [x] **Voice-pass sign-off (Joe):** JMD 04/28/2026_______________________ (initials + date)
 
 ## Plan 04 Exit Criteria
 
 Plan is complete when:
-- [ ] Every checkbox above is checked
-- [x] `npx tsx scripts/validate-kb-frontmatter.ts` exits 0 — *passing as of 2026-04-27 (4 case studies validated; floor met)*
+- [x] Every checkbox above is checked
+- [x] `npx tsx scripts/validate-kb-frontmatter.ts` exits 0 — *passing as of 2026-04-28 (5 case studies validated; floor met)*
 - [x] `kb/guardrails.md` git-blame shows Joe as author of the Signed commit
-- [ ] Coverage rubric and voice-pass have Joe's initials + date
+- [x] Coverage rubric and voice-pass have Joe's initials + date
 
 Phase 1 is then content-complete. Plan 02's determinism test (which runs against placeholder content today) will re-run against real content on the next `npm test`; expected behavior: length grows, all other assertions still pass.
