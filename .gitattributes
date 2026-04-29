@@ -1,0 +1,16 @@
+# Pin all text files to LF line endings.
+# Prevents prompt-cache misses caused by Windows checkouts producing CRLF
+# while Vercel's Linux build produces LF — the kb-loader now normalizes
+# at read time too (defense in depth), but this stops the divergence at
+# the working-tree boundary.
+* text=auto eol=lf
+
+# Common binary asset types — never touch line endings.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary

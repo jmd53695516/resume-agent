@@ -2,7 +2,12 @@
 // CHAT-03 coverage: kb-loader reads all 10 required files + sorted case studies,
 // excludes `_`-prefixed fixtures, and is deterministic across readdirSync orderings.
 import { describe, it, expect, beforeEach } from 'vitest';
-import { loadKB, __resetKBCacheForTests, listCaseStudySlugs } from '../../src/lib/kb-loader';
+import {
+  loadKB,
+  __resetKBCacheForTests,
+  __normalizeKBContentForTests,
+  listCaseStudySlugs,
+} from '../../src/lib/kb-loader';
 
 describe('loadKB', () => {
   beforeEach(() => {
@@ -57,5 +62,30 @@ describe('loadKB', () => {
     const kb = loadKB();
     // The placeholder has name: "Joe Dollinger"
     expect(kb).toMatch(/<!-- kb: profile -->[\s\S]*"name": "Joe Dollinger"/);
+  });
+});
+
+describe('normalizeKBContent (REVIEW WR-01)', () => {
+  it('strips a leading UTF-8 BOM', () => {
+    expect(__normalizeKBContentForTests('﻿# Hello\n')).toBe('# Hello\n');
+  });
+
+  it('converts CRLF line endings to LF', () => {
+    expect(__normalizeKBContentForTests('a\r\nb\r\nc')).toBe('a\nb\nc');
+  });
+
+  it('handles BOM + CRLF together', () => {
+    expect(__normalizeKBContentForTests('﻿a\r\nb')).toBe('a\nb');
+  });
+
+  it('is a no-op on already-normalized content (LF, no BOM)', () => {
+    const lf = '# Hello\nworld\n';
+    expect(__normalizeKBContentForTests(lf)).toBe(lf);
+  });
+
+  it('does not strip BOM-like characters that appear mid-content', () => {
+    // Only a leading BOM should be stripped; a U+FEFF later in the string is left.
+    const mid = 'before﻿after';
+    expect(__normalizeKBContentForTests(mid)).toBe(mid);
   });
 });
