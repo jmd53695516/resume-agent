@@ -1,9 +1,9 @@
 ---
 slug: cortex-ai-client-win
 hook: "Surfaced a Cortex AI time-series forecasting use case mid-onsite, navigated AI governance, and shipped to production in 4 months — taking the client's cash-flow forecasting from Excel to a live model that earned the analyst's smile in the demo."
-role: "Senior Product Manager — fund-services data platform"
+role: "Senior Consultant, Nimbl Digital — PM on SEI Data Cloud"
 timeframe: "2025 Q4 – 2026 Q1"
-confidential: true
+confidential: false
 ---
 
 ## Context
