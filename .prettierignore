@@ -1,0 +1,27 @@
+# shadcn-vendored UI components — left in their authored style so future
+# `npx shadcn add <component>` upgrades diff cleanly. REVIEW IN-04 / IN-07.
+src/components/ui/**
+
+# Knowledge-base content is voice-true Joe content. The kb-loader concatenates
+# the raw bytes into the agent's system prompt — Prettier reformatting markdown
+# (line wraps, paragraph spacing) would change what the agent reads to recruiters.
+kb/
+
+# Planning artifacts are hand-authored review/plan/discussion docs. Leave the
+# author's formatting intact.
+.planning/
+
+# Hand-authored docs: project README/CLAUDE, interview protocols, design specs.
+CLAUDE.md
+docs/
+
+# Claude Code local settings — owned by the IDE, not the project.
+.claude/
+
+# Build + dependency outputs.
+.next/
+node_modules/
+coverage/
+
+# Generated lockfile.
+package-lock.json

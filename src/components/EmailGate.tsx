@@ -64,9 +64,7 @@ export function EmailGate() {
 
   return (
     <form onSubmit={handleSubmit} className="mt-6 flex max-w-sm flex-col gap-3">
-      <Label htmlFor="email">
-        Your email (so Joe can follow up if you&apos;re hiring)
-      </Label>
+      <Label htmlFor="email">Your email (so Joe can follow up if you&apos;re hiring)</Label>
       <Input
         id="email"
         type="email"

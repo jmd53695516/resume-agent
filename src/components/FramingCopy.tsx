@@ -14,16 +14,14 @@ export function FramingCopy() {
         Chat with Joe Dollinger&apos;s agent
       </h1>
       <p className="text-base leading-relaxed">
-        I&apos;m an agent built on Joe&apos;s background — roles, projects,
-        decisions, voice — so you can get specific answers about how he thinks
-        and what he&apos;s done without waiting for a calendar slot. Ask about a
-        project, have me tailor a pitch for your company, walk through a case
-        study, or draft a metric framework for a feature you&apos;re sizing up.
+        I&apos;m an agent built on Joe&apos;s background — roles, projects, decisions, voice — so
+        you can get specific answers about how he thinks and what he&apos;s done without waiting for
+        a calendar slot. Ask about a project, have me tailor a pitch for your company, walk through
+        a case study, or draft a metric framework for a feature you&apos;re sizing up.
       </p>
       <p className="text-sm text-slate-600">
-        Drop your email to start. Joe will see a note that you stopped by, so
-        if there&apos;s a role you think fits, leave it in the chat and he&apos;ll
-        follow up directly.
+        Drop your email to start. Joe will see a note that you stopped by, so if there&apos;s a role
+        you think fits, leave it in the chat and he&apos;ll follow up directly.
       </p>
     </div>
   );

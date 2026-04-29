@@ -37,16 +37,13 @@ export default function ChatStub() {
 
   return (
     <main className="mx-auto max-w-2xl space-y-4 px-6 py-12">
-      <h1 className="text-xl font-semibold text-slate-900">
-        Chat coming in Phase 2
-      </h1>
+      <h1 className="text-xl font-semibold text-slate-900">Chat coming in Phase 2</h1>
       <p className="text-slate-700">
-        Your session started. I&apos;ll remember the email you left and pick up
-        the streaming chat once it lands.
+        Your session started. I&apos;ll remember the email you left and pick up the streaming chat
+        once it lands.
       </p>
       <p className="text-sm text-slate-600">
-        Session id:{' '}
-        <code className="rounded bg-slate-100 px-1 py-0.5">{sessionId}</code>
+        Session id: <code className="rounded bg-slate-100 px-1 py-0.5">{sessionId}</code>
       </p>
     </main>
   );

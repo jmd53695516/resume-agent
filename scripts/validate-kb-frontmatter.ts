@@ -78,7 +78,11 @@ function validateFile(file: string): Failure | null {
   // REVIEW WR-02: when confidential:true, role string must not name any company
   // from the profile.yml allow-list. Author-time discipline (per the case-study
   // interview protocol) is not enough — this is the actual gate.
-  if (data.confidential === true && typeof data.role === 'string' && COMPANY_ALLOW_LIST.length > 0) {
+  if (
+    data.confidential === true &&
+    typeof data.role === 'string' &&
+    COMPANY_ALLOW_LIST.length > 0
+  ) {
     const hit = detectCompanyMention(data.role, COMPANY_ALLOW_LIST);
     if (hit) {
       issues.push(`role mentions "${hit}" but file is confidential — anonymize role string`);
@@ -105,8 +109,7 @@ function validateFile(file: string): Failure | null {
 function main() {
   let files: string[];
   try {
-    files = readdirSync(CASE_DIR)
-      .filter((f) => f.endsWith('.md') && !f.startsWith('_'));
+    files = readdirSync(CASE_DIR).filter((f) => f.endsWith('.md') && !f.startsWith('_'));
   } catch (err) {
     console.error(`Could not read ${CASE_DIR}:`, err);
     process.exit(1);

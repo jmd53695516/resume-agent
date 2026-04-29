@@ -66,7 +66,9 @@ export function loadKB(): string {
     const raw = normalizeKBContent(readFileSync(path.join(caseDir, f), 'utf-8'));
     const { data, content } = matter(raw);
     const slug = (typeof data.slug === 'string' && data.slug) || path.basename(f, '.md');
-    parts.push(`<!-- kb: case_study/${slug} -->\n<!-- meta: ${JSON.stringify(data)} -->\n${content.trim()}`);
+    parts.push(
+      `<!-- kb: case_study/${slug} -->\n<!-- meta: ${JSON.stringify(data)} -->\n${content.trim()}`,
+    );
   }
 
   cached = parts.join('\n\n');

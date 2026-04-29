@@ -50,10 +50,7 @@ describe('buildSystemPrompt determinism', () => {
   it('source file retains the Phase 2 cache-breakpoint comment (CHAT-05)', () => {
     // Open-question #4 resolution: keep the // PHASE 2: marker as a
     // future-readability anchor for Phase 2's first refactor commit.
-    const src = readFileSync(
-      path.join(process.cwd(), 'src/lib/system-prompt.ts'),
-      'utf-8',
-    );
+    const src = readFileSync(path.join(process.cwd(), 'src/lib/system-prompt.ts'), 'utf-8');
     expect(src).toMatch(/\/\/ PHASE 2:/);
   });
 });
