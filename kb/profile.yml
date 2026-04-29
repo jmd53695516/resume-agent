@@ -1,24 +1,50 @@
-# PLACEHOLDER — content deferred to follow-up session (2026-04-29+).
-# Plan 04 scope did not include this file; the original header pointed at
-# Plan 04 but the actual plan focused on voice/stances/case-studies/etc.
-# Schema per spec §4: name, location, YoE, target roles, links, contact prefs.
-# Phase 5 Cat-1 evals (deterministic fabrication check) require the
-# companies[]/tools[] arrays populated — block on filling these before
-# Phase 5 even though VOICE-01 is technically satisfied today.
+# Profile metadata for Joe Dollinger.
+# resume.md is the SSOT for narrative content; this file is the structured complement.
+# companies[] and tools[] serve as the agent's name-token allow-list in Phase 5
+# eval Cat 1 (deterministic fabrication check). Anything here is OK for the agent
+# to mention; anything not here is treated as a fabrication trigger.
 name: "Joe Dollinger"
-location: "TBD (populated by Joe)"
-years_experience: 0
+location: "Lansdale, PA"
+years_experience: 16
 target_roles:
-  - "TBD"
+  - "Senior Product Manager — data space / data platform"
+  - "Product Manager — data cloud product"
+  - "Go-to-market PM helping drive a data platform product"
 links:
-  linkedin: "TBD"
-  github: "TBD"
-  personal_site: "TBD"
+  linkedin: "https://linkedin.com/in/joe-dollinger/"
+  github: null  # Joe to provide if any; kb/github.md still a placeholder
+  personal_sites:
+    - url: "https://app-mlb-api-dvrdlepwwy8a8yvw92psnu.streamlit.app/"
+      label: "A No Doubter — MLB home-run baseball Streamlit app"
+    - url: "https://web-production-d8773.up.railway.app/"
+      label: "Web-based golf game scoring app (Railway)"
 contact:
-  email_for_recruiters: "TBD (populated by Joe)"
+  email_for_recruiters: "joe.dollinger@gmail.com"
   preferred_contact_method: "email"
-# The agent uses this as a name-token allow-list in Phase 5 eval cat 1
-# (deterministic fabrication check). Companies/roles/tools Joe has actually
-# worked with are added here by Plan 04.
-companies: []
-tools: []
+companies:
+  - "Nimbl Digital"
+  - "SEI"
+  - "Retailcloud"
+  - "Gap Inc."
+  - "Under Armour"
+  - "GSK"
+  - "Lockheed Martin Aeronautics"
+  - "Dorman Products"
+tools:
+  - "Snowflake"
+  - "Cortex AI"
+  - "Power BI"
+  - "SQL"
+  - "Python"
+  - "Tableau"
+  - "MicroStrategy"
+  - "dbt"
+  - "Git"
+  - "JIRA"
+  - "ServiceNow"
+  - "SAP AFS"
+  - "SAP FMS"
+  - "SAP BusinessObjects"
+  - "SAP HANA"
+  - "Excel"
+  - "Control-M"
