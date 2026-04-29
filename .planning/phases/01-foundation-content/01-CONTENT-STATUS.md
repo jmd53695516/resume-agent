@@ -69,10 +69,10 @@ Slugs selected in Task 5 selection session (2026-04-24):
 - [x] Case study 1: `kb/case_studies/snowflake-edw-migration.md` — ≥300 words, all template sections, frontmatter valid — *drafted 2026-04-25, 1101 words; per-file frontmatter checks pass; multi-file count gate opens after all 5 land*
 - [ ] Case study 2: `kb/case_studies/ua-project-rescue.md` — ≥300 words, all template sections, frontmatter valid (slug may be refined in Task 6)
 - [x] Case study 3: `kb/case_studies/cortex-ai-client-win.md` — ≥300 words, all template sections, frontmatter valid — *drafted 2026-04-25, 1218 words; per-file frontmatter checks pass; client anonymized per `confidential: true`*
-- [ ] Case study 4: `kb/case_studies/gap-brand-hierarchy-consolidation.md` — ≥300 words, all template sections, frontmatter valid
+- [x] Case study 4: `kb/case_studies/gap-brand-hierarchy-consolidation.md` — ≥300 words, all template sections, frontmatter valid — *drafted 2026-04-27, 1450 words; per-file frontmatter checks pass; killed-project + leadership-w/o-authority + cross-functional rubric coverage*
 - [x] Case study 5: `kb/case_studies/snowflake-marketplace-datashare.md` — ≥300 words, all template sections, frontmatter valid — *drafted 2026-04-27, 1268 words; per-file frontmatter checks pass; inherited-project framing (18-month long-arc, ongoing)*
 - [ ] Case study 6 (optional): N/A — final selection landed at 5
-- [ ] `npx tsx scripts/validate-kb-frontmatter.ts` exits 0
+- [x] `npx tsx scripts/validate-kb-frontmatter.ts` exits 0 — *passing as of 2026-04-27 (4 case studies validated; floor met)*
 
 ### VOICE-03 — Coverage rubric satisfied across the final case studies
 
@@ -102,7 +102,7 @@ For each case study, Joe reads aloud and confirms conversational register (not L
 
 Plan is complete when:
 - [ ] Every checkbox above is checked
-- [ ] `npx tsx scripts/validate-kb-frontmatter.ts` exits 0
+- [x] `npx tsx scripts/validate-kb-frontmatter.ts` exits 0 — *passing as of 2026-04-27 (4 case studies validated; floor met)*
 - [ ] `kb/guardrails.md` git-blame shows Joe as author of the Signed commit
 - [ ] Coverage rubric and voice-pass have Joe's initials + date
 
