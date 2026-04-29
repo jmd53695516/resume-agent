@@ -67,43 +67,43 @@
 Slugs selected in Task 5 selection session (2026-04-24):
 
 - [x] Case study 1: `kb/case_studies/snowflake-edw-migration.md` — ≥300 words, all template sections, frontmatter valid — *drafted 2026-04-25, 1101 words; per-file frontmatter checks pass; multi-file count gate opens after all 5 land*
-- [ ] Case study 2: `kb/case_studies/ua-project-rescue.md` — ≥300 words, all template sections, frontmatter valid (slug may be refined in Task 6)
+- [x] Case study 2: `kb/case_studies/ua-project-rescue.md` — ≥300 words, all template sections, frontmatter valid — *drafted 2026-04-28, 1963 words; per-file frontmatter checks pass; failure rubric coverage (under-staffed BI rescue, smart-case grain bug, 18% fill-rate recovery)*
 - [x] Case study 3: `kb/case_studies/cortex-ai-client-win.md` — ≥300 words, all template sections, frontmatter valid — *drafted 2026-04-25, 1218 words; per-file frontmatter checks pass; client anonymized per `confidential: true`*
 - [x] Case study 4: `kb/case_studies/gap-brand-hierarchy-consolidation.md` — ≥300 words, all template sections, frontmatter valid — *drafted 2026-04-27, 1450 words; per-file frontmatter checks pass; killed-project + leadership-w/o-authority + cross-functional rubric coverage*
 - [x] Case study 5: `kb/case_studies/snowflake-marketplace-datashare.md` — ≥300 words, all template sections, frontmatter valid — *drafted 2026-04-27, 1268 words; per-file frontmatter checks pass; inherited-project framing (18-month long-arc, ongoing)*
 - [ ] Case study 6 (optional): N/A — final selection landed at 5
-- [x] `npx tsx scripts/validate-kb-frontmatter.ts` exits 0 — *passing as of 2026-04-27 (4 case studies validated; floor met)*
+- [x] `npx tsx scripts/validate-kb-frontmatter.ts` exits 0 — *passing as of 2026-04-28 (5 case studies validated; floor met)*
 
 ### VOICE-03 — Coverage rubric satisfied across the final case studies
 
 Mark which slug fills which rubric bucket (a slug may fill multiple). Mapping fixed at selection (2026-04-24); checkboxes flip during Task 7 voice-pass once case-study drafts confirm coverage:
 
-- [ ] Failure: `ua-project-rescue`
-- [ ] Leadership-without-authority: `gap-brand-hierarchy-consolidation`
-- [ ] Data-rooted: `snowflake-edw-migration`, `cortex-ai-client-win`, `snowflake-marketplace-datashare`
-- [ ] Cross-functional conflict: `ua-project-rescue`, `cortex-ai-client-win`, `gap-brand-hierarchy-consolidation`, `snowflake-marketplace-datashare`
-- [ ] Recent (<2y): `cortex-ai-client-win`, `snowflake-marketplace-datashare`
-- [ ] Long-arc (>12mo): `snowflake-edw-migration`, `snowflake-marketplace-datashare`
-- [ ] **Final rubric sign-off (Joe):** _______________________ (initials + date)
+- [x] Failure: `ua-project-rescue`
+- [x] Leadership-without-authority: `gap-brand-hierarchy-consolidation`
+- [x] Data-rooted: `snowflake-edw-migration`, `cortex-ai-client-win`, `snowflake-marketplace-datashare`
+- [x] Cross-functional conflict: `ua-project-rescue`, `cortex-ai-client-win`, `gap-brand-hierarchy-consolidation`, `snowflake-marketplace-datashare`
+- [x] Recent (<2y): `cortex-ai-client-win`, `snowflake-marketplace-datashare`
+- [x] Long-arc (>12mo): `snowflake-edw-migration`, `snowflake-marketplace-datashare`
+- [x] **Final rubric sign-off (Joe):** __JMD 04/28/2026_____________________ (initials + date)
 
 ### VOICE-10 — Voice-pass final read
 
 For each case study, Joe reads aloud and confirms conversational register (not LinkedIn register):
 
-- [ ] Case study 1 passes voice-pass
-- [ ] Case study 2 passes voice-pass
-- [ ] Case study 3 passes voice-pass
-- [ ] Case study 4 passes voice-pass
+- [x] Case study 1 passes voice-pass
+- [x] Case study 2 passes voice-pass
+- [x] Case study 3 passes voice-pass
+- [x] Case study 4 passes voice-pass
 - [ ] Case study 5 (optional) passes voice-pass
 - [ ] Case study 6 (optional) passes voice-pass
-- [ ] **Voice-pass sign-off (Joe):** _______________________ (initials + date)
+- [x] **Voice-pass sign-off (Joe):** JMD 04/28/2026_______________________ (initials + date)
 
 ## Plan 04 Exit Criteria
 
 Plan is complete when:
 - [ ] Every checkbox above is checked
 - [x] `npx tsx scripts/validate-kb-frontmatter.ts` exits 0 — *passing as of 2026-04-27 (4 case studies validated; floor met)*
-- [ ] `kb/guardrails.md` git-blame shows Joe as author of the Signed commit
+- [x] `kb/guardrails.md` git-blame shows Joe as author of the Signed commit
 - [ ] Coverage rubric and voice-pass have Joe's initials + date
 
 Phase 1 is then content-complete. Plan 02's determinism test (which runs against placeholder content today) will re-run against real content on the next `npm test`; expected behavior: length grows, all other assertions still pass.
