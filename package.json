@@ -16,9 +16,16 @@
     "install-hooks": "bash scripts/install-pre-commit-hook.sh"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.71",
+    "@ai-sdk/react": "^3.0.170",
+    "@anthropic-ai/sdk": "^0.90.0",
     "@base-ui/react": "^1.4.1",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.104.0",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.37.0",
+    "@vercel/functions": "^3.4.4",
+    "ai": "^6.0.168",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "gray-matter": "^4.0.3",
