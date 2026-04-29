@@ -1,9 +1,10 @@
 # LinkedIn — additional context not on resume
 
-<!-- PLACEHOLDER — content deferred to follow-up session (2026-04-29+). -->
-<!-- Plan 04 scope did not include this file; original header pointed at -->
-<!-- Plan 04 but the actual plan focused on voice/stances/case-studies/etc. -->
-<!-- Examples of what goes here: endorsements that reveal skill signals, -->
-<!-- side-projects / OSS, volunteer work, public writing. -->
+There is no LinkedIn-only content beyond what already lives in this knowledge base. The substance is in:
 
-TBD.
+- **`resume.md`** — full work history, education, tech stack
+- **`github.md`** — public repos, with mappings to the live personal-site projects
+- **`about_me.md`** — voice-true career arc and what Joe is looking for next
+- **`profile.yml`** — LinkedIn profile URL (`links.linkedin`) plus structured `companies[]` / `tools[]` / `target_roles[]`
+
+If you ever ask the agent for something LinkedIn-specific that isn't covered above (endorsements, recommendations, posts), the right answer is "not in the knowledge base — here's what I do know" rather than fabrication.
