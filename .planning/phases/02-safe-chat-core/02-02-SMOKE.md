@@ -101,3 +101,45 @@ are part of every `event: 'chat'` log payload.
 - [x] sdk_message_id roundtrip (string)
 - [x] Structured log line includes cache_*_input_tokens
 - [x] No stack traces in dev server log
+
+## Task 3 — Cache-hit verification (CHAT-06)
+
+Same session `fFYMEUbaTkBlTutGShmZt`, second + third turn ~2 minutes after the
+first (well within Anthropic's 5-minute ephemeral cache TTL).
+
+### Assistant rows for the session (in order)
+
+| created_at | input_tokens | output_tokens | cache_read | cache_creation | cost_cents | stop_reason |
+|------------|---------------|----------------|-------------|------------------|--------------|----------------|
+| 01:09:41 | 19834 | 43 | 0 | 19814 | 14 | stop |
+| 01:11:29 | 0 | 0 | 0 | 0 | 0 | deflection:offtopic |
+| 01:11:45 | 19898 | 42 | 19814 | 60 | 7 | stop |
+
+### Findings
+
+- Row #1 (cold start): `cache_creation_tokens = 19814`, `cache_read = 0`. First
+  call mints the cache block. Confirms `cacheControl: { type: 'ephemeral' }`
+  is wired (otherwise this would be 0).
+- Row #2 (deflection:offtopic): the second turn's user message ("And one thing
+  about your BI background?") tripped the classifier (offtopic). No Anthropic
+  call → no cache activity. Confirms the deflection path bypasses the model.
+- Row #3 (cache HIT): re-asked the question with clearer phrasing ("What was
+  your favorite part about working in BI for so long?"). `cache_read = 19814`
+  matches the bytes minted by row #1 — same block served from cache.
+  `cache_creation = 60` is the small delta for the appended conversation
+  context (turn-3 user/assistant history).
+
+### Cost impact
+
+- Cold call: 14¢
+- Cached call: 7¢
+- Savings: 50% on this turn (would converge to >80% as input grows relative
+  to fresh deltas — see CONTEXT.md cost model).
+
+### Acceptance
+
+- [x] First call: cache_creation > 0, cache_read = 0
+- [x] Second cached call: cache_read > 0
+- [x] CACHE_HIT_VERIFIED printed by verify script
+- [x] Two `event: 'chat'` log lines (cold + cached) both carry cache_*_input_tokens fields
+- [x] CHAT-05 + CHAT-06 verified end-to-end against live Anthropic API
