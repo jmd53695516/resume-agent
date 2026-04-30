@@ -63,7 +63,14 @@ Plans:
   4. Every tool call renders in a collapsible "See what I did" trace panel under the assistant reply, tool-call depth is capped at 3 per turn with `stopWhen: stepCountIs(5)`, and duplicate-arg tool calls trigger a stop-sequence
   5. When any dependency is impaired, the framing-page status banner turns yellow with a specific message ("Company-pitch tool temporarily offline, everything else works"); when `/api/chat` returns 500, the same URL serves a plain-HTML snapshot of Joe's background with a direct-email CTA
   6. Tool errors produce honest in-character fallback messages; fetched Exa content is never interpreted as instructions (prompt-injection via scraped pages blocked); all tool `execute` functions are read-only, with writes only in `onFinish`
-**Plans**: TBD
+**Plans:** 6 plans
+Plans:
+- [ ] 03-00-PLAN.md — Foundation prep: pino@10 swap, exa-js install, EXA_API_KEY required, getCaseStudy(slug) helper, exa.ts client, health.ts skeleton (OBSV-16)
+- [ ] 03-01-PLAN.md — Three AI SDK tools (research_company, get_case_study, design_metric_framework) + sanitize/depth-cap/failure-copy modules + system-prompt extensions for fetched-content + anti-reflexive-chaining (TOOL-01..05, TOOL-09, TOOL-11)
+- [ ] 03-02-PLAN.md — Wire tools + prepareStep + persistToolCallTurn + heartbeats into /api/chat onFinish (TOOL-06, TOOL-07, TOOL-08, TOOL-10)
+- [ ] 03-03-PLAN.md — TracePanel + MetricCard + MessageBubble extension to walk message.parts (CHAT-13, TOOL-06, TOOL-10)
+- [ ] 03-04-PLAN.md — /api/health endpoint + StatusBanner SC + dual-page mounting via app/chat/layout.tsx (OBSV-07, OBSV-10, OBSV-11)
+- [ ] 03-05-PLAN.md — Plain-HTML fallback: build-time KB extractor + branched render in page.tsx + error.tsx belt-and-suspenders + ChatUI persistent-500 redirect (OBSV-12)
 **UI hint**: yes
 
 ### Phase 4: Admin & Observability
