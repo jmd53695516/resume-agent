@@ -105,7 +105,7 @@ Phase 3 wires the **three agentic tools** into the existing `/api/chat` streamin
 
 ### Logging — Pino (I)
 
-- **D-I-01:** Add `pino@9.x` as a dependency. Replace the current `src/lib/logger.ts` console.log shim with a Pino default JSON logger.
+- **D-I-01:** Add `pino@10.x` as a dependency (updated 2026-04-30 from initial `pino@9.x` lockdown — research §6 recommended 10.x as current stable, Joe approved). Replace the current `src/lib/logger.ts` console.log shim with a Pino default JSON logger.
 - **D-I-02:** **No transports** — direct JSON to stdout. **No `pino-pretty` in production** (Pitfall 8 / OBSV-16 — worker threads break on Vercel). Dev-only optional `pino-pretty` piped manually outside the app process.
 - **D-I-03:** Levels used: `info` (every request, every tool call), `warn` (rate-limit / spend-cap trip / borderline classifier confidence), `error` (uncaught route error, persistence fail, tool internal fail).
 - **D-I-04:** Per-tool-call log line fields: `event: 'tool_call'`, `tool_name`, `args_hash` (SHA-256 of JSON.stringify(args), **NOT raw args** — the description field for `design_metric_framework` could contain PII), `latency_ms`, `status: 'ok' | 'error'`, `error_class` (when error).
