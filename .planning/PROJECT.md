@@ -12,28 +12,27 @@ A recruiter in under five minutes walks away with a distinctive, specific impres
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] Public landing page with brief framing and soft email gate (no password) — *Validated in Phase 1: Foundation & Content*
+- [x] Knowledge base of resume, profile, about-me, management philosophy, voice samples, stances, FAQ, guardrails, 4-6 case studies — *Validated in Phase 1: Foundation & Content*
+- [x] Streaming chat UI with first-person voice as Joe, grounded in a markdown knowledge base — *Validated in Phase 2: Safe Chat Core (live SMOKE evidence + SpaceX trap test passed during close-out)*
+- [x] Input classifier (Haiku) that gates abuse / injection / offtopic / sensitive messages — *Validated in Phase 2: Safe Chat Core (4 trip tests passed at $0 Sonnet cost)*
+- [x] Four-layer voice defense (authentic samples, negative directives, opinion-density stances, voice-first case studies) — *Validated in Phase 2: Safe Chat Core (system-prompt determinism + VOICE-11 conformance test cases pass)*
+- [x] Hard daily spend cap in code + per-IP/per-email rate limits + max output tokens + max conversation length — *Validated in Phase 2: Safe Chat Core (six gates run cheapest-first; cache hit confirmed cold 14¢ → warm 7¢)*
 
 ### Active
 
 <!-- Current scope. Building toward these. All hypotheses until shipped. -->
 
-- [ ] Public landing page with brief framing and soft email gate (no password)
-- [ ] Streaming chat UI with first-person voice as Joe, grounded in a markdown knowledge base
-- [ ] Tool: company research + tailored 3-paragraph pitch with live sources (`research_company`)
-- [ ] Tool: menu-driven case-study walkthrough narrated first-person (`get_case_study`)
-- [ ] Tool: structured metric framework rendered as card + Joe's commentary (`design_metric_framework`)
-- [ ] Input classifier (Haiku) that gates abuse / injection / offtopic / sensitive messages
-- [ ] Four-layer voice defense (authentic samples, negative directives, opinion-density stances, voice-first case studies)
-- [ ] Tool-call trace panel visible to the user ("see what I did")
-- [ ] Knowledge base of resume, profile, about-me, management philosophy, voice samples, stances, FAQ, guardrails, 4-6 case studies
-- [ ] Hard daily spend cap in code + per-IP/per-email rate limits + max output tokens + max conversation length
-- [ ] Graceful degradation banner when any dependency is impaired; friendly "come back later" on spend cap
-- [ ] End-of-session optional feedback prompt ("was this useful?")
-- [ ] Admin dashboard (GitHub-OAuth-gated) with sessions, transcripts, cost tracking, abuse log, tool-health ping
-- [ ] New-session email notifications to Joe (with company-domain priority)
-- [ ] Eval suite (~40 cases) across 6 categories: factual fidelity, tool correctness, persona, voice fidelity, abuse resilience, UX smoke
-- [ ] Deployed to public URL with QR code linked from Joe's resume
+- [ ] Tool: company research + tailored 3-paragraph pitch with live sources (`research_company`) — Phase 3
+- [ ] Tool: menu-driven case-study walkthrough narrated first-person (`get_case_study`) — Phase 3
+- [ ] Tool: structured metric framework rendered as card + Joe's commentary (`design_metric_framework`) — Phase 3
+- [ ] Tool-call trace panel visible to the user ("see what I did") — Phase 3
+- [ ] Graceful degradation banner when any dependency is impaired; friendly "come back later" on spend cap — Phase 3
+- [ ] End-of-session optional feedback prompt ("was this useful?") — Phase 4
+- [ ] Admin dashboard (GitHub-OAuth-gated) with sessions, transcripts, cost tracking, abuse log, tool-health ping — Phase 4
+- [ ] New-session email notifications to Joe (with company-domain priority) — Phase 4
+- [ ] Eval suite (~40 cases) across 6 categories: factual fidelity, tool correctness, persona, voice fidelity, abuse resilience, UX smoke — Phase 5
+- [ ] Deployed to public URL with QR code linked from Joe's resume — Phase 5
 
 ### Out of Scope
 
@@ -115,5 +114,16 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
+## Current State
+
+**Phase 2 (Safe Chat Core) closed 2026-04-30.** A recruiter can submit an email, land in `/chat`, click a starter or type freely, and receive a streaming first-person Sonnet 4.6 reply that obeys VOICE-11 voice rules and refuses fabrication (live SpaceX trap test confirmed). Six gates (body validation → session lookup → 30-turn cap → spend cap → rate limits → classifier) run cheapest-first ahead of every Sonnet call. Cache hit confirmed (50% cost savings cold → warm). Zero tools live yet, so cost exposure is bounded.
+
+Deferred from Phase 2 (tracked, not blocking closure):
+- **SAFE-12** — Anthropic $20/mo org-level spend cap (operational only, no code) — gates Phase 5 LAUNCH-06 deploy
+- **REVIEW WR-01** — message-length cap on `/api/chat` (classifier cost scales with input tokens before the local $3 cap fires)
+- **REVIEW WR-02..05** — IP spoofing on `/api/session`, atomic Redis ops, classifier delimiter wrap, `/api/session` rate limit
+
+Next up: Phase 3 (Tools & Resilience) — the three PM-flavored agentic tools (pitch / case-study / metric framework) and the trace panel that make the agent the differentiated portfolio artifact.
+
 ---
-*Last updated: 2026-04-21 after initialization from design spec*
+*Last updated: 2026-04-30 after Phase 2 (Safe Chat Core) closure*

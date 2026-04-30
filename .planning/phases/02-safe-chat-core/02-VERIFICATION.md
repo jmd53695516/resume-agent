@@ -1,8 +1,10 @@
 ---
 phase: 02-safe-chat-core
 verified: 2026-04-29T21:32:00Z
-status: human_needed
+human_resolved: 2026-04-29T21:50:00Z
+status: passed
 score: 6/6 must-haves verified
+human_resolution: "All 3 human_verification items resolved live during Phase 2 close-out walk-through 2026-04-29. Item 1 (browser smoke): Joe confirmed visual streaming + VOICE-11 conformance at localhost:3000. Item 2 (SpaceX trap test): executed live against /api/chat session ikRj1w3XU3wGraGm_ecLU; reply explicitly refused fictional SpaceX role and offered Lockheed Martin Aeronautics as KB-grounded alternative. Item 3 (smoke route cleanup): src/app/api/smoke-ui-stream/route.ts and parent dir deleted; tsc clean, 48/48 vitest passing. See 02-HUMAN-UAT.md (status: resolved, 3/3 passed)."
 overrides_applied: 1
 overrides:
   - must_have: "SAFE-12 — Anthropic org-level $20/mo spend limit operational"
