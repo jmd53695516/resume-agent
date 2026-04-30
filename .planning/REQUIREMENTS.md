@@ -30,7 +30,7 @@
 - [ ] **CHAT-09** — Agent caps output to ≤1500 tokens per response; defaults to <120 words
 - [ ] **CHAT-10** — Conversation capped at 30 turns per session with graceful "we've covered a lot, email Joe to keep going" message
 - [ ] **CHAT-11** — All messages (user + assistant + tool) persisted to `messages` table with classifier verdict, token counts, and latency
-- [ ] **CHAT-12** — Message persistence uses app-generated UUIDs (not AI SDK message IDs)
+- [x] **CHAT-12** — Message persistence uses app-generated UUIDs (not AI SDK message IDs)
 - [ ] **CHAT-13** — Every tool call rendered in a collapsible "See what I did" trace panel under the assistant reply
 - [ ] **CHAT-14** — Suggested starter prompts / three tool buttons visible from the empty-state chat UI
 
@@ -46,7 +46,7 @@
 - [ ] **VOICE-08** — `about_me.md` (400-600 words, warm, first-person) and `management_philosophy.md` (600-1000 words, opinionated, concrete)
 - [ ] **VOICE-09** — `guardrails.md` written by Joe and covers: no fabrication, no salary negotiation, no disparagement of former employers, no confidential details, hiring/comp questions redirect to email
 - [ ] **VOICE-10** — Case studies drafted voice-first (conversational register from the first draft, not polished into voice at the end)
-- [ ] **VOICE-11** — System-prompt tonal directives enumerate negative rules (no "Great question", banned vocab list, no unsolicited bullets, no markdown headers in chat, use contractions, take positions, say "I don't know" not "it depends", <120 words default)
+- [x] **VOICE-11** — System-prompt tonal directives enumerate negative rules (no "Great question", banned vocab list, no unsolicited bullets, no markdown headers in chat, use contractions, take positions, say "I don't know" not "it depends", <120 words default)
 - [ ] **VOICE-12** — `resume.md` declared the single source of truth (SSOT); any PDF/other format generated from it
 
 ### Tools (TOOL)
@@ -74,7 +74,7 @@
 - [ ] **SAFE-07** — Per-session rate limit as a safety net on top of IP + email
 - [ ] **SAFE-08** — Token-cost-based rate limiting (not just message-count) so a single abusive session can't stay at "1 message" while costing 30x
 - [ ] **SAFE-09** — Spend-cap check runs BEFORE the Anthropic API call, not after
-- [ ] **SAFE-10** — System-prompt hardening refuses persona change, refuses instruction override, refuses to reveal system prompt or KB verbatim (defense-in-depth alongside classifier)
+- [x] **SAFE-10** — System-prompt hardening refuses persona change, refuses instruction override, refuses to reveal system prompt or KB verbatim (defense-in-depth alongside classifier)
 - [ ] **SAFE-11** — System prompt never contains dynamic content (no timestamps, session IDs, per-request data) — cache integrity preserved
 - [ ] **SAFE-12** — Anthropic org-level spend limit set matching the code-level cap (operational task before any public URL)
 - [ ] **SAFE-13** — Cloudflare Turnstile feature-flagged and wired but OFF — ready to flip in <10 minutes if abuse is observed
@@ -186,7 +186,7 @@ Each v1 requirement is mapped to exactly one phase. Coverage: 94/94.
 | CHAT-09 | Phase 2 | Pending |
 | CHAT-10 | Phase 2 | Pending |
 | CHAT-11 | Phase 2 | Pending |
-| CHAT-12 | Phase 2 | Pending |
+| CHAT-12 | Phase 2 | Complete |
 | CHAT-13 | Phase 3 | Pending |
 | CHAT-14 | Phase 2 | Pending |
 | VOICE-01 | Phase 1 | Pending |
@@ -199,7 +199,7 @@ Each v1 requirement is mapped to exactly one phase. Coverage: 94/94.
 | VOICE-08 | Phase 1 | Pending |
 | VOICE-09 | Phase 1 | Pending |
 | VOICE-10 | Phase 1 | Pending |
-| VOICE-11 | Phase 2 | Pending |
+| VOICE-11 | Phase 2 | Complete |
 | VOICE-12 | Phase 1 | Pending |
 | TOOL-01 | Phase 3 | Pending |
 | TOOL-02 | Phase 3 | Pending |
@@ -221,7 +221,7 @@ Each v1 requirement is mapped to exactly one phase. Coverage: 94/94.
 | SAFE-07 | Phase 2 | Pending |
 | SAFE-08 | Phase 2 | Pending |
 | SAFE-09 | Phase 2 | Pending |
-| SAFE-10 | Phase 2 | Pending |
+| SAFE-10 | Phase 2 | Complete |
 | SAFE-11 | Phase 1 | Pending |
 | SAFE-12 | Phase 2 | Pending |
 | SAFE-13 | Phase 2 | Pending |
