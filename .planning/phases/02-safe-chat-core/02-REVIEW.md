@@ -2,14 +2,13 @@
 phase: 02-safe-chat-core
 reviewed: 2026-04-29T00:00:00Z
 depth: standard
-files_reviewed: 26
+files_reviewed: 25
 files_reviewed_list:
   - .env.example
   - .gitignore
   - package.json
   - src/app/api/chat/route.ts
   - src/app/api/session/route.ts
-  - src/app/api/smoke-ui-stream/route.ts
   - src/app/chat/page.tsx
   - src/components/ChatUI.tsx
   - src/components/EmailGate.tsx
@@ -149,11 +148,10 @@ At minimum, document the gap in the phase plan if it's deliberately deferred to 
 
 ## Info
 
-### IN-01: Public smoke-test route still ships in source
+### IN-01: Public smoke-test route still ships in source — RESOLVED 2026-04-29
 
-**File:** `src/app/api/smoke-ui-stream/route.ts:1-32`
-**Issue:** The header comment says "Temporary Phase 2 smoke route — Delete after Plan 02-03 ChatUI confirms deflection rendering works via /api/chat (which uses the same chunk API from Plan 02-02)." Plan 02-03 has shipped, so this route is now dead code that's still publicly accessible at `/api/smoke-ui-stream`. It returns hardcoded text, so there's no security risk, but it's a stale TODO that adds confusion for future readers.
-**Fix:** Delete the file (and remove the directory if empty). Plan 02-03 SUMMARY notes if the route was retained intentionally, otherwise drop it.
+**File:** `src/app/api/smoke-ui-stream/route.ts:1-32` (deleted)
+**Resolution:** File and parent directory deleted during Phase 2 verification walk-through. v6 wire-protocol contract is now load-bearing across `/api/chat` + `useChat` consumer in ChatUI; a no-op smoke route added attack surface without test value. Typecheck and 48/48 tests remain green after deletion.
 
 ### IN-02: Hardcoded email address in deflection copy
 
