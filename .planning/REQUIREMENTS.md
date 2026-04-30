@@ -19,17 +19,17 @@
 
 ### Chat Core (CHAT)
 
-- [ ] **CHAT-01** — Streaming chat UI (token-by-token response) with a "thinking / calling tool" indicator while waiting
-- [ ] **CHAT-02** — Main-agent replies in first-person voice as Joe
+- [x] **CHAT-01** — Streaming chat UI (token-by-token response) with a "thinking / calling tool" indicator while waiting
+- [x] **CHAT-02** — Main-agent replies in first-person voice as Joe
 - [ ] **CHAT-03** — System prompt loads the full knowledge base (<50k tokens) from versioned markdown files in `kb/`
 - [ ] **CHAT-04** — System prompt prefix is byte-identical between requests (no dynamic content) so Anthropic prompt-caching actually hits
 - [ ] **CHAT-05** — Explicit `cache_control` with non-default TTL set on the system prompt (never rely on 5-min default)
-- [ ] **CHAT-06** — `cache_read_input_tokens` is logged every turn; alarm if below threshold for 3 consecutive calls
-- [ ] **CHAT-07** — Agent refuses to fabricate: when asked about anything not in the KB, says "I don't know" and offers the closest real alternative
-- [ ] **CHAT-08** — Agent refuses to narrate fictional / counterfactual projects (trap prompts in eval cat 1)
-- [ ] **CHAT-09** — Agent caps output to ≤1500 tokens per response; defaults to <120 words
-- [ ] **CHAT-10** — Conversation capped at 30 turns per session with graceful "we've covered a lot, email Joe to keep going" message
-- [ ] **CHAT-11** — All messages (user + assistant + tool) persisted to `messages` table with classifier verdict, token counts, and latency
+- [x] **CHAT-06** — `cache_read_input_tokens` is logged every turn; alarm if below threshold for 3 consecutive calls
+- [x] **CHAT-07** — Agent refuses to fabricate: when asked about anything not in the KB, says "I don't know" and offers the closest real alternative
+- [x] **CHAT-08** — Agent refuses to narrate fictional / counterfactual projects (trap prompts in eval cat 1)
+- [x] **CHAT-09** — Agent caps output to ≤1500 tokens per response; defaults to <120 words
+- [x] **CHAT-10** — Conversation capped at 30 turns per session with graceful "we've covered a lot, email Joe to keep going" message
+- [x] **CHAT-11** — All messages (user + assistant + tool) persisted to `messages` table with classifier verdict, token counts, and latency
 - [x] **CHAT-12** — Message persistence uses app-generated UUIDs (not AI SDK message IDs)
 - [ ] **CHAT-13** — Every tool call rendered in a collapsible "See what I did" trace panel under the assistant reply
 - [x] **CHAT-14** — Suggested starter prompts / three tool buttons visible from the empty-state chat UI
@@ -65,15 +65,15 @@
 
 ### Safety, Cost & Abuse Controls (SAFE)
 
-- [ ] **SAFE-01** — Haiku input classifier runs synchronously as preflight on every user message (not a tool Sonnet chooses to call)
-- [ ] **SAFE-02** — Classifier output routed: `normal` → main agent; `injection` → in-character deflection; `offtopic` → redirect to what the agent can do; `sensitive` → compensation→email redirect
-- [ ] **SAFE-03** — Classifier returns `{label, confidence}`; borderline (<0.7) routed to clarify template
-- [ ] **SAFE-04** — Hard daily spend cap in code (default $3/day) tracked in Upstash Redis; above threshold, `/api/chat` returns graceful "come back in a few hours" message
-- [ ] **SAFE-05** — Per-IP rate limit: 20 messages / 10 min, 60 messages / day (using Vercel `ipAddress()` helper, not raw `X-Forwarded-For`)
-- [ ] **SAFE-06** — Per-email rate limit: 150 messages / day
-- [ ] **SAFE-07** — Per-session rate limit as a safety net on top of IP + email
-- [ ] **SAFE-08** — Token-cost-based rate limiting (not just message-count) so a single abusive session can't stay at "1 message" while costing 30x
-- [ ] **SAFE-09** — Spend-cap check runs BEFORE the Anthropic API call, not after
+- [x] **SAFE-01** — Haiku input classifier runs synchronously as preflight on every user message (not a tool Sonnet chooses to call)
+- [x] **SAFE-02** — Classifier output routed: `normal` → main agent; `injection` → in-character deflection; `offtopic` → redirect to what the agent can do; `sensitive` → compensation→email redirect
+- [x] **SAFE-03** — Classifier returns `{label, confidence}`; borderline (<0.7) routed to clarify template
+- [x] **SAFE-04** — Hard daily spend cap in code (default $3/day) tracked in Upstash Redis; above threshold, `/api/chat` returns graceful "come back in a few hours" message
+- [x] **SAFE-05** — Per-IP rate limit: 20 messages / 10 min, 60 messages / day (using Vercel `ipAddress()` helper, not raw `X-Forwarded-For`)
+- [x] **SAFE-06** — Per-email rate limit: 150 messages / day
+- [x] **SAFE-07** — Per-session rate limit as a safety net on top of IP + email
+- [x] **SAFE-08** — Token-cost-based rate limiting (not just message-count) so a single abusive session can't stay at "1 message" while costing 30x
+- [x] **SAFE-09** — Spend-cap check runs BEFORE the Anthropic API call, not after
 - [x] **SAFE-10** — System-prompt hardening refuses persona change, refuses instruction override, refuses to reveal system prompt or KB verbatim (defense-in-depth alongside classifier)
 - [ ] **SAFE-11** — System prompt never contains dynamic content (no timestamps, session IDs, per-request data) — cache integrity preserved
 - [ ] **SAFE-12** — Anthropic org-level spend limit set matching the code-level cap (operational task before any public URL)
@@ -175,17 +175,17 @@ Each v1 requirement is mapped to exactly one phase. Coverage: 94/94.
 | GATE-03 | Phase 1 | Pending |
 | GATE-04 | Phase 1 | Pending |
 | GATE-05 | Phase 1 | Pending |
-| CHAT-01 | Phase 2 | Pending |
-| CHAT-02 | Phase 2 | Pending |
+| CHAT-01 | Phase 2 | Complete |
+| CHAT-02 | Phase 2 | Complete |
 | CHAT-03 | Phase 1 | Pending |
 | CHAT-04 | Phase 1 | Pending |
 | CHAT-05 | Phase 1 | Pending |
-| CHAT-06 | Phase 2 | Pending |
-| CHAT-07 | Phase 2 | Pending |
-| CHAT-08 | Phase 2 | Pending |
-| CHAT-09 | Phase 2 | Pending |
-| CHAT-10 | Phase 2 | Pending |
-| CHAT-11 | Phase 2 | Pending |
+| CHAT-06 | Phase 2 | Complete |
+| CHAT-07 | Phase 2 | Complete |
+| CHAT-08 | Phase 2 | Complete |
+| CHAT-09 | Phase 2 | Complete |
+| CHAT-10 | Phase 2 | Complete |
+| CHAT-11 | Phase 2 | Complete |
 | CHAT-12 | Phase 2 | Complete |
 | CHAT-13 | Phase 3 | Pending |
 | CHAT-14 | Phase 2 | Complete |
@@ -212,15 +212,15 @@ Each v1 requirement is mapped to exactly one phase. Coverage: 94/94.
 | TOOL-09 | Phase 3 | Pending |
 | TOOL-10 | Phase 3 | Pending |
 | TOOL-11 | Phase 3 | Pending |
-| SAFE-01 | Phase 2 | Pending |
-| SAFE-02 | Phase 2 | Pending |
-| SAFE-03 | Phase 2 | Pending |
-| SAFE-04 | Phase 2 | Pending |
-| SAFE-05 | Phase 2 | Pending |
-| SAFE-06 | Phase 2 | Pending |
-| SAFE-07 | Phase 2 | Pending |
-| SAFE-08 | Phase 2 | Pending |
-| SAFE-09 | Phase 2 | Pending |
+| SAFE-01 | Phase 2 | Complete |
+| SAFE-02 | Phase 2 | Complete |
+| SAFE-03 | Phase 2 | Complete |
+| SAFE-04 | Phase 2 | Complete |
+| SAFE-05 | Phase 2 | Complete |
+| SAFE-06 | Phase 2 | Complete |
+| SAFE-07 | Phase 2 | Complete |
+| SAFE-08 | Phase 2 | Complete |
+| SAFE-09 | Phase 2 | Complete |
 | SAFE-10 | Phase 2 | Complete |
 | SAFE-11 | Phase 1 | Pending |
 | SAFE-12 | Phase 2 | Pending |

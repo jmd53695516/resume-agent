@@ -213,3 +213,83 @@ persisted with stop_reason=`deflection:offtopic`. This makes 5 of the 7
 deflection reasons (`spendcap`, `turncap`, `injection`, `ratelimit`, `offtopic`)
 verified live in this plan — `borderline` and `sensitive` are exercised by
 unit tests in Plan 02-01.
+
+### Classifier sensitivity observation
+
+Three of the live runs in this plan (cache-hit second turn, final-smoke #1, final-smoke #2)
+saw the Haiku classifier flag short or generic prompts as `offtopic`:
+
+- "And one thing about your BI background?" -> offtopic (Task 3)
+- "One sentence about your PM background." -> offtopic (Task 6 final smoke #1)
+- "Tell me about one of your favorite product management projects." -> offtopic (Task 6 final smoke #2)
+
+But variants with more conversational framing (Task 2 / final-smoke #3 / Task 3 second
+attempt) all classified as `normal`. This is NOT a Plan 02-02 regression — the
+six-gate orchestration is working exactly as designed. It is a classifier-prompt
+sensitivity worth flagging for Plan 02-04 / Phase 5 eval cat 5: the classifier may
+be too aggressive on terse, recruiter-style queries. Recommended follow-up:
+
+- Phase 5 eval cat 5 (abuse resilience) should add a "false-positive corpus" of
+  legitimate short recruiter prompts to measure how often `normal` queries are
+  mis-flagged as `offtopic`/`sensitive`.
+- If false-positive rate >10% in Phase 5 evals, tune the Haiku classifier prompt
+  (Plan 02-01 `src/lib/classifier.ts`) to be more permissive on short prompts.
+
+Logged here so Phase 5 planner picks this up. Out of scope for Plan 02-02.
+
+## Task 6 — Final regression sweep
+
+Cross-cutting verification before handoff to Plan 02-03 / 02-04 (which were
+executed structurally before this live integration; Plan 02-02 is the contract
+proof).
+
+### Vitest
+
+```
+RUN  v4.1.5
+Test Files  6 passed (6)
+Tests  48 passed (48)
+Duration  622ms
+```
+
+Up from 43 in Plan 02-01 — Plan 02-04 added 5 Turnstile tests. All green.
+
+### TypeScript
+
+`npx tsc --noEmit` exit 0. Clean.
+
+### Production build
+
+`npm run build` succeeds (3.5s compile, 3.4s tsc). Route map:
+
+```
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/chat
+├ ƒ /api/session
+├ ƒ /api/smoke-ui-stream
+└ ○ /chat
+```
+
+`/api/chat` correctly listed as dynamic (server-rendered). No build warnings on
+the new file.
+
+### Final dev-server smoke
+
+Dev server boot: 398ms. Three end-to-end calls:
+
+| # | Prompt | Result | Notes |
+|---|--------|--------|-------|
+| 1 | "One sentence about your PM background." | offtopic deflection (text-start/delta/end stream) | wire protocol confirmed |
+| 2 | "Tell me about one of your favorite product management projects." | offtopic deflection | wire protocol confirmed |
+| 3 | "Hi — tell me one thing about your PM background in one sentence." | Sonnet happy path; first-person reply about Under Armour Snowflake migration; finishReason=`stop` | full pipeline confirmed |
+
+### Acceptance summary
+
+- [x] Vitest: 48 passing (>= 34 baseline; well above)
+- [x] tsc --noEmit: exit 0
+- [x] npm run build: Compiled successfully; /api/chat in route map
+- [x] Final smoke: text-* chunks present; Sonnet finishReason=stop; cache hit confirmed end-to-end (third call)
+- [x] No stack traces in dev-server log
+- [x] No NEXT_PUBLIC_*, no secret leaks, no v5/v6 mixing

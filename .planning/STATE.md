@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 02-04-PLAN.md (Turnstile wired but feature-flagged OFF; SAFE-13 closed)
-last_updated: "2026-04-30T00:55:03.924Z"
+status: verifying
+stopped_at: Completed 02-02-PLAN.md (live integration verified; SAFE-12 deferred to Phase 5)
+last_updated: "2026-04-30T01:22:48.821Z"
 last_activity: 2026-04-30
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
-  completed_plans: 7
-  percent: 88
+  completed_plans: 8
+  percent: 100
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 
 Phase: 02 (safe-chat-core) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-30
 
 Progress: [░░░░░░░░░░] 0%
@@ -55,6 +55,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-safe-chat-core P01 | 33min | 11 tasks | 16 files |
 | Phase 02-safe-chat-core P03 | 4min | 3 tasks | 6 files |
 | Phase 02-safe-chat-core P04 | 8min | 5 tasks | 5 files |
+| Phase 02-safe-chat-core P02 | 45 | 6 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,9 @@ Recent decisions affecting current work:
 - [Phase 02-safe-chat-core]: Plan 02-04: Turnstile wired through EmailGate + /api/session via @marsidev/react-turnstile@1.5.1, feature-flagged OFF (NEXT_PUBLIC_TURNSTILE_ENABLED). Default behavior preserves Plan 01-03 exactly; flip-on takes <10 min (3 env vars + restart).
 - [Phase 02-safe-chat-core]: Plan 02-04: process.env read at call-time inside POST /api/session (not module scope) — lets vitest mutate flag per-test without resetModules ceremony; cost is one property read per request.
 - [Phase 02-safe-chat-core]: Plan 02-04: Turnstile siteverify fails CLOSED on Cloudflare network error / non-200 — outage cannot bypass the gate when flag is on.
+- [Phase 02-safe-chat-core]: Plan 02-02 live integration: cache_control attaches via array-form system message; cold->warm cost savings 50% on a 19814-token system prompt; all six gates verified live
+- [Phase 02-safe-chat-core]: ipKey on Next.js dev server resolves to '::1' (IPv6 localhost), NOT 'dev' — fallback chain: ipAddress(req) ?? x-forwarded-for first hop ?? 'dev'
+- [Phase 02-safe-chat-core]: Haiku classifier flags some short recruiter-style prompts as offtopic; Phase 5 eval cat 5 should add false-positive corpus
 
 ### Pending Todos
 
@@ -90,6 +94,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-30T00:55:03.921Z
-Stopped at: Completed 02-04-PLAN.md (Turnstile wired but feature-flagged OFF; SAFE-13 closed)
+Last session: 2026-04-30T01:22:48.817Z
+Stopped at: Completed 02-02-PLAN.md (live integration verified; SAFE-12 deferred to Phase 5)
 Resume file: None
