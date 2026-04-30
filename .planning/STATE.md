@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-01-PLAN.md (safe-chat-core foundations)
-last_updated: "2026-04-30T00:30:31.523Z"
+stopped_at: Completed 02-03-PLAN.md (chat UI + starter prompts; live-backend verify deferred to 02-02)
+last_updated: "2026-04-30T00:40:16.941Z"
 last_activity: 2026-04-30
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 8
-  completed_plans: 5
-  percent: 63
+  completed_plans: 6
+  percent: 75
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 ## Current Position
 
 Phase: 02 (safe-chat-core) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-04-30
 
@@ -53,6 +53,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 02-safe-chat-core P01 | 33min | 11 tasks | 16 files |
+| Phase 02-safe-chat-core P03 | 4min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,9 @@ Recent decisions affecting current work:
 - [Phase 02-safe-chat-core]: Classifier uncached: Haiku 4.5 min cache block 4096 tokens; classifier prompt ~500
 - [Phase 02-safe-chat-core]: All Redis keys namespaced under PREFIX='resume-agent' for admin dashboard greppability
 - [Phase 02-safe-chat-core]: Smoke route renamed _smoke-ui-stream -> smoke-ui-stream (Next.js App Router treats _folder as private)
+- [Phase 02-safe-chat-core]: ChatUI uses AI SDK v6 consumer-managed input pattern (useState) — sendMessage({ text }) triggered manually on submit; thinking indicator on status==='submitted' only
+- [Phase 02-safe-chat-core]: Defense-in-depth markdown-header strip in MessageBubble (D-I-07) — belt-and-suspenders alongside VOICE-11 system-prompt ban
+- [Phase 02-safe-chat-core]: Plan 02-03 Task 4 live-backend checks deferred to Plan 02-02 verifier scope (wave ordering: UI shipped before /api/chat); structural acceptance auto-verified via Playwright
 
 ### Pending Todos
 
@@ -82,6 +86,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-30T00:30:14.268Z
-Stopped at: Completed 02-01-PLAN.md (safe-chat-core foundations)
+Last session: 2026-04-30T00:40:01.342Z
+Stopped at: Completed 02-03-PLAN.md (chat UI + starter prompts; live-backend verify deferred to 02-02)
 Resume file: None
