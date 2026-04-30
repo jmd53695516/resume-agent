@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-03-PLAN.md (chat UI + starter prompts; live-backend verify deferred to 02-02)
-last_updated: "2026-04-30T00:40:16.941Z"
+stopped_at: Completed 02-04-PLAN.md (Turnstile wired but feature-flagged OFF; SAFE-13 closed)
+last_updated: "2026-04-30T00:55:03.924Z"
 last_activity: 2026-04-30
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 8
-  completed_plans: 6
-  percent: 75
+  completed_plans: 7
+  percent: 88
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 ## Current Position
 
 Phase: 02 (safe-chat-core) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-04-30
 
@@ -54,6 +54,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 02-safe-chat-core P01 | 33min | 11 tasks | 16 files |
 | Phase 02-safe-chat-core P03 | 4min | 3 tasks | 6 files |
+| Phase 02-safe-chat-core P04 | 8min | 5 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,9 @@ Recent decisions affecting current work:
 - [Phase 02-safe-chat-core]: ChatUI uses AI SDK v6 consumer-managed input pattern (useState) — sendMessage({ text }) triggered manually on submit; thinking indicator on status==='submitted' only
 - [Phase 02-safe-chat-core]: Defense-in-depth markdown-header strip in MessageBubble (D-I-07) — belt-and-suspenders alongside VOICE-11 system-prompt ban
 - [Phase 02-safe-chat-core]: Plan 02-03 Task 4 live-backend checks deferred to Plan 02-02 verifier scope (wave ordering: UI shipped before /api/chat); structural acceptance auto-verified via Playwright
+- [Phase 02-safe-chat-core]: Plan 02-04: Turnstile wired through EmailGate + /api/session via @marsidev/react-turnstile@1.5.1, feature-flagged OFF (NEXT_PUBLIC_TURNSTILE_ENABLED). Default behavior preserves Plan 01-03 exactly; flip-on takes <10 min (3 env vars + restart).
+- [Phase 02-safe-chat-core]: Plan 02-04: process.env read at call-time inside POST /api/session (not module scope) — lets vitest mutate flag per-test without resetModules ceremony; cost is one property read per request.
+- [Phase 02-safe-chat-core]: Plan 02-04: Turnstile siteverify fails CLOSED on Cloudflare network error / non-200 — outage cannot bypass the gate when flag is on.
 
 ### Pending Todos
 
@@ -86,6 +90,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-30T00:40:01.342Z
-Stopped at: Completed 02-03-PLAN.md (chat UI + starter prompts; live-backend verify deferred to 02-02)
+Last session: 2026-04-30T00:55:03.921Z
+Stopped at: Completed 02-04-PLAN.md (Turnstile wired but feature-flagged OFF; SAFE-13 closed)
 Resume file: None

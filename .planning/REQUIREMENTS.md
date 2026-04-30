@@ -77,7 +77,7 @@
 - [x] **SAFE-10** — System-prompt hardening refuses persona change, refuses instruction override, refuses to reveal system prompt or KB verbatim (defense-in-depth alongside classifier)
 - [ ] **SAFE-11** — System prompt never contains dynamic content (no timestamps, session IDs, per-request data) — cache integrity preserved
 - [ ] **SAFE-12** — Anthropic org-level spend limit set matching the code-level cap (operational task before any public URL)
-- [ ] **SAFE-13** — Cloudflare Turnstile feature-flagged and wired but OFF — ready to flip in <10 minutes if abuse is observed
+- [x] **SAFE-13** — Cloudflare Turnstile feature-flagged and wired but OFF — ready to flip in <10 minutes if abuse is observed
 - [ ] **SAFE-14** — No `NEXT_PUBLIC_` prefix on secrets; pre-commit hook scans for accidental secret leaks
 - [ ] **SAFE-15** — Stop-sequence on duplicate-arg tool calls prevents tool-call infinite loops
 
@@ -224,7 +224,7 @@ Each v1 requirement is mapped to exactly one phase. Coverage: 94/94.
 | SAFE-10 | Phase 2 | Complete |
 | SAFE-11 | Phase 1 | Pending |
 | SAFE-12 | Phase 2 | Pending |
-| SAFE-13 | Phase 2 | Pending |
+| SAFE-13 | Phase 2 | Complete |
 | SAFE-14 | Phase 1 | Pending |
 | SAFE-15 | Phase 2 | Pending |
 | OBSV-01 | Phase 4 | Pending |
