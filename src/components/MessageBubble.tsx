@@ -7,8 +7,6 @@ type MessageBubbleProps = {
   text: string;
 };
 
-// CONTEXT D-I-05: user messages right-aligned in subtle bubbles, assistant messages
-// rendered as plain prose (feels like texting with Joe, not a chatbot).
 // CONTEXT D-I-07: assistant prose has markdown headers (# / ## / ###) stripped —
 // belt-and-suspenders since the system prompt also bans them.
 function stripMarkdownHeaders(text: string): string {
@@ -18,24 +16,31 @@ function stripMarkdownHeaders(text: string): string {
     .join('\n');
 }
 
+// Visual: Chat Stream design (claude.ai/design handoff, 2026-04-30).
+// Both roles render as bubbles — user (right, blue --me) and assistant (left,
+// dark grey --them). This is a deliberate reversal of Phase 2 D-I-05's
+// "assistant as plain prose" lockdown; recorded in 02-CONTEXT.md amendment.
 export function MessageBubble({ role, text }: MessageBubbleProps) {
-  if (role === 'user') {
-    return (
-      <div className="flex justify-end" data-testid="msg-user">
-        <div className="max-w-[75%] whitespace-pre-wrap break-words rounded-2xl bg-primary px-4 py-2 text-sm text-primary-foreground">
-          {text}
-        </div>
-      </div>
-    );
-  }
+  const isMe = role === 'user';
+  const content = isMe ? text : stripMarkdownHeaders(text);
   return (
-    <div className="w-full" data-testid="msg-assistant">
+    <div
+      className={cn(
+        'bubble-pop flex w-full px-1 py-px',
+        isMe ? 'justify-end' : 'justify-start',
+      )}
+      data-testid={isMe ? 'msg-user' : 'msg-assistant'}
+    >
       <div
         className={cn(
-          'whitespace-pre-wrap text-[15px] leading-relaxed text-foreground',
+          'max-w-[78%] whitespace-pre-wrap break-words rounded-[20px] px-[13px] pt-[8px] pb-[9px] text-[16px] tracking-[-0.01em]',
+          isMe
+            ? 'bg-[var(--me)] text-[var(--me-fg)]'
+            : 'bg-[var(--them)] text-[var(--them-fg)]',
         )}
+        style={{ lineHeight: 1.28, overflowWrap: 'anywhere' }}
       >
-        {stripMarkdownHeaders(text)}
+        {content}
       </div>
     </div>
   );

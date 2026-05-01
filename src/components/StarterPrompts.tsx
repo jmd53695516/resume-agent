@@ -1,7 +1,5 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-
 type StarterPromptsProps = {
   onSelect: (text: string) => void;
   disabled?: boolean;
@@ -37,21 +35,20 @@ export function StarterPrompts({ onSelect, disabled = false }: StarterPromptsPro
       aria-label="Starter prompts"
       data-testid="starter-prompts"
     >
-      <p className="mb-1 text-sm text-muted-foreground">
+      <p className="mb-1 text-[13px] tracking-tight text-muted-foreground">
         Or just ask about Joe&apos;s background. Three ideas to start:
       </p>
       {STARTERS.map((s) => (
-        <Button
+        <button
           key={s.label}
           type="button"
-          variant="outline"
           disabled={disabled}
           onClick={() => onSelect(s.prefill)}
-          className="h-auto justify-start whitespace-normal px-4 py-3 text-left"
+          className="rounded-2xl border border-[var(--hairline)] bg-[var(--panel)] px-4 py-2.5 text-left text-[15px] tracking-tight text-foreground transition-colors hover:bg-black/[0.03] disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-white/[0.05]"
           data-testid={`starter-${s.label.toLowerCase().replace(/\s+/g, '-')}`}
         >
           {s.label}
-        </Button>
+        </button>
       ))}
     </div>
   );

@@ -9,8 +9,8 @@
 // Server Component.
 export function FramingCopy() {
   return (
-    <div className="space-y-3 text-slate-800">
-      <h1 className="text-2xl font-semibold text-slate-900">
+    <div className="space-y-3 text-foreground">
+      <h1 className="text-2xl font-semibold tracking-tight text-foreground">
         Chat with Joe Dollinger&apos;s agent
       </h1>
       <p className="text-base leading-relaxed">
@@ -19,7 +19,7 @@ export function FramingCopy() {
         a calendar slot. Ask about a project, have me tailor a pitch for your company, walk through
         a case study, or draft a metric framework for a feature you&apos;re sizing up.
       </p>
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-muted-foreground">
         Drop your email to start. Joe will see a note that you stopped by, so if there&apos;s a role
         you think fits, leave it in the chat and he&apos;ll follow up directly.
       </p>

@@ -46,85 +46,187 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Chat surface tokens (design system: Joe's Agent — Chat Stream) */
+  --color-bg-page: var(--bg-page);
+  --color-bg-page-2: var(--bg-page-2);
+  --color-panel: var(--panel);
+  --color-hairline: var(--hairline);
+  --color-me: var(--me);
+  --color-me-fg: var(--me-fg);
+  --color-them: var(--them);
+  --color-them-fg: var(--them-fg);
 }
 
+/*
+ * Color palette ported from the Chat Stream design (claude.ai/design handoff,
+ * 2026-04-30). Shadcn semantic tokens (--background, --foreground, --primary,
+ * --card, --border, etc.) are mapped onto the design's hex values so shadcn
+ * primitives (Card, Button, Input, Label) inherit the palette automatically.
+ * Chat-only tokens (--me, --them, --panel, --hairline, --bg-page, --header-bg,
+ * --composer-bg, --input-bg) drive the bubble + chrome aesthetic.
+ */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  /* Design tokens — source of truth */
+  --bg-page: #f3f1ec;
+  --bg-page-2: #e6e2db;
+  --panel: #ffffff;
+  --header-bg: rgba(246, 246, 247, 0.86);
+  --composer-bg: rgba(246, 246, 247, 0.92);
+  --input-bg: #ffffff;
+  --hairline: rgba(0, 0, 0, 0.1);
+  --me: #2080ff;
+  --me-fg: #ffffff;
+  --them: #2c2c2e;
+  --them-fg: #ffffff;
+
+  /* Shadcn semantic tokens — mapped onto the design palette */
+  --background: var(--bg-page);
+  --foreground: #0a0a0a;
+  --card: var(--panel);
+  --card-foreground: #0a0a0a;
+  --popover: var(--panel);
+  --popover-foreground: #0a0a0a;
+  --primary: var(--me);
+  --primary-foreground: var(--me-fg);
+  --secondary: var(--them);
+  --secondary-foreground: var(--them-fg);
+  --muted: rgba(120, 120, 128, 0.16);
+  --muted-foreground: #8a8a8e;
+  --accent: rgba(120, 120, 128, 0.16);
+  --accent-foreground: #0a0a0a;
+  --destructive: #d70015;
+  --border: var(--hairline);
+  --input: var(--input-bg);
+  --ring: var(--me);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: var(--panel);
+  --sidebar-foreground: #0a0a0a;
+  --sidebar-primary: var(--me);
+  --sidebar-primary-foreground: var(--me-fg);
+  --sidebar-accent: rgba(120, 120, 128, 0.16);
+  --sidebar-accent-foreground: #0a0a0a;
+  --sidebar-border: var(--hairline);
+  --sidebar-ring: var(--me);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --bg-page: #1a1a1c;
+  --bg-page-2: #0e0e10;
+  --panel: #000000;
+  --header-bg: rgba(28, 28, 30, 0.86);
+  --composer-bg: rgba(20, 20, 22, 0.92);
+  --input-bg: #1c1c1e;
+  --hairline: rgba(255, 255, 255, 0.1);
+  --me: #2e87ff;
+  --me-fg: #ffffff;
+  --them: #2c2c2e;
+  --them-fg: #ffffff;
+
+  --background: var(--bg-page);
+  --foreground: #f5f5f7;
+  --card: var(--panel);
+  --card-foreground: #f5f5f7;
+  --popover: var(--input-bg);
+  --popover-foreground: #f5f5f7;
+  --primary: var(--me);
+  --primary-foreground: var(--me-fg);
+  --secondary: var(--them);
+  --secondary-foreground: var(--them-fg);
+  --muted: rgba(120, 120, 128, 0.24);
+  --muted-foreground: #98989d;
+  --accent: rgba(120, 120, 128, 0.24);
+  --accent-foreground: #f5f5f7;
+  --destructive: #ff453a;
+  --border: var(--hairline);
+  --input: var(--input-bg);
+  --ring: var(--me);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar: var(--panel);
+  --sidebar-foreground: #f5f5f7;
+  --sidebar-primary: var(--me);
+  --sidebar-primary-foreground: var(--me-fg);
+  --sidebar-accent: rgba(120, 120, 128, 0.24);
+  --sidebar-accent-foreground: #f5f5f7;
+  --sidebar-border: var(--hairline);
+  --sidebar-ring: var(--me);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
   html {
     @apply font-sans;
   }
+  body {
+    color: var(--foreground);
+    background:
+      radial-gradient(1200px 700px at 50% -10%, var(--bg-page) 0%, var(--bg-page-2) 70%),
+      var(--bg-page-2);
+    transition: background 0.3s ease;
+  }
+}
+
+/*
+ * Chat-stream micro-interactions ported from the design.
+ * - Bubbles pop in with a subtle translate + scale (.28s cubic-bezier).
+ * - Typing dots blink with staggered delays.
+ * - Custom scrollbar matches the design (6px track, low-contrast thumb).
+ */
+@keyframes bubble-pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes typing-blink {
+  0%,
+  60%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+.bubble-pop {
+  animation: bubble-pop 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.typing-dot {
+  animation: typing-blink 1.2s infinite ease-in-out;
+}
+
+.chat-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+  scroll-behavior: smooth;
+}
+.chat-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.chat-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
+.dark .chat-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
 }
