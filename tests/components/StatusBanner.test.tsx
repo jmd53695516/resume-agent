@@ -10,8 +10,8 @@
 // the full integration. Here we test the parts that are unit-testable:
 //   1. STATUS_COPY map shape + per-dep copy strings
 //   2. ChatStatusBanner Client Component dismiss UX
-import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { ChatStatusBanner } from '../../src/components/ChatStatusBanner';
 import { STATUS_COPY } from '../../src/components/StatusBanner';
 
@@ -40,6 +40,11 @@ describe('STATUS_COPY map (W10: directly exported)', () => {
 describe('ChatStatusBanner', () => {
   beforeEach(() => {
     sessionStorage.clear();
+  });
+  // jsdom carries DOM state across tests in the same file; cleanup() between
+  // tests prevents duplicate data-testid elements and false multi-element errors.
+  afterEach(() => {
+    cleanup();
   });
 
   it('renders messages after hydration', async () => {
