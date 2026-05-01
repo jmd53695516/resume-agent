@@ -97,3 +97,48 @@ export async function persistDeflectionTurn(params: {
   const { error } = await supabaseAdmin.from('messages').insert(rows);
   if (error) console.error('persistDeflectionTurn failed', error);
 }
+
+// persistToolCallTurn — TOOL-08 / D-E-04. Schema column is `tool_result`
+// (the migration name; CONTEXT D-E-04's similarly-named typo was corrected
+// during research — see Plan 03-02 frontmatter must_haves). Inserts one
+// messages row per tool call across all multi-step events. Called
+// from /api/chat onFinish AFTER persistNormalTurn so the assistant row (and its
+// associated user row) lands first; then tool rows append. No tokens/cost on
+// tool rows — rollups happen on the assistant row.
+export async function persistToolCallTurn(params: {
+  session_id: string;
+  steps: Array<{
+    toolCalls?: Array<{ toolCallId: string; toolName: string; input: unknown }>;
+    toolResults?: Array<{ toolCallId: string; output: unknown }>;
+  }>;
+}): Promise<void> {
+  const rows = params.steps.flatMap((step) => {
+    const calls = step.toolCalls ?? [];
+    const results = step.toolResults ?? [];
+    return calls.map((call) => {
+      const matched = results.find((r) => r.toolCallId === call.toolCallId);
+      return {
+        id: newMessageId(),
+        sdk_message_id: call.toolCallId, // trace correlation (toolCallId is AI-SDK-generated)
+        session_id: params.session_id,
+        role: 'tool' as const,
+        content: '', // tool rows have no text content; payload lives in JSON cols
+        tool_name: call.toolName,
+        tool_args: call.input as Record<string, unknown>,
+        tool_result: (matched?.output ?? null) as Record<string, unknown> | null,
+        input_tokens: 0,
+        output_tokens: 0,
+        cache_read_tokens: 0,
+        cache_creation_tokens: 0,
+        cost_cents: 0,
+        latency_ms: null,
+        stop_reason: null,
+      };
+    });
+  });
+
+  if (rows.length === 0) return;
+
+  const { error } = await supabaseAdmin.from('messages').insert(rows);
+  if (error) console.error('persistToolCallTurn failed', error);
+}
