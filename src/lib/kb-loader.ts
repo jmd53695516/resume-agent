@@ -94,3 +94,34 @@ export function listCaseStudySlugs(): string[] {
     .map((f) => path.basename(f, '.md'))
     .sort();
 }
+
+// CaseStudy structured record for the get_case_study tool (Phase 3 / TOOL-03).
+// Returns null for unknown slugs, fixture-prefixed slugs, or any slug failing
+// the strict allow-pattern (defense against path traversal — service runs
+// server-side and reads disk).
+export type CaseStudy = {
+  slug: string;
+  frontmatter: Record<string, unknown>;
+  content: string; // post-frontmatter markdown body, CRLF-normalized
+};
+
+const SLUG_PATTERN = /^[a-z0-9-]+$/;
+
+export function getCaseStudy(slug: string): CaseStudy | null {
+  if (!SLUG_PATTERN.test(slug)) return null;
+  if (slug.startsWith('_')) return null; // fixture exclusion (matches loadKB rule)
+
+  const abs = path.join(KB_ROOT, 'case_studies', `${slug}.md`);
+  let raw: string;
+  try {
+    raw = normalizeKBContent(readFileSync(abs, 'utf-8'));
+  } catch {
+    return null; // ENOENT or any read failure → null
+  }
+  const { data, content } = matter(raw);
+  return {
+    slug,
+    frontmatter: data as Record<string, unknown>,
+    content: content.trim(),
+  };
+}
