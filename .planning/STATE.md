@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-00-PLAN.md
-last_updated: "2026-05-01T02:32:10.632Z"
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-05-01T02:51:40.684Z"
 last_activity: 2026-05-01
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 14
-  completed_plans: 9
-  percent: 64
+  completed_plans: 10
+  percent: 71
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 ## Current Position
 
 Phase: 3 (tools-resilience) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Status: Ready to execute
 Last activity: 2026-05-01
 
@@ -57,6 +57,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-safe-chat-core P04 | 8min | 5 tasks | 5 files |
 | Phase 02-safe-chat-core P02 | 45 | 6 tasks | 3 files |
 | Phase 03 P00 | 11min | 5 tasks | 11 files |
+| Phase 03-tools-resilience P01 | 14min | 5 tasks | 16 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,10 @@ Recent decisions affecting current work:
 - [Phase 03]: Plan 03-00: Pino routed through process.stdout (NOT pino.destination(1) shortcut) so tests can spy on stdout.write — equivalent fd-1 output, no worker-thread risk for Vercel
 - [Phase 03]: Plan 03-00: vi.mock('@/lib/env', ...) factory pattern (var names assembled by string concat) is the established way to bypass missing .env.local in vitest while dodging pre-commit secret-scan literals
 - [Phase 03]: Plan 03-00: Exa SDK mock must be a class (not arrow vi.fn()) because exa.ts uses 'new Exa(key)'; arrow functions are not constructible
+- [Phase 03]: Plan 03-01: AI SDK v6 erases Zod type from tool().inputSchema (FlexibleSchema); tests cast via asZod() helper to call .safeParse under strict TS — runtime unchanged
+- [Phase 03]: Plan 03-01: @anthropic-ai/sdk@0.90 surfaces Tool.strict natively (messages.d.ts:1075); StrictAnthropicTool extension is unnecessary — used native AnthropicTool type directly
+- [Phase 03]: Plan 03-01: Imported ToolUseBlock from @anthropic-ai/sdk/resources/messages for find() type predicate — hand-rolled shape was missing the SDK's caller field (TS2677)
+- [Phase 03]: Plan 03-01: System-prompt grew from 84,477 → 85,373 chars (+896) via FETCHED_CONTENT_RULE + ANTI_REFLEXIVE_CHAINING_RULE; determinism contract still byte-identical (10/10)
 
 ### Pending Todos
 
@@ -98,6 +103,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-01T02:31:58.119Z
-Stopped at: Completed 03-00-PLAN.md
+Last session: 2026-05-01T02:51:40.677Z
+Stopped at: Completed 03-01-PLAN.md
 Resume file: None
