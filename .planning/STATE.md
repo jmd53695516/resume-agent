@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-05-01T02:51:40.684Z"
+stopped_at: Completed 03-04-PLAN.md
+last_updated: "2026-05-01T03:09:53.845Z"
 last_activity: 2026-05-01
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 14
-  completed_plans: 10
-  percent: 71
+  completed_plans: 11
+  percent: 79
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 ## Current Position
 
 Phase: 3 (tools-resilience) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute
 Last activity: 2026-05-01
 
@@ -58,6 +58,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-safe-chat-core P02 | 45 | 6 tasks | 3 files |
 | Phase 03 P00 | 11min | 5 tasks | 11 files |
 | Phase 03-tools-resilience P01 | 14min | 5 tasks | 16 files |
+| Phase 03 P04 | 11min | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,11 @@ Recent decisions affecting current work:
 - [Phase 03]: Plan 03-01: @anthropic-ai/sdk@0.90 surfaces Tool.strict natively (messages.d.ts:1075); StrictAnthropicTool extension is unnecessary — used native AnthropicTool type directly
 - [Phase 03]: Plan 03-01: Imported ToolUseBlock from @anthropic-ai/sdk/resources/messages for find() type predicate — hand-rolled shape was missing the SDK's caller field (TS2677)
 - [Phase 03]: Plan 03-01: System-prompt grew from 84,477 → 85,373 chars (+896) via FETCHED_CONTENT_RULE + ANTI_REFLEXIVE_CHAINING_RULE; determinism contract still byte-identical (10/10)
+- [Phase 03]: Plan 03-04: Heartbeat-trust strategy for Anthropic+Classifier health checks — short-form Redis keys (heartbeat:anthropic, heartbeat:classifier) read with classifyHeartbeat() windows; absent/60-120s=degraded, <60s=ok, redis throw=down
+- [Phase 03]: Plan 03-04: pingSupabase wraps .then() chain in Promise.resolve() — supabase-js builder returns PromiseLike, withTimeout requires Promise<T>; Promise.resolve materializes thenable to real Promise (W6+TS fix)
+- [Phase 03]: Plan 03-04: STATUS_COPY exported DIRECTLY (W10) — no const-then-alias intermediate; classifier copy intentionally empty (Plan 03-05 full-fallback trigger is single channel for that dep)
+- [Phase 03]: Plan 03-04: HTTP 200 always for /api/health (D-J-01) — encode dep state in body not status code; probes don't break when deps degrade; banner consumer renders ok-vs-degraded entirely render-side
+- [Phase 03]: Plan 03-04: Added @testing-library/react+jest-dom+dom devDeps; per-file '// @vitest-environment jsdom' directive (W3) keeps global env=node; afterEach(cleanup) prevents jsdom DOM accumulation between tests
 
 ### Pending Todos
 
@@ -103,6 +109,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-01T02:51:40.677Z
-Stopped at: Completed 03-01-PLAN.md
+Last session: 2026-05-01T03:09:53.841Z
+Stopped at: Completed 03-04-PLAN.md
 Resume file: None
