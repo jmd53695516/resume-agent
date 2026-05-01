@@ -80,3 +80,33 @@ describe('HARDCODED REFUSAL RULES (Phase 2 extension — SAFE-10)', () => {
     expect(buildSystemPrompt()).toMatch(/I'm Joe's agent, an AI\. I know his background/);
   });
 });
+
+describe('Phase 3 system-prompt extensions (TOOL-07, TOOL-09, SAFE-15)', () => {
+  beforeEach(() => {
+    __resetKBCacheForTests();
+  });
+
+  it('contains FETCHED-CONTENT RULE section', () => {
+    const p = buildSystemPrompt();
+    expect(p).toMatch(/FETCHED-CONTENT RULE/);
+  });
+  it('contains <fetched-content> literal tag for the model to recognize', () => {
+    const p = buildSystemPrompt();
+    expect(p).toContain('<fetched-content>');
+    expect(p).toContain('</fetched-content>');
+  });
+  it('contains TOOL USE RULE (anti-reflexive-chaining)', () => {
+    expect(buildSystemPrompt()).toMatch(/TOOL USE RULE/);
+  });
+  it('contains the "hit my own limit" natural opener for depth-cap path', () => {
+    expect(buildSystemPrompt()).toMatch(/hit my own limit/);
+  });
+  it('determinism preserved after Phase 3 additions (byte-identical)', () => {
+    const a = buildSystemPrompt();
+    const b = buildSystemPrompt();
+    expect(a).toBe(b);
+    __resetKBCacheForTests();
+    const c = buildSystemPrompt();
+    expect(a).toEqual(c);
+  });
+});
