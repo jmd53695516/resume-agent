@@ -98,7 +98,7 @@
 - [ ] **OBSV-13** — External synthetic monitor (BetterStack or UptimeRobot) pinging from outside Vercel to catch Vercel-originated outages
 - [ ] **OBSV-14** — Scheduled jobs via `cron-job.org` (free, unlimited): pre-warm heartbeat every 5 min during business hours to keep prompt cache + Supabase warm
 - [ ] **OBSV-15** — Session transcripts retained 180 days hot, then archived to cold storage indefinitely; captured emails retained indefinitely; classifier flags 90 days
-- [ ] **OBSV-16** — Pino structured JSON logging (no pino-pretty transports in prod) to Vercel logs for server-side events
+- [x] **OBSV-16** — Pino structured JSON logging (no pino-pretty transports in prod) to Vercel logs for server-side events
 
 ### Eval Suite (EVAL)
 
@@ -242,7 +242,7 @@ Each v1 requirement is mapped to exactly one phase. Coverage: 94/94.
 | OBSV-13 | Phase 4 | Pending |
 | OBSV-14 | Phase 4 | Pending |
 | OBSV-15 | Phase 4 | Pending |
-| OBSV-16 | Phase 3 | Pending |
+| OBSV-16 | Phase 3 | Complete |
 | EVAL-01 | Phase 5 | Pending |
 | EVAL-02 | Phase 5 | Pending |
 | EVAL-03 | Phase 5 | Pending |

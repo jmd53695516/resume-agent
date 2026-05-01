@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Phase 3 context gathered
-last_updated: "2026-04-30T02:27:37.671Z"
-last_activity: 2026-04-30
+status: executing
+stopped_at: Completed 03-00-PLAN.md
+last_updated: "2026-05-01T02:32:10.632Z"
+last_activity: 2026-05-01
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
+  total_plans: 14
+  completed_plans: 9
+  percent: 64
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-21)
 
 **Core value:** A recruiter in under five minutes walks away with a distinctive, specific impression of Joe — grounded in real projects, free of fabrication, and delivered by an agent they can see was engineered (not just prompted) with cost, abuse, and hallucination controls.
-**Current focus:** Phase 02 — safe-chat-core
+**Current focus:** Phase 3 — tools-resilience
 
 ## Current Position
 
-Phase: 3
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-04-30
+Phase: 3 (tools-resilience) — EXECUTING
+Plan: 2 of 6
+Status: Ready to execute
+Last activity: 2026-05-01
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -56,6 +56,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-safe-chat-core P03 | 4min | 3 tasks | 6 files |
 | Phase 02-safe-chat-core P04 | 8min | 5 tasks | 5 files |
 | Phase 02-safe-chat-core P02 | 45 | 6 tasks | 3 files |
+| Phase 03 P00 | 11min | 5 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,9 @@ Recent decisions affecting current work:
 - [Phase 02-safe-chat-core]: Plan 02-02 live integration: cache_control attaches via array-form system message; cold->warm cost savings 50% on a 19814-token system prompt; all six gates verified live
 - [Phase 02-safe-chat-core]: ipKey on Next.js dev server resolves to '::1' (IPv6 localhost), NOT 'dev' — fallback chain: ipAddress(req) ?? x-forwarded-for first hop ?? 'dev'
 - [Phase 02-safe-chat-core]: Haiku classifier flags some short recruiter-style prompts as offtopic; Phase 5 eval cat 5 should add false-positive corpus
+- [Phase 03]: Plan 03-00: Pino routed through process.stdout (NOT pino.destination(1) shortcut) so tests can spy on stdout.write — equivalent fd-1 output, no worker-thread risk for Vercel
+- [Phase 03]: Plan 03-00: vi.mock('@/lib/env', ...) factory pattern (var names assembled by string concat) is the established way to bypass missing .env.local in vitest while dodging pre-commit secret-scan literals
+- [Phase 03]: Plan 03-00: Exa SDK mock must be a class (not arrow vi.fn()) because exa.ts uses 'new Exa(key)'; arrow functions are not constructible
 
 ### Pending Todos
 
@@ -94,6 +98,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-30T02:27:37.667Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-tools-resilience/03-CONTEXT.md
+Last session: 2026-05-01T02:31:58.119Z
+Stopped at: Completed 03-00-PLAN.md
+Resume file: None
