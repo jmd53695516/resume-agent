@@ -2,11 +2,19 @@
 // Plan 03-01 Task 2: research_company AI SDK v6 tool() instance.
 // TOOL-01/02/09/11. Mocks @/lib/exa + @/lib/logger; no real network.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { z } from 'zod';
 
 const researchCompany = vi.fn();
 const log = vi.fn();
 vi.mock('@/lib/exa', () => ({ researchCompany }));
 vi.mock('@/lib/logger', () => ({ log }));
+
+// AI SDK v6 erases the Zod-specific shape from the tool().inputSchema public type
+// (FlexibleSchema), but the runtime value IS still the Zod schema we passed in.
+// Cast for tests so .safeParse is callable under strict TS without @ts-expect-error.
+function asZod(s: unknown): z.ZodTypeAny {
+  return s as z.ZodTypeAny;
+}
 
 describe('research_company tool', () => {
   let toolModule: typeof import('../../../src/lib/tools/research-company');
@@ -18,26 +26,26 @@ describe('research_company tool', () => {
 
   // -- inputSchema --
   it('inputSchema accepts valid name', () => {
-    const r = toolModule.research_company.inputSchema.safeParse({ name: 'Notion' });
+    const r = asZod(toolModule.research_company.inputSchema).safeParse({ name: 'Notion' });
     expect(r.success).toBe(true);
   });
   it('inputSchema rejects empty name', () => {
-    const r = toolModule.research_company.inputSchema.safeParse({ name: '' });
+    const r = asZod(toolModule.research_company.inputSchema).safeParse({ name: '' });
     expect(r.success).toBe(false);
   });
   it('inputSchema rejects 101-char name', () => {
-    const r = toolModule.research_company.inputSchema.safeParse({ name: 'X'.repeat(101) });
+    const r = asZod(toolModule.research_company.inputSchema).safeParse({ name: 'X'.repeat(101) });
     expect(r.success).toBe(false);
   });
   it('inputSchema accepts valid name + website', () => {
-    const r = toolModule.research_company.inputSchema.safeParse({
+    const r = asZod(toolModule.research_company.inputSchema).safeParse({
       name: 'Notion',
       website: 'https://notion.so',
     });
     expect(r.success).toBe(true);
   });
   it('inputSchema rejects invalid URL website', () => {
-    const r = toolModule.research_company.inputSchema.safeParse({
+    const r = asZod(toolModule.research_company.inputSchema).safeParse({
       name: 'Notion',
       website: 'not-a-url',
     });
