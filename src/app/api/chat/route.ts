@@ -33,9 +33,25 @@ import { anthropicProvider, MODELS } from '@/lib/anthropic';
 import { buildSystemPrompt } from '@/lib/system-prompt';
 import { classifyUserMessage } from '@/lib/classifier';
 import { supabaseAdmin } from '@/lib/supabase-server';
-import { checkRateLimits, isOverCap, incrementSpend, incrementIpCost } from '@/lib/redis';
+import {
+  redis,
+  checkRateLimits,
+  isOverCap,
+  incrementSpend,
+  incrementIpCost,
+} from '@/lib/redis';
 import { computeCostCents, normalizeAiSdkUsage } from '@/lib/cost';
-import { persistNormalTurn, persistDeflectionTurn } from '@/lib/persistence';
+import {
+  persistNormalTurn,
+  persistDeflectionTurn,
+  persistToolCallTurn,
+} from '@/lib/persistence';
+import {
+  research_company,
+  get_case_study,
+  design_metric_framework,
+  enforceToolCallDepthCap,
+} from '@/lib/tools';
 import { log } from '@/lib/logger';
 
 export const runtime = 'nodejs';
@@ -216,7 +232,17 @@ export async function POST(req: Request): Promise<Response> {
       },
     ],
     messages: modelMessages,
-    stopWhen: stepCountIs(5), // SAFE-15 prep — Phase 2 has zero tools; inert here, real cap kicks in Phase 3.
+    // Phase 3 / D-A-02 / TOOL-01..05 — three agentic tools wired live.
+    tools: {
+      research_company,
+      get_case_study,
+      design_metric_framework,
+    },
+    // Phase 3 / D-A-04..05 / TOOL-07 + SAFE-15 — depth cap (3 tool calls/turn)
+    // and duplicate-arg stop. Returns activeTools:[] (cache-friendly), never
+    // the toolChoice-none pattern (RESEARCH §3).
+    prepareStep: enforceToolCallDepthCap,
+    stopWhen: stepCountIs(5), // Phase 3 — load-bearing safety cap; prepareStep above applies the tighter ≤3 tool-call depth (TOOL-07).
     maxOutputTokens: 1500, // CHAT-09
     onFinish: async (event) => {
       // event.usage is the AI SDK v6 normalized usage shape; cast covers
@@ -224,6 +250,22 @@ export async function POST(req: Request): Promise<Response> {
       // the actual key resolution.
       const usage = normalizeAiSdkUsage(event.usage as Parameters<typeof normalizeAiSdkUsage>[0]);
       const costCents = computeCostCents(usage, MODELS.MAIN);
+
+      // W4 fix: heartbeat writes go FIRST in their OWN try/catch.
+      // By the time onFinish fires, Anthropic + classifier have already
+      // succeeded (we got tokens back). Heartbeat freshness must NOT depend
+      // on persistence succeeding. Conversely, a heartbeat failure must NOT
+      // block persistence. The two concerns are decoupled.
+      // Plan 03-04 reads these short-form keys via heartbeat-trust strategy.
+      try {
+        await Promise.all([
+          redis.set('heartbeat:anthropic', Date.now(), { ex: 120 }),
+          redis.set('heartbeat:classifier', Date.now(), { ex: 120 }),
+        ]);
+      } catch (err) {
+        console.error('heartbeat_write_failed', err);
+      }
+
       try {
         await persistNormalTurn({
           session_id,
@@ -235,6 +277,13 @@ export async function POST(req: Request): Promise<Response> {
           latency_ms: Date.now() - started,
           stop_reason: event.finishReason,
           sdk_message_id: event.response?.id ?? null,
+        });
+        // Phase 3 / TOOL-08 / D-E-04 — append tool-call rows after assistant
+        // row lands. event.steps is the AI SDK v6 multi-step shape with
+        // toolCalls + toolResults per step.
+        await persistToolCallTurn({
+          session_id,
+          steps: event.steps as Parameters<typeof persistToolCallTurn>[0]['steps'],
         });
         await Promise.all([incrementSpend(costCents), incrementIpCost(ipKey, costCents)]);
       } catch (err) {
