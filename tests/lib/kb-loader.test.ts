@@ -7,6 +7,7 @@ import {
   __resetKBCacheForTests,
   __normalizeKBContentForTests,
   listCaseStudySlugs,
+  getCaseStudy,
 } from '../../src/lib/kb-loader';
 
 describe('loadKB', () => {
@@ -87,5 +88,42 @@ describe('normalizeKBContent (REVIEW WR-01)', () => {
     // Only a leading BOM should be stripped; a U+FEFF later in the string is left.
     const mid = 'before﻿after';
     expect(__normalizeKBContentForTests(mid)).toBe(mid);
+  });
+});
+
+describe('getCaseStudy', () => {
+  it('returns structured record for a real slug', () => {
+    const cs = getCaseStudy('cortex-ai-client-win');
+    expect(cs).not.toBeNull();
+    expect(cs!.slug).toBe('cortex-ai-client-win');
+    expect(cs!.content.length).toBeGreaterThan(100);
+    expect(typeof cs!.frontmatter).toBe('object');
+    // Frontmatter from cortex-ai-client-win.md has known keys
+    expect(cs!.frontmatter.slug).toBe('cortex-ai-client-win');
+    expect(typeof cs!.frontmatter.hook).toBe('string');
+  });
+
+  it('returns null for unknown slug', () => {
+    expect(getCaseStudy('does-not-exist-xyz')).toBeNull();
+  });
+
+  it('returns null for fixture-prefixed slug', () => {
+    // _fixture_for_tests.md exists on disk but must NOT be returned by
+    // getCaseStudy (matches the loadKB exclusion rule for `_`-prefixed files).
+    expect(getCaseStudy('_fixture_for_tests')).toBeNull();
+  });
+
+  it('returns null for path-traversal attempts', () => {
+    expect(getCaseStudy('../../../etc/passwd')).toBeNull();
+    expect(getCaseStudy('foo/bar')).toBeNull();
+    expect(getCaseStudy('UPPERCASE')).toBeNull();
+    expect(getCaseStudy('with spaces')).toBeNull();
+    expect(getCaseStudy('../sibling')).toBeNull();
+  });
+
+  it('content is CRLF-normalized', () => {
+    const cs = getCaseStudy('cortex-ai-client-win');
+    expect(cs).not.toBeNull();
+    expect(cs!.content).not.toMatch(/\r\n/);
   });
 });
