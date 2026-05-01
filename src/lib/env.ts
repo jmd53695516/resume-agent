@@ -16,8 +16,10 @@ const EnvSchema = z.object({
   UPSTASH_REDIS_REST_URL: z.url(),
   UPSTASH_REDIS_REST_TOKEN: z.string().min(10),
 
-  // Phase 3-4 placeholders (still optional)
-  EXA_API_KEY: z.string().optional(),
+  // Phase 3 required (Plan 03-00 Task 1 — research_company tool depends on it)
+  EXA_API_KEY: z.string().min(20),
+
+  // Phase 4 placeholders (still optional)
   RESEND_API_KEY: z.string().optional(),
   ADMIN_GITHUB_USERNAMES: z.string().optional(),
 });
