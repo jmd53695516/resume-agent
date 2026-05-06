@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-05-06T01:15:32.025Z"
+stopped_at: Completed 03-05-PLAN.md
+last_updated: "2026-05-06T01:41:03.636Z"
 last_activity: 2026-05-06
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 14
-  completed_plans: 12
-  percent: 86
+  completed_plans: 13
+  percent: 93
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 ## Current Position
 
 Phase: 3 (tools-resilience) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 Status: Ready to execute
 Last activity: 2026-05-06
 
@@ -60,6 +60,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03-tools-resilience P01 | 14min | 5 tasks | 16 files |
 | Phase 03 P04 | 11min | 3 tasks | 11 files |
 | Phase 03-tools-resilience P02 | 8min | 3 tasks | 5 files |
+| Phase 03-tools-resilience P05 | 14min | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -100,6 +101,10 @@ Recent decisions affecting current work:
 - [Phase 03-tools-resilience]: Plan 03-02: W4 fix — onFinish has TWO separate try/catch (heartbeat first, persistence second); structurally enforced (grep returns 2)
 - [Phase 03-tools-resilience]: Plan 03-02: W7 fix — durable-order test uses side-effect-recording mocks; happy-path deep-equal asserts canonical six-gate sequence; reordering trips CI
 - [Phase 03-tools-resilience]: Plan 03-02: tool_result column name (NOT tool_response) — research correction over CONTEXT D-E-04 typo; matches actual migration; verified empty grep
+- [Phase 03-tools-resilience]: Plan 03-05: Resume regex tuned to actual kb/resume.md format (### Company H3 then **Role** — Dates bold-em-dash); plan's example regex would have produced empty FALLBACK_ROLES
+- [Phase 03-tools-resilience]: Plan 03-05: W5 dual-fixture regression coverage live for extractLastNRoles (real format + degenerate format); future kb/resume.md format change that breaks regex now produces deterministic CI failure
+- [Phase 03-tools-resilience]: Plan 03-05: B1 fix landed clean — fetchHealth + HealthShape extracted from inline-in-StatusBanner to src/lib/fetch-health.ts; both StatusBanner and page.tsx import from one source
+- [Phase 03-tools-resilience]: Plan 03-05: B2 ownership lock verified — src/components/ChatUI.tsx NOT in this plan's commit diff; Plan 03-03 owns persistent-500 → /?fallback=1 redirect end-to-end
 
 ### Pending Todos
 
@@ -111,9 +116,10 @@ None yet.
 - Phase 5: Non-Sonnet judge model choice (Haiku 4.5 vs GPT-4o-mini vs local) is open; pilot with a subset of eval cases during Phase 5 planning
 - Phase 1: Voice-interview protocol and content-acquisition interview prompts not yet written — Joe-time-expensive and cannot be redone cheaply; needs a focused planning pass
 - Phase 5 deploy gate: Anthropic org-level 20-USD-per-month spend cap (SAFE-12) was deferred during Plan 02-01 Task 3. Must be set in console.anthropic.com before public deploy.
+- Phase 5 LAUNCH-*: drop joe-dollinger-resume.pdf into public/ before public deploy — PlainHtmlFallback links to /joe-dollinger-resume.pdf which currently 404s (T-03-05-08 disposition: accept; recruiter still has email + LinkedIn + GitHub paths)
 
 ## Session Continuity
 
-Last session: 2026-05-06T01:15:32.021Z
-Stopped at: Completed 03-02-PLAN.md
+Last session: 2026-05-06T01:39:44.054Z
+Stopped at: Completed 03-05-PLAN.md
 Resume file: None

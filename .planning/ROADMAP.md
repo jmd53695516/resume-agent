@@ -70,7 +70,7 @@ Plans:
 - [x] 03-02-PLAN.md — Wire tools + prepareStep + persistToolCallTurn + heartbeats into /api/chat onFinish (TOOL-06, TOOL-07, TOOL-08, TOOL-10)
 - [ ] 03-03-PLAN.md — TracePanel + MetricCard + MessageBubble extension to walk message.parts (CHAT-13, TOOL-06, TOOL-10)
 - [x] 03-04-PLAN.md — /api/health endpoint + StatusBanner SC + dual-page mounting via app/chat/layout.tsx (OBSV-07, OBSV-10, OBSV-11)
-- [ ] 03-05-PLAN.md — Plain-HTML fallback: build-time KB extractor + branched render in page.tsx + error.tsx belt-and-suspenders + ChatUI persistent-500 redirect (OBSV-12)
+- [x] 03-05-PLAN.md — Plain-HTML fallback: build-time KB extractor + branched render in page.tsx + error.tsx belt-and-suspenders + ChatUI persistent-500 redirect (OBSV-12)
 **UI hint**: yes
 
 ### Phase 4: Admin & Observability
