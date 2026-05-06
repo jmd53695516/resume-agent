@@ -1,26 +1,19 @@
 // src/components/StatusBanner.tsx
-// SERVER COMPONENT. Fetches /api/health via absolute URL constructed from
-// headers() and renders per-impaired-dep copy. D-F-01 (mounted on / and /chat),
-// D-F-02 (SC fetch with 30s revalidate), D-F-03 (null when all green),
-// D-F-04 (per-impaired-dep specific copy), D-F-05 (framing sticky / chat dismissible).
+// SERVER COMPONENT. Renders per-impaired-dep copy. D-F-01 (mounted on / and
+// /chat), D-F-02 (SC fetch with 30s revalidate via fetchHealth helper),
+// D-F-03 (null when all green), D-F-04 (per-impaired-dep specific copy),
+// D-F-05 (framing sticky / chat dismissible).
 //
 // W10: STATUS_COPY is exported DIRECTLY with the typed annotation — no
 // intermediate-identifier-then-aliased pattern. The export is the in-file source
 // of truth and is what consumers (and tests) import.
 //
-// Plan 03-05 NOTE: this file ships fetchHealth() INLINE. Plan 03-05 will extract
-// fetchHealth into src/lib/fetch-health.ts and update this file's import.
-import { headers } from 'next/headers';
+// Plan 03-05 B1: fetchHealth was previously inline here; it has been
+// EXTRACTED into src/lib/fetch-health.ts and is now also consumed by
+// src/app/page.tsx for the branched-render fallback trigger.
 import type { DepStatus } from '@/lib/health';
+import { fetchHealth, type HealthShape } from '@/lib/fetch-health';
 import { ChatStatusBanner } from './ChatStatusBanner';
-
-type HealthShape = {
-  anthropic: DepStatus;
-  classifier: DepStatus;
-  supabase: DepStatus;
-  upstash: DepStatus;
-  exa: DepStatus;
-};
 
 // D-F-04: per-dep specific copy. Joe reviews/edits in PR per the same flow as
 // Phase 2 deflection copy. W10: declared directly with the typed annotation.
@@ -48,23 +41,6 @@ export const STATUS_COPY: Record<keyof HealthShape, { label: string; degraded: s
     degraded: 'Pitch tool offline right now — case study and metric design still work.',
   },
 };
-
-async function fetchHealth(): Promise<HealthShape | null> {
-  const h = await headers();
-  // Vercel sets x-forwarded-host + x-forwarded-proto. headers() returns keys
-  // in lowercase form, so we always look them up that way.
-  const host = h.get('x-forwarded-host') ?? h.get('host') ?? 'localhost:3000';
-  const proto = h.get('x-forwarded-proto') ?? 'http';
-  try {
-    const res = await fetch(`${proto}://${host}/api/health`, {
-      next: { revalidate: 30 }, // D-F-02
-    });
-    if (!res.ok) return null;
-    return (await res.json()) as HealthShape;
-  } catch {
-    return null;
-  }
-}
 
 export async function StatusBanner({ page }: { page: 'framing' | 'chat' }) {
   const health = await fetchHealth();
