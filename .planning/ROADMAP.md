@@ -83,7 +83,15 @@ Plans:
   3. The cost tracker shows rolling 24h / 7d / 30d Anthropic spend with per-tool breakdown and prompt-cache hit rate; the abuse log shows classifier-flagged messages and rate-limit hits with hashed IP + email
   4. Joe receives a per-session email within seconds of a new session (company-domain addresses get a priority subject-line flag) and alarm emails on: hard spend-cap trigger, error rate >2% over 10min, any dependency down, or ≥5 unique IPs hitting rate limits within an hour
   5. A BetterStack/UptimeRobot synthetic monitor pings the app from outside Vercel and a `cron-job.org` heartbeat pre-warms the prompt cache every 5 min during business hours; retention runs 180d hot then cold for transcripts, indefinite for captured emails, 90d for classifier flags
-**Plans**: TBD
+**Plans:** 7 plans
+Plans:
+- [ ] 04-01-PLAN.md — Deps + env + migration push + shadcn primitives (Wave 1; OBSV-15)
+- [ ] 04-02-PLAN.md — Auth perimeter: proxy.ts + admin-auth + login + callback + NotAuthorized (Wave 2; OBSV-01, OBSV-02)
+- [ ] 04-03-PLAN.md — Admin shell + Sessions list + Transcript viewer with TracePanel admin variant (Wave 3; OBSV-03, OBSV-04)
+- [ ] 04-04-PLAN.md — Cost + Abuse + Health pages (Wave 3; OBSV-05, OBSV-06)
+- [ ] 04-05-PLAN.md — Email infra: Resend + free-mail allowlist + per-session email via after() in /api/chat (Wave 2; OBSV-08)
+- [ ] 04-06-PLAN.md — Cron auth + check-alarms cron + 4-condition dispatcher (Wave 3; OBSV-09)
+- [ ] 04-07-PLAN.md — Heartbeat cron + Archive cron + retention (Wave 3; OBSV-13, OBSV-14, OBSV-15)
 **UI hint**: yes
 
 ### Phase 5: Eval Gates & Launch
@@ -109,5 +117,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Foundation & Content | 0/4 | Not started | - |
 | 2. Safe Chat Core | 0/TBD | Not started | - |
 | 3. Tools & Resilience | 0/TBD | Not started | - |
-| 4. Admin & Observability | 0/TBD | Not started | - |
+| 4. Admin & Observability | 0/7 | Not started | - |
 | 5. Eval Gates & Launch | 0/TBD | Not started | - |
