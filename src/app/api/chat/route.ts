@@ -138,8 +138,17 @@ export async function POST(req: Request): Promise<Response> {
         reason: 'turncap',
       });
     } catch (e) {
-      console.error('persistDeflectionTurn(turncap) failed', e);
       // D-G-05: persistence failures must not block the deflection response.
+      log(
+        {
+          event: 'persistence_failed',
+          where: 'persistDeflectionTurn(turncap)',
+          error_class: (e as Error).name ?? 'Error',
+          error_message: (e as Error).message,
+          session_id,
+        },
+        'error',
+      );
     }
     log({ event: 'deflect', reason: 'turncap', session_id });
     return deflectionResponse('turncap');
@@ -157,7 +166,16 @@ export async function POST(req: Request): Promise<Response> {
         reason: 'spendcap',
       });
     } catch (e) {
-      console.error('persistDeflectionTurn(spendcap) failed', e);
+      log(
+        {
+          event: 'persistence_failed',
+          where: 'persistDeflectionTurn(spendcap)',
+          error_class: (e as Error).name ?? 'Error',
+          error_message: (e as Error).message,
+          session_id,
+        },
+        'error',
+      );
     }
     log({ event: 'deflect', reason: 'spendcap', session_id });
     return deflectionResponse('spendcap');
@@ -178,7 +196,16 @@ export async function POST(req: Request): Promise<Response> {
         reason: 'ratelimit',
       });
     } catch (e) {
-      console.error('persistDeflectionTurn(ratelimit) failed', e);
+      log(
+        {
+          event: 'persistence_failed',
+          where: 'persistDeflectionTurn(ratelimit)',
+          error_class: (e as Error).name ?? 'Error',
+          error_message: (e as Error).message,
+          session_id,
+        },
+        'error',
+      );
     }
     log({ event: 'deflect', reason: 'ratelimit', which: rl.which, session_id });
     return deflectionResponse('ratelimit');
@@ -196,7 +223,16 @@ export async function POST(req: Request): Promise<Response> {
         reason: 'borderline',
       });
     } catch (e) {
-      console.error('persistDeflectionTurn(borderline) failed', e);
+      log(
+        {
+          event: 'persistence_failed',
+          where: 'persistDeflectionTurn(borderline)',
+          error_class: (e as Error).name ?? 'Error',
+          error_message: (e as Error).message,
+          session_id,
+        },
+        'error',
+      );
     }
     log({ event: 'deflect', reason: 'borderline', verdict, session_id });
     return deflectionResponse('borderline');
@@ -211,7 +247,16 @@ export async function POST(req: Request): Promise<Response> {
         reason: verdict.label,
       });
     } catch (e) {
-      console.error(`persistDeflectionTurn(${verdict.label}) failed`, e);
+      log(
+        {
+          event: 'persistence_failed',
+          where: `persistDeflectionTurn(${verdict.label})`,
+          error_class: (e as Error).name ?? 'Error',
+          error_message: (e as Error).message,
+          session_id,
+        },
+        'error',
+      );
     }
     log({ event: 'deflect', reason: verdict.label, verdict, session_id });
     return deflectionResponse(verdict.label);
@@ -263,7 +308,15 @@ export async function POST(req: Request): Promise<Response> {
           redis.set('heartbeat:classifier', Date.now(), { ex: 120 }),
         ]);
       } catch (err) {
-        console.error('heartbeat_write_failed', err);
+        log(
+          {
+            event: 'heartbeat_write_failed',
+            error_class: (err as Error).name ?? 'Error',
+            error_message: (err as Error).message,
+            session_id,
+          },
+          'error',
+        );
       }
 
       try {
@@ -287,7 +340,16 @@ export async function POST(req: Request): Promise<Response> {
         });
         await Promise.all([incrementSpend(costCents), incrementIpCost(ipKey, costCents)]);
       } catch (err) {
-        console.error('onFinish persistence failed', err);
+        log(
+          {
+            event: 'persistence_failed',
+            where: 'onFinish',
+            error_class: (err as Error).name ?? 'Error',
+            error_message: (err as Error).message,
+            session_id,
+          },
+          'error',
+        );
       }
       log({
         event: 'chat',
@@ -305,7 +367,18 @@ export async function POST(req: Request): Promise<Response> {
       });
     },
     onError: async (e) => {
-      console.error('streamText error', e);
+      // AI SDK onError signature is { error: unknown }; unwrap to a cause and
+      // log via Pino so the structured-JSON pipeline (D-I-01..05) captures it.
+      const err = (e as { error?: unknown }).error;
+      log(
+        {
+          event: 'streamText_error',
+          error_class: err instanceof Error ? err.name : 'Error',
+          error_message: err instanceof Error ? err.message : String(err),
+          session_id,
+        },
+        'error',
+      );
       try {
         await persistDeflectionTurn({
           session_id,

@@ -4,6 +4,7 @@
 // All columns map to supabase/migrations/0001_initial.sql `messages` table.
 import { supabaseAdmin } from './supabase-server';
 import { newMessageId } from './id';
+import { log } from './logger';
 import type { ClassifierVerdict } from './classifier';
 import type { NormalizedUsage } from './cost';
 
@@ -48,7 +49,17 @@ export async function persistNormalTurn(params: {
     },
   ];
   const { error } = await supabaseAdmin.from('messages').insert(rows);
-  if (error) console.error('persistNormalTurn failed', error);
+  if (error) {
+    log(
+      {
+        event: 'persistence_failed',
+        where: 'persistNormalTurn',
+        error_message: (error as { message?: string }).message ?? String(error),
+        session_id: params.session_id,
+      },
+      'error',
+    );
+  }
 
   // Session rollup deferred to Phase 4 admin observability.
 }
@@ -95,7 +106,18 @@ export async function persistDeflectionTurn(params: {
     },
   ];
   const { error } = await supabaseAdmin.from('messages').insert(rows);
-  if (error) console.error('persistDeflectionTurn failed', error);
+  if (error) {
+    log(
+      {
+        event: 'persistence_failed',
+        where: 'persistDeflectionTurn',
+        reason: params.reason,
+        error_message: (error as { message?: string }).message ?? String(error),
+        session_id: params.session_id,
+      },
+      'error',
+    );
+  }
 }
 
 // persistToolCallTurn — TOOL-08 / D-E-04. Schema column is `tool_result`
@@ -140,5 +162,15 @@ export async function persistToolCallTurn(params: {
   if (rows.length === 0) return;
 
   const { error } = await supabaseAdmin.from('messages').insert(rows);
-  if (error) console.error('persistToolCallTurn failed', error);
+  if (error) {
+    log(
+      {
+        event: 'persistence_failed',
+        where: 'persistToolCallTurn',
+        error_message: (error as { message?: string }).message ?? String(error),
+        session_id: params.session_id,
+      },
+      'error',
+    );
+  }
 }
