@@ -90,7 +90,7 @@
 - [ ] **OBSV-05** — Cost tracker: rolling 24h / 7d / 30d Anthropic spend; per-tool breakdown; prompt-cache hit rate
 - [ ] **OBSV-06** — Abuse log: classifier-flagged messages + rate-limit hits with hashed IP and email
 - [x] **OBSV-07** — Tool health: ping endpoint status (Anthropic / Exa / Supabase / Upstash) green/yellow/red
-- [ ] **OBSV-08** — Per-session email notification to Joe when a recruiter starts chatting; company-domain (non-free-mail) subject-line priority flag
+- [x] **OBSV-08** — Per-session email notification to Joe when a recruiter starts chatting; company-domain (non-free-mail) subject-line priority flag
 - [ ] **OBSV-09** — Alarm email on hard spend-cap trigger, error rate >2% over 10min, any dependency down, ≥5 unique IPs hitting rate limits within an hour
 - [x] **OBSV-10** — `/api/health` endpoint returns per-dependency status for the framing-page status banner
 - [x] **OBSV-11** — Status banner on framing page: yellow if any dependency is degraded (e.g., "Company-pitch tool temporarily offline, everything else works")
@@ -234,7 +234,7 @@ Each v1 requirement is mapped to exactly one phase. Coverage: 94/94.
 | OBSV-05 | Phase 4 | Pending |
 | OBSV-06 | Phase 4 | Pending |
 | OBSV-07 | Phase 3 | Complete |
-| OBSV-08 | Phase 4 | Pending |
+| OBSV-08 | Phase 4 | Complete |
 | OBSV-09 | Phase 4 | Pending |
 | OBSV-10 | Phase 3 | Complete |
 | OBSV-11 | Phase 3 | Complete |

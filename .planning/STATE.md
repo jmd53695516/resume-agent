@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-05-06T23:44:30.404Z"
+stopped_at: Completed 04-05-PLAN.md
+last_updated: "2026-05-06T23:58:57.686Z"
 last_activity: 2026-05-06
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 21
-  completed_plans: 16
-  percent: 76
+  completed_plans: 17
+  percent: 81
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 ## Current Position
 
 Phase: 04 (admin-observability) — EXECUTING
-Plan: 3 of 7
+Plan: 4 of 7
 Status: Ready to execute
 Last activity: 2026-05-06
 
@@ -65,6 +65,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03-tools-resilience P03 | 22min | 4 tasks | 10 files |
 | Phase 04-admin-observability P01 | 32min | 7 tasks | 9 files |
 | Phase 04-admin-observability P02 | 11min | 5 tasks | 9 files |
+| Phase 04-admin-observability P05 | 7min | 4 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -121,6 +122,9 @@ Recent decisions affecting current work:
 - [Phase 04-admin-observability]: Plan 04-02: vi.hoisted() container for multi-mock test files — refines Plan 03-00 vi.mock factory pattern (TDZ error without it for top-level mock-state captures)
 - [Phase 04-admin-observability]: Plan 04-02: lucide-react v1.x dropped brand icons (Github removed) — inline GitHub Octicon SVG (MIT) used as <GitHubMark> for sign-in button
 - [Phase 04-admin-observability]: Plan 04-02: pre-commit hook NAMES-exclusion extended to canonical anon-key consumers (env.ts, supabase-browser.ts, admin-auth.ts, proxy.ts, callback route, tests/**) — anon key public-by-design; sk-ant + JWT VALUES still scan everywhere
+- [Phase 04-admin-observability]: Plan 04-05: Lazy-init Resend client (getter-proxy over singleton) — module-load constructor broke chat-route tests with minimal env stubs; production path unchanged
+- [Phase 04-admin-observability]: Plan 04-05: after() from 'next/server' for fire-and-forget email send (Next.js 16 / RESEARCH Pitfall 3 — supersedes deprecated waitUntil() referenced in CONTEXT.md)
+- [Phase 04-admin-observability]: Plan 04-05: chat-tools.test.ts mocks 'next/server' after() to inline-run callbacks (real after() requires Next.js request scope; tests invoke onFinish out-of-context)
 
 ### Pending Todos
 
@@ -136,6 +140,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-06T23:44:30.400Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-05-06T23:58:57.682Z
+Stopped at: Completed 04-05-PLAN.md
 Resume file: None
