@@ -18,16 +18,16 @@ A recruiter in under five minutes walks away with a distinctive, specific impres
 - [x] Input classifier (Haiku) that gates abuse / injection / offtopic / sensitive messages — *Validated in Phase 2: Safe Chat Core (4 trip tests passed at $0 Sonnet cost)*
 - [x] Four-layer voice defense (authentic samples, negative directives, opinion-density stances, voice-first case studies) — *Validated in Phase 2: Safe Chat Core (system-prompt determinism + VOICE-11 conformance test cases pass)*
 - [x] Hard daily spend cap in code + per-IP/per-email rate limits + max output tokens + max conversation length — *Validated in Phase 2: Safe Chat Core (six gates run cheapest-first; cache hit confirmed cold 14¢ → warm 7¢)*
+- [x] Tool: company research + tailored 3-paragraph pitch with live sources (`research_company`) — *Validated in Phase 3: Tools & Resilience (Exa client w/ <90d freshness filter, sanitizer + system-prompt FETCHED_CONTENT_RULE; live DevTools observation pending in 03-HUMAN-UAT)*
+- [x] Tool: menu-driven case-study walkthrough narrated first-person (`get_case_study`) — *Validated in Phase 3: Tools & Resilience (kb-loader + tool wired; ~400-word prose-shape verification pending in 03-HUMAN-UAT)*
+- [x] Tool: structured metric framework rendered as card + Joe's commentary (`design_metric_framework`) — *Validated in Phase 3: Tools & Resilience (Haiku 4.5 forced-tool-output + Zod-validated, MetricCard renders six sections; live render pending in 03-HUMAN-UAT)*
+- [x] Tool-call trace panel visible to the user ("see what I did") — *Validated in Phase 3: Tools & Resilience (TracePanel walks message.parts; chevron UX pending in 03-HUMAN-UAT)*
+- [x] Graceful degradation banner when any dependency is impaired; friendly "come back later" on spend cap — *Validated in Phase 3: Tools & Resilience (/api/health always-200, StatusBanner SC + ChatStatusBanner CC, plain-HTML fallback at /?fallback=1 + error.tsx safety net)*
 
 ### Active
 
 <!-- Current scope. Building toward these. All hypotheses until shipped. -->
 
-- [ ] Tool: company research + tailored 3-paragraph pitch with live sources (`research_company`) — Phase 3
-- [ ] Tool: menu-driven case-study walkthrough narrated first-person (`get_case_study`) — Phase 3
-- [ ] Tool: structured metric framework rendered as card + Joe's commentary (`design_metric_framework`) — Phase 3
-- [ ] Tool-call trace panel visible to the user ("see what I did") — Phase 3
-- [ ] Graceful degradation banner when any dependency is impaired; friendly "come back later" on spend cap — Phase 3
 - [ ] End-of-session optional feedback prompt ("was this useful?") — Phase 4
 - [ ] Admin dashboard (GitHub-OAuth-gated) with sessions, transcripts, cost tracking, abuse log, tool-health ping — Phase 4
 - [ ] New-session email notifications to Joe (with company-domain priority) — Phase 4
@@ -116,14 +116,19 @@ This document evolves at phase transitions and milestone boundaries.
 
 ## Current State
 
-**Phase 2 (Safe Chat Core) closed 2026-04-30.** A recruiter can submit an email, land in `/chat`, click a starter or type freely, and receive a streaming first-person Sonnet 4.6 reply that obeys VOICE-11 voice rules and refuses fabrication (live SpaceX trap test confirmed). Six gates (body validation → session lookup → 30-turn cap → spend cap → rate limits → classifier) run cheapest-first ahead of every Sonnet call. Cache hit confirmed (50% cost savings cold → warm). Zero tools live yet, so cost exposure is bounded.
+**Phase 3 (Tools & Resilience) closed 2026-05-06.** All three agentic tools are live in `/api/chat` (`research_company`, `get_case_study`, `design_metric_framework`) with Zod schemas, prompt-injection sanitizer at the boundary, and TOOL-09's FETCHED_CONTENT_RULE in the system prompt. `prepareStep` enforces ≤3 tool calls/turn (TOOL-07) and stops on duplicate args (SAFE-15); `onFinish` writes `heartbeat:anthropic` + `heartbeat:classifier` (ex:120) and persists tool-call rows via `persistToolCallTurn`. The six-gate prelude order is preserved by a durable assertion test. The UI surfaces tools via TracePanel + MetricCard rendered exclusively from `message.parts`. Resilience visibility: `/api/health` (always-200), StatusBanner Server Component on `/` and `/chat/*`, plain-HTML fallback at `/?fallback=1` (build-time generated from KB) plus `error.tsx` safety net. Code review surfaced 6 warnings, all auto-fixed (notably the StatusBanner self-fetch anti-pattern → in-process ping helpers via `unstable_cache`, and Pino log-discipline drift in error paths). 220/220 tests pass.
 
-Deferred from Phase 2 (tracked, not blocking closure):
+Deferred from Phase 2 (still tracked):
 - **SAFE-12** — Anthropic $20/mo org-level spend cap (operational only, no code) — gates Phase 5 LAUNCH-06 deploy
-- **REVIEW WR-01** — message-length cap on `/api/chat` (classifier cost scales with input tokens before the local $3 cap fires)
-- **REVIEW WR-02..05** — IP spoofing on `/api/session`, atomic Redis ops, classifier delimiter wrap, `/api/session` rate limit
+- **REVIEW WR-01** (Phase 2) — message-length cap on `/api/chat` (classifier cost scales with input tokens before the local $3 cap fires)
+- **REVIEW WR-02..05** (Phase 2) — IP spoofing on `/api/session`, atomic Redis ops, classifier delimiter wrap, `/api/session` rate limit
 
-Next up: Phase 3 (Tools & Resilience) — the three PM-flavored agentic tools (pitch / case-study / metric framework) and the trace panel that make the agent the differentiated portfolio artifact.
+Phase 3 follow-ups (tracked in 03-HUMAN-UAT.md, not blocking closure):
+- 9 human-verification items requiring live runtime testing (real EXA_API_KEY, DevTools observation, prose-shape eval, visual rendering pass, full-stack 500-induction). Best smoked manually before public deploy or as part of Phase 5 evals.
+- Resume PDF placement at `/joe-dollinger-resume.pdf` — currently expected 404; Joe drops the PDF in `public/` before public deploy (Phase 5 LAUNCH-* responsibility).
+- 9 Info-severity code-review items deferred per `fix_scope: critical_warning` — minor consistency/robustness suggestions documented in 03-REVIEW.md.
+
+Next up: Phase 4 (Admin & Observability) — admin dashboard with sessions, transcripts, cost tracking, abuse log, tool-health ping, and end-of-session feedback prompt.
 
 ---
-*Last updated: 2026-04-30 after Phase 2 (Safe Chat Core) closure*
+*Last updated: 2026-05-06 after Phase 3 (Tools & Resilience) closure*
