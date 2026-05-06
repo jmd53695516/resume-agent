@@ -83,8 +83,8 @@
 
 ### Admin & Observability (OBSV)
 
-- [ ] **OBSV-01** — Admin dashboard at `/admin` gated by Supabase Auth + GitHub OAuth provider (free)
-- [ ] **OBSV-02** — Admin email allowlist enforced at API/middleware layer, not just UI
+- [x] **OBSV-01** — Admin dashboard at `/admin` gated by Supabase Auth + GitHub OAuth provider (free)
+- [x] **OBSV-02** — Admin email allowlist enforced at API/middleware layer, not just UI
 - [ ] **OBSV-03** — Sessions table view: last 100 sessions with email, domain, timestamp, flag column, sortable by date/domain
 - [ ] **OBSV-04** — Transcript viewer: click a session → full conversation with tool-call traces rendered inline
 - [ ] **OBSV-05** — Cost tracker: rolling 24h / 7d / 30d Anthropic spend; per-tool breakdown; prompt-cache hit rate
@@ -227,8 +227,8 @@ Each v1 requirement is mapped to exactly one phase. Coverage: 94/94.
 | SAFE-13 | Phase 2 | Complete |
 | SAFE-14 | Phase 1 | Pending |
 | SAFE-15 | Phase 2 | Pending |
-| OBSV-01 | Phase 4 | Pending |
-| OBSV-02 | Phase 4 | Pending |
+| OBSV-01 | Phase 4 | Complete |
+| OBSV-02 | Phase 4 | Complete |
 | OBSV-03 | Phase 4 | Pending |
 | OBSV-04 | Phase 4 | Pending |
 | OBSV-05 | Phase 4 | Pending |

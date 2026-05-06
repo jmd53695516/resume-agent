@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-05-06T23:28:36.048Z"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-05-06T23:44:30.404Z"
 last_activity: 2026-05-06
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 21
-  completed_plans: 15
-  percent: 71
+  completed_plans: 16
+  percent: 76
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 ## Current Position
 
 Phase: 04 (admin-observability) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 Status: Ready to execute
 Last activity: 2026-05-06
 
@@ -64,6 +64,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03-tools-resilience P05 | 14min | 3 tasks | 12 files |
 | Phase 03-tools-resilience P03 | 22min | 4 tasks | 10 files |
 | Phase 04-admin-observability P01 | 32min | 7 tasks | 9 files |
+| Phase 04-admin-observability P02 | 11min | 5 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -117,6 +118,9 @@ Recent decisions affecting current work:
 - [Phase 04-admin-observability]: Plan 04-01: ADMIN_GITHUB_USERNAMES → ADMIN_GITHUB_LOGINS rename (matches GitHub OAuth claim name "login")
 - [Phase 04-admin-observability]: Plan 04-01: alarms_fired uses text PK populated by nanoid in Node (matches 0001 sessions/messages pattern; no pgcrypto extension)
 - [Phase 04-admin-observability]: Plan 04-01: SUPABASE_STORAGE_ARCHIVE_BUCKET defaults to 'transcripts-archive' — bucket created with public=false; no .env entry needed if accepting default
+- [Phase 04-admin-observability]: Plan 04-02: vi.hoisted() container for multi-mock test files — refines Plan 03-00 vi.mock factory pattern (TDZ error without it for top-level mock-state captures)
+- [Phase 04-admin-observability]: Plan 04-02: lucide-react v1.x dropped brand icons (Github removed) — inline GitHub Octicon SVG (MIT) used as <GitHubMark> for sign-in button
+- [Phase 04-admin-observability]: Plan 04-02: pre-commit hook NAMES-exclusion extended to canonical anon-key consumers (env.ts, supabase-browser.ts, admin-auth.ts, proxy.ts, callback route, tests/**) — anon key public-by-design; sk-ant + JWT VALUES still scan everywhere
 
 ### Pending Todos
 
@@ -132,6 +136,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-06T23:28:04.290Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-05-06T23:44:30.400Z
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None
