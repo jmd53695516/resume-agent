@@ -5,8 +5,16 @@
 // page.tsx, Plan 03-05). Counter resets on any successful response. The
 // router.push target string is the load-bearing assertion.
 // W3: per-file jsdom directive; global env stays 'node'.
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest';
 import { cleanup } from '@testing-library/react';
+
+// jsdom does not implement Element.prototype.scrollIntoView. ChatUI calls it
+// in a useEffect after mount; stub it as a no-op so the render doesn't throw.
+beforeAll(() => {
+  if (!Element.prototype.scrollIntoView) {
+    Element.prototype.scrollIntoView = function () {};
+  }
+});
 
 // Mock next/navigation so we can spy on router.push.
 const push = vi.fn();
@@ -37,8 +45,12 @@ vi.mock('@ai-sdk/react', () => ({
   },
 }));
 
+// DefaultChatTransport is invoked via `new DefaultChatTransport(...)` in
+// ChatUI — vi.fn() arrow factories are not constructible. Stub a real class.
 vi.mock('ai', () => ({
-  DefaultChatTransport: vi.fn().mockImplementation(() => ({})),
+  DefaultChatTransport: class {
+    constructor(_cfg: unknown) {}
+  },
 }));
 
 afterEach(() => {

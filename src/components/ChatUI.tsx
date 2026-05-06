@@ -1,8 +1,10 @@
 'use client';
 
+import type * as React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
+import { useRouter } from 'next/navigation';
 import { StarterPrompts } from './StarterPrompts';
 import { MessageBubble } from './MessageBubble';
 
@@ -14,15 +16,37 @@ type ChatUIProps = {
 // Layout is full-width per Joe's scope decision (not a 440px panel) but the
 // design's chrome — header bar with avatar, backdrop-blurred composer with
 // rounded input shell + send button — is preserved.
+//
+// Plan 03-03 / B2 (moved from 03-05): track consecutive /api/chat 500s. After
+// the SECOND consecutive failure, redirect to /?fallback=1 — page.tsx (Plan
+// 03-05) consumes that query param and renders <PlainHtmlFallback />. Counter
+// resets on any successful onFinish so transient single failures don't kick
+// the user out.
 export function ChatUI({ sessionId }: ChatUIProps) {
   // Consumer-managed input (v6 pattern: useChat no longer owns input state)
   const [input, setInput] = useState('');
+
+  // B2 — D-G-04 trigger 1: persistent /api/chat 500s → fallback redirect.
+  const router = useRouter();
+  const errorCountRef = useRef(0);
 
   const { messages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({
       api: '/api/chat',
       body: { session_id: sessionId },
     }),
+    onError: () => {
+      errorCountRef.current += 1;
+      if (errorCountRef.current >= 2) {
+        // Two consecutive failures — recruiter is on a broken agent surface.
+        // Redirect to the safer plain-HTML fallback (Plan 03-05 / OBSV-12).
+        router.push('/?fallback=1');
+      }
+    },
+    onFinish: () => {
+      // Reset on any successful response — single transient 500 is forgiven.
+      errorCountRef.current = 0;
+    },
   });
 
   const isStreaming = status === 'submitted' || status === 'streaming';
@@ -77,15 +101,34 @@ export function ChatUI({ sessionId }: ChatUIProps) {
             messages
               .filter((m) => m.role === 'user' || m.role === 'assistant')
               .map((m) => {
-                const text = m.parts
-                  .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
-                  .map((p) => p.text)
-                  .join('');
+                if (m.role === 'user') {
+                  // User messages stay text-only — Phase 2 contract.
+                  const text = m.parts
+                    .filter(
+                      (p): p is { type: 'text'; text: string } =>
+                        p.type === 'text',
+                    )
+                    .map((p) => p.text)
+                    .join('');
+                  return (
+                    <MessageBubble key={m.id} role="user" text={text} />
+                  );
+                }
+                // Assistant: forward full m.parts so MessageBubble can dispatch
+                // text → prose, tool-* → TracePanel + (for design_metric_framework)
+                // MetricCard. Replaces the Phase 2 text-only filter.
+                // The two-step cast (unknown → assistant-parts) is required
+                // because AI SDK v6's UIMessage.parts is a wider union than
+                // MessageBubble's narrower (TextPart | ToolPart) union.
+                type AssistantProps = Extract<
+                  React.ComponentProps<typeof MessageBubble>,
+                  { role: 'assistant' }
+                >;
                 return (
                   <MessageBubble
                     key={m.id}
-                    role={m.role as 'user' | 'assistant'}
-                    text={text}
+                    role="assistant"
+                    parts={m.parts as unknown as AssistantProps['parts']}
                   />
                 );
               })
