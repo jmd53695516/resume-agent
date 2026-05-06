@@ -15,8 +15,18 @@ export function ChatStatusBanner({ messages }: { messages: string[] }) {
 
   useEffect(() => {
     setHydrated(true);
-    if (typeof window !== 'undefined') {
-      setDismissed(sessionStorage.getItem(DISMISS_KEY) === '1');
+    // WR-04 fix: sessionStorage.getItem() throws SecurityError in Safari
+    // Private Browsing, iOS Lockdown Mode, and on quota-exceeded. Without
+    // this try/catch, the throw inside an effect trips the nearest error
+    // boundary (app/error.tsx → PlainHtmlFallback) on /chat — which means a
+    // recruiter on iOS Private Mode would land on the fallback just by
+    // visiting /chat while a banner is showing.
+    try {
+      if (typeof window !== 'undefined') {
+        setDismissed(sessionStorage.getItem(DISMISS_KEY) === '1');
+      }
+    } catch {
+      // sessionStorage unavailable: show banner (no dismiss memory).
     }
   }, []);
 
@@ -34,7 +44,14 @@ export function ChatStatusBanner({ messages }: { messages: string[] }) {
         type="button"
         aria-label="Dismiss banner"
         onClick={() => {
-          sessionStorage.setItem(DISMISS_KEY, '1');
+          // WR-04 fix: setItem() can throw SecurityError / QuotaExceededError
+          // for the same browsers as getItem above. Swallow — the visual
+          // dismiss still works for this render, just won't persist.
+          try {
+            sessionStorage.setItem(DISMISS_KEY, '1');
+          } catch {
+            // sessionStorage unavailable; dismiss is in-memory only.
+          }
           setDismissed(true);
         }}
         className="ml-2 font-bold"
