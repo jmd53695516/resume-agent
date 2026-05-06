@@ -15,6 +15,7 @@ export default defineConfig({
   test: {
     environment: 'node', // component tests can override via // @vitest-environment jsdom
     include: ['tests/**/*.test.{ts,tsx}'],
+    setupFiles: ['./tests/setup.ts'], // Plan 03-03 Task 0: jest-dom matchers for jsdom tests
     globals: false,
     // TODO(REVIEW IN-06): revisit when vitest > 4.1.5 — the upstream default pool
     // was broken on Node 25.x at the time vitest 4.1.5 shipped; vmThreads works
