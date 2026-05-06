@@ -47,7 +47,6 @@ Exceptions:
 - Top-bar nav height: 44px (touch-target minimum; explicit `h-11`)
 - Top-bar nav active indicator: 2px underline (`border-b-2`)
 - Abuse log row: single-line `py-1` (data-density; not standard `py-2`)
-- Session header summary: `py-3` to give the session metadata visual breathing room
 
 ---
 
@@ -324,7 +323,7 @@ Condition labels:
 | `dep-down` | Dependency down |
 | `rate-limit-abuse` | Rate limit abuse |
 
-Each row: `text-sm py-1`. Condition label: `font-medium text-amber-700`.
+Each row: `text-sm py-2`. Condition label: `font-medium text-amber-700`.
 
 If no alarms: "No alarms fired." — `text-sm text-muted-foreground`.
 
@@ -355,7 +354,7 @@ No iframe. Link-out only (per RESEARCH §10 — iframe support not confirmed).
 
 **Nav link spec:**
 - Inactive: `text-sm text-muted-foreground hover:text-foreground transition-colors`
-- Active (current page): `text-sm font-semibold text-foreground border-b-2 border-[--me]` — underline sits at the bottom of the nav bar (achieved via `pb-[calc(0.5rem+2px)] mb-[-2px]` or via `border-b-2` on the link itself flush to nav bottom)
+- Active (current page): `text-sm font-semibold text-foreground border-b-2 border-[--me]` — underline sits flush at the bottom of the nav bar via `border-b-2` on the link itself
 - Active detection: compare `pathname` from `usePathname()` (client component `<AdminNav>`)
 
 **Refresh button:**
