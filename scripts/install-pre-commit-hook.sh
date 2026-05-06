@@ -47,10 +47,13 @@ fi
 #   - NAMES (pattern 1 — env var names like NEXT_PUBLIC_*KEY): additionally
 #     exclude planning docs (.planning/**) and design specs (docs/superpowers/**)
 #     where referencing env var names is legitimate design documentation, not
-#     a secret-leak vector. The values that those names would hold are still
-#     covered by patterns 2 & 3.
+#     a secret-leak vector. Also exclude the canonical legitimate consumers of
+#     NEXT_PUBLIC_SUPABASE_ANON_KEY (env.ts schema + supabase-browser.ts client
+#     singleton) — the anon key name is public-by-design per Supabase docs and
+#     these two files are the only places that read it. The values that those
+#     names would hold are still covered by patterns 2 & 3.
 diff_output_values="$(git diff --cached -U0 --no-color -- ':(exclude).env.example' ':(exclude)scripts/install-pre-commit-hook.sh' ':(exclude)scripts/test-pre-commit-hook.sh' ':(exclude)package-lock.json' || true)"
-diff_output_names="$(git diff --cached -U0 --no-color -- ':(exclude).env.example' ':(exclude)scripts/install-pre-commit-hook.sh' ':(exclude)scripts/test-pre-commit-hook.sh' ':(exclude).planning/**' ':(exclude)docs/superpowers/**' || true)"
+diff_output_names="$(git diff --cached -U0 --no-color -- ':(exclude).env.example' ':(exclude)scripts/install-pre-commit-hook.sh' ':(exclude)scripts/test-pre-commit-hook.sh' ':(exclude).planning/**' ':(exclude)docs/superpowers/**' ':(exclude)src/lib/env.ts' ':(exclude)src/lib/supabase-browser.ts' || true)"
 
 if [[ -z "$diff_output_values" ]] && [[ -z "$diff_output_names" ]]; then
   exit 0
