@@ -16,7 +16,28 @@ import { log } from './logger';
 import { isFreeMail } from './free-mail-domains';
 import { SessionNotification, type SessionNotificationProps } from '@/emails/SessionNotification';
 
-export const resend = new Resend(env.RESEND_API_KEY);
+// Lazy-initialised Resend client. Module load MUST NOT construct the Resend
+// instance: /api/chat route.ts imports this module transitively, and several
+// chat-route test fixtures stub a minimal env object that omits RESEND_API_KEY.
+// Constructing eagerly at top-level would throw on any test that touches the
+// route module without explicitly mocking either env or the resend package.
+// Lazy-init keeps the production code path identical (first call materialises
+// + caches the singleton) while leaving test fixtures free to mock the
+// `resend` import (see tests/lib/email.test.ts) without paying for env wiring.
+let _resend: Resend | null = null;
+function getResend(): Resend {
+  if (_resend === null) {
+    _resend = new Resend(env.RESEND_API_KEY);
+  }
+  return _resend;
+}
+// Export as a getter for callers that prefer the property style; behaves like
+// a singleton but only materialises on first access.
+export const resend = {
+  get emails() {
+    return getResend().emails;
+  },
+};
 
 function priorityFor(email_domain: string): boolean {
   return !isFreeMail(email_domain);

@@ -28,6 +28,7 @@ import {
 } from 'ai';
 import type { UIMessage } from 'ai';
 import { ipAddress } from '@vercel/functions';
+import { after } from 'next/server';
 import { z } from 'zod';
 import { anthropicProvider, MODELS } from '@/lib/anthropic';
 import { buildSystemPrompt } from '@/lib/system-prompt';
@@ -52,6 +53,7 @@ import {
   design_metric_framework,
   enforceToolCallDepthCap,
 } from '@/lib/tools';
+import { claimAndSendSessionEmail } from '@/lib/email';
 import { log } from '@/lib/logger';
 
 export const runtime = 'nodejs';
@@ -351,6 +353,27 @@ export async function POST(req: Request): Promise<Response> {
           'error',
         );
       }
+
+      // Phase 4 OBSV-08 / D-C-02 — per-session email fires on first user
+      // turn, gated by atomic UPDATE-WHERE-IS-NULL on
+      // sessions.first_email_sent_at. after() (Next.js 16 / RESEARCH §Pitfall
+      // 3) runs the send post-response, so the streaming reply is already
+      // complete by the time Resend is hit. claimAndSendSessionEmail never
+      // throws — internal failures log via Pino.
+      //
+      // Note: CONTEXT.md Established Patterns references `waitUntil()` from
+      // `@vercel/functions` — this is superseded by RESEARCH.md Pitfall 3
+      // (verified). Next.js 16 deprecates `waitUntil()` in favor of `after()`
+      // from `next/server`. Do NOT revert to `waitUntil`.
+      after(async () => {
+        await claimAndSendSessionEmail({
+          session_id,
+          last_user_text: lastUser,
+          classifier_verdict: verdict.label,
+          classifier_confidence: verdict.confidence,
+        });
+      });
+
       log({
         event: 'chat',
         session_id,

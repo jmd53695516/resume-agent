@@ -102,6 +102,23 @@ vi.mock('@vercel/functions', () => ({
   ipAddress: () => 'test-ip',
 }));
 
+// ---- next/server `after` mock ----------------------------------------------
+// onFinish (Plan 04-05) calls `after(callback)` from `next/server` to schedule
+// the per-session email. Real `after` requires a Next.js request scope; these
+// unit tests invoke onFinish directly, so we intercept and run the callback
+// inline. The email-send path itself is exercised in tests/lib/email.test.ts.
+const afterMock = vi.fn(async (cb: () => Promise<void>) => {
+  await cb();
+});
+vi.mock('next/server', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('next/server')>();
+  return { ...actual, after: afterMock };
+});
+
+// ---- email mock (Plan 04-05 — claimAndSendSessionEmail) ---------------------
+const claimAndSendSessionEmail = vi.fn(async () => undefined);
+vi.mock('@/lib/email', () => ({ claimAndSendSessionEmail }));
+
 // ---- buildSystemPrompt — return short string to keep tests fast --------------
 vi.mock('@/lib/system-prompt', () => ({
   buildSystemPrompt: () => 'SYS',
