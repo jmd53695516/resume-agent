@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-04-PLAN.md
-last_updated: "2026-05-01T03:09:53.845Z"
-last_activity: 2026-05-01
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-05-06T01:15:32.025Z"
+last_activity: 2026-05-06
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 14
-  completed_plans: 11
-  percent: 79
+  completed_plans: 12
+  percent: 86
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 ## Current Position
 
 Phase: 3 (tools-resilience) — EXECUTING
-Plan: 4 of 6
+Plan: 5 of 6
 Status: Ready to execute
-Last activity: 2026-05-01
+Last activity: 2026-05-06
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -59,6 +59,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03 P00 | 11min | 5 tasks | 11 files |
 | Phase 03-tools-resilience P01 | 14min | 5 tasks | 16 files |
 | Phase 03 P04 | 11min | 3 tasks | 11 files |
+| Phase 03-tools-resilience P02 | 8min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,10 @@ Recent decisions affecting current work:
 - [Phase 03]: Plan 03-04: STATUS_COPY exported DIRECTLY (W10) — no const-then-alias intermediate; classifier copy intentionally empty (Plan 03-05 full-fallback trigger is single channel for that dep)
 - [Phase 03]: Plan 03-04: HTTP 200 always for /api/health (D-J-01) — encode dep state in body not status code; probes don't break when deps degrade; banner consumer renders ok-vs-degraded entirely render-side
 - [Phase 03]: Plan 03-04: Added @testing-library/react+jest-dom+dom devDeps; per-file '// @vitest-environment jsdom' directive (W3) keeps global env=node; afterEach(cleanup) prevents jsdom DOM accumulation between tests
+- [Phase 03-tools-resilience]: Plan 03-02: heartbeat keys use short form (heartbeat:anthropic, heartbeat:classifier) — single source of truth across writer (route.ts onFinish) and reader (health.ts pings)
+- [Phase 03-tools-resilience]: Plan 03-02: W4 fix — onFinish has TWO separate try/catch (heartbeat first, persistence second); structurally enforced (grep returns 2)
+- [Phase 03-tools-resilience]: Plan 03-02: W7 fix — durable-order test uses side-effect-recording mocks; happy-path deep-equal asserts canonical six-gate sequence; reordering trips CI
+- [Phase 03-tools-resilience]: Plan 03-02: tool_result column name (NOT tool_response) — research correction over CONTEXT D-E-04 typo; matches actual migration; verified empty grep
 
 ### Pending Todos
 
@@ -109,6 +114,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-01T03:09:53.841Z
-Stopped at: Completed 03-04-PLAN.md
+Last session: 2026-05-06T01:15:32.021Z
+Stopped at: Completed 03-02-PLAN.md
 Resume file: None

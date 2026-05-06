@@ -56,11 +56,11 @@
 - [x] **TOOL-03** — `get_case_study(slug)` tool: returns structured case study record from the in-memory KB; when slug is absent or unknown, offers the menu of available case studies
 - [x] **TOOL-04** — `get_case_study` narration is ~400 words, first person, with subtle Context/Decision/Outcome/Retro markers; ends with "Want to go deeper, or hear a different story?"
 - [x] **TOOL-05** — `design_metric_framework(description)` tool: Haiku sub-call with rigid schema returns structured JSON (north_star, input_metrics, counter_metrics, guardrails, proposed_experiment, open_questions)
-- [ ] **TOOL-06** — Metric framework output rendered as a formatted card in the UI (not a markdown blob) with labeled sections; main agent adds short commentary above the card
-- [ ] **TOOL-07** — Tool-call depth capped at 3 per turn; `stopWhen: stepCountIs(5)` on `streamText`
-- [ ] **TOOL-08** — Tool executions are read-only; all writes happen in `onFinish`, never in tool `execute` functions
+- [x] **TOOL-06** — Metric framework output rendered as a formatted card in the UI (not a markdown blob) with labeled sections; main agent adds short commentary above the card
+- [x] **TOOL-07** — Tool-call depth capped at 3 per turn; `stopWhen: stepCountIs(5)` on `streamText`
+- [x] **TOOL-08** — Tool executions are read-only; all writes happen in `onFinish`, never in tool `execute` functions
 - [x] **TOOL-09** — Fetched Exa content treated strictly as data, never as instructions (prompt-injection via scraped pages blocked)
-- [ ] **TOOL-10** — Tools are real — DevTools on the chat page shows real network activity when a tool fires
+- [x] **TOOL-10** — Tools are real — DevTools on the chat page shows real network activity when a tool fires
 - [x] **TOOL-11** — Graceful in-character fallback when any tool errors ("research tool is having a moment — ask me about my background instead")
 
 ### Safety, Cost & Abuse Controls (SAFE)
@@ -206,11 +206,11 @@ Each v1 requirement is mapped to exactly one phase. Coverage: 94/94.
 | TOOL-03 | Phase 3 | Complete |
 | TOOL-04 | Phase 3 | Complete |
 | TOOL-05 | Phase 3 | Complete |
-| TOOL-06 | Phase 3 | Pending |
-| TOOL-07 | Phase 3 | Pending |
-| TOOL-08 | Phase 3 | Pending |
+| TOOL-06 | Phase 3 | Complete |
+| TOOL-07 | Phase 3 | Complete |
+| TOOL-08 | Phase 3 | Complete |
 | TOOL-09 | Phase 3 | Complete |
-| TOOL-10 | Phase 3 | Pending |
+| TOOL-10 | Phase 3 | Complete |
 | TOOL-11 | Phase 3 | Complete |
 | SAFE-01 | Phase 2 | Complete |
 | SAFE-02 | Phase 2 | Complete |

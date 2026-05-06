@@ -67,7 +67,7 @@ Plans:
 Plans:
 - [x] 03-00-PLAN.md — Foundation prep: pino@10 swap, exa-js install, EXA_API_KEY required, getCaseStudy(slug) helper, exa.ts client, health.ts skeleton (OBSV-16)
 - [x] 03-01-PLAN.md — Three AI SDK tools (research_company, get_case_study, design_metric_framework) + sanitize/depth-cap/failure-copy modules + system-prompt extensions for fetched-content + anti-reflexive-chaining (TOOL-01..05, TOOL-09, TOOL-11)
-- [ ] 03-02-PLAN.md — Wire tools + prepareStep + persistToolCallTurn + heartbeats into /api/chat onFinish (TOOL-06, TOOL-07, TOOL-08, TOOL-10)
+- [x] 03-02-PLAN.md — Wire tools + prepareStep + persistToolCallTurn + heartbeats into /api/chat onFinish (TOOL-06, TOOL-07, TOOL-08, TOOL-10)
 - [ ] 03-03-PLAN.md — TracePanel + MetricCard + MessageBubble extension to walk message.parts (CHAT-13, TOOL-06, TOOL-10)
 - [x] 03-04-PLAN.md — /api/health endpoint + StatusBanner SC + dual-page mounting via app/chat/layout.tsx (OBSV-07, OBSV-10, OBSV-11)
 - [ ] 03-05-PLAN.md — Plain-HTML fallback: build-time KB extractor + branched render in page.tsx + error.tsx belt-and-suspenders + ChatUI persistent-500 redirect (OBSV-12)
