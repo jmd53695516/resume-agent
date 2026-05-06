@@ -46,7 +46,7 @@ Inherits Tailwind v4 defaults (multiples of 4). Phase 4 uses this subset:
 Exceptions:
 - Top-bar nav height: 44px (touch-target minimum; explicit `h-11`)
 - Top-bar nav active indicator: 2px underline (`border-b-2`)
-- Abuse log row: single-line `py-1.5` (data-density; not standard `py-2`)
+- Abuse log row: single-line `py-1` (data-density; not standard `py-2`)
 - Session header summary: `py-3` to give the session metadata visual breathing room
 
 ---
@@ -60,9 +60,10 @@ Inherits the font stack from Phase 2/3 (`globals.css`). Admin-surface hierarchy:
 | Body | 14px (`text-sm`) | 400 (regular) | 1.5 | Table cell content, log rows, badge labels |
 | Label | 12px (`text-xs`) | 600 (semibold) | 1.4 | Column headers (`uppercase tracking-wide`), card section labels, nav links |
 | Heading | 20px (`text-xl`) | 600 (semibold) | 1.2 | Page titles (`/admin/sessions`, `/admin/cost`, etc.) |
-| Display | 28px (`text-2xl`) | 700 (bold) | 1.15 | Cost card dollar amounts (the big number on each cost card) |
+| Display | 28px (`text-2xl`) | 600 (semibold) | 1.15 | Cost card dollar amounts (the big number on each cost card) |
 
 Notes:
+- 2 weights — 400 regular + 600 semibold
 - Admin body is 14px (smaller than public chat's 16px) to support data-density over polish
 - Mono font (`font-mono`, `--font-mono` = Geist Mono) used exclusively in: abuse log `ip_hash` truncation, trace panel JSON, `created_at` timestamps in compact contexts
 - All timestamps displayed in Joe's local timezone via browser-side `toLocaleString()` — use a client component wrapper `<LocalTime iso={string} />` for SSR-safe rendering
@@ -204,7 +205,7 @@ Reuses `<MessageBubble>` from Phase 3. Admin variant passes `alwaysExpandTrace` 
 
 ```
 [Window label]        ← text-xs font-semibold uppercase tracking-wide text-muted-foreground
-$14.32                ← text-2xl font-bold (Display role — the big number)
+$14.32                ← text-2xl font-semibold (Display role — the big number)
 438 requests          ← text-sm text-muted-foreground
 
 ─── Per-tool breakdown ───
@@ -247,7 +248,7 @@ May 6, 9:02 AM · jane@example.com · a3f8b2c1 · injection · "Ignore all previ
 **Implementation:** `<ul>` of `<li>` rows. Each row:
 - `font-mono text-xs` for ip_hash portion
 - `text-sm` for rest of content
-- `py-1.5 border-b border-border/30` (compact density — 1.5 not 2)
+- `py-1 border-b border-border/30` (compact density)
 - Link to `/admin/sessions/{session_id}` on the row (full row clickable; `hover:bg-muted/40 cursor-pointer`)
 - Verdict/reason styled: `text-amber-700 font-medium` for classifier verdicts, `text-red-700 font-medium` for ratelimit deflections
 
@@ -323,7 +324,7 @@ Condition labels:
 | `dep-down` | Dependency down |
 | `rate-limit-abuse` | Rate limit abuse |
 
-Each row: `text-sm py-1.5`. Condition label: `font-medium text-amber-700`.
+Each row: `text-sm py-1`. Condition label: `font-medium text-amber-700`.
 
 If no alarms: "No alarms fired." — `text-sm text-muted-foreground`.
 
