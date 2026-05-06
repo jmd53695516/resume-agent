@@ -85,7 +85,7 @@ Plans:
   5. A BetterStack/UptimeRobot synthetic monitor pings the app from outside Vercel and a `cron-job.org` heartbeat pre-warms the prompt cache every 5 min during business hours; retention runs 180d hot then cold for transcripts, indefinite for captured emails, 90d for classifier flags
 **Plans:** 7 plans
 Plans:
-- [ ] 04-01-PLAN.md — Deps + env + migration push + shadcn primitives (Wave 1; OBSV-15)
+- [x] 04-01-PLAN.md — Deps + env + migration push + shadcn primitives (Wave 1; OBSV-15)
 - [ ] 04-02-PLAN.md — Auth perimeter: proxy.ts + admin-auth + login + callback + NotAuthorized (Wave 2; OBSV-01, OBSV-02)
 - [ ] 04-03-PLAN.md — Admin shell + Sessions list + Transcript viewer with TracePanel admin variant (Wave 3; OBSV-03, OBSV-04)
 - [ ] 04-04-PLAN.md — Cost + Abuse + Health pages (Wave 3; OBSV-05, OBSV-06)

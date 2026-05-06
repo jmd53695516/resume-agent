@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 4 UI-SPEC approved
-last_updated: "2026-05-06T22:48:18.963Z"
-last_activity: 2026-05-06 -- Phase 04 planning complete
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-05-06T23:28:36.048Z"
+last_activity: 2026-05-06
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 21
-  completed_plans: 14
-  percent: 67
+  completed_plans: 15
+  percent: 71
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-21)
 
 **Core value:** A recruiter in under five minutes walks away with a distinctive, specific impression of Joe — grounded in real projects, free of fabrication, and delivered by an agent they can see was engineered (not just prompted) with cost, abuse, and hallucination controls.
-**Current focus:** Phase 3 — tools-resilience
+**Current focus:** Phase 04 — admin-observability
 
 ## Current Position
 
-Phase: 4
-Plan: Not started
+Phase: 04 (admin-observability) — EXECUTING
+Plan: 2 of 7
 Status: Ready to execute
-Last activity: 2026-05-06 -- Phase 04 planning complete
+Last activity: 2026-05-06
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -63,6 +63,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03-tools-resilience P02 | 8min | 3 tasks | 5 files |
 | Phase 03-tools-resilience P05 | 14min | 3 tasks | 12 files |
 | Phase 03-tools-resilience P03 | 22min | 4 tasks | 10 files |
+| Phase 04-admin-observability P01 | 32min | 7 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -113,6 +114,9 @@ Recent decisions affecting current work:
 - [Phase 03-tools-resilience]: Plan 03-03: shadcn Card forwards data-testid via spread; no wrapper div needed — verified by reading src/components/ui/card.tsx (note for future plans using shadcn Card)
 - [Phase 03-tools-resilience]: Plan 03-03: Two-step cast m.parts as unknown as AssistantProps['parts'] in ChatUI render — AI SDK v6 UIMessage.parts wider than MessageBubble's narrower (TextPart | ToolPart) union; unknown bridge is honest about narrowing
 - [Phase 03-tools-resilience]: Plan 03-03: jsdom missing scrollIntoView — stubbed in beforeAll co-located with the test file; per-test-file quirks stay per-test-file (not in global setup.ts)
+- [Phase 04-admin-observability]: Plan 04-01: ADMIN_GITHUB_USERNAMES → ADMIN_GITHUB_LOGINS rename (matches GitHub OAuth claim name "login")
+- [Phase 04-admin-observability]: Plan 04-01: alarms_fired uses text PK populated by nanoid in Node (matches 0001 sessions/messages pattern; no pgcrypto extension)
+- [Phase 04-admin-observability]: Plan 04-01: SUPABASE_STORAGE_ARCHIVE_BUCKET defaults to 'transcripts-archive' — bucket created with public=false; no .env entry needed if accepting default
 
 ### Pending Todos
 
@@ -128,6 +132,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-06T10:51:54.208Z
-Stopped at: Phase 4 UI-SPEC approved
-Resume file: .planning/phases/04-admin-observability/04-UI-SPEC.md
+Last session: 2026-05-06T23:28:04.290Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: None
