@@ -1,8 +1,8 @@
 // src/lib/env.ts
 // Zod-validated process.env reader. Parsed at module load — throws with the
-// field list if a required var is missing. Phase 2 tightens Anthropic + Upstash
-// to required; these must be present in .env.local before `npm run dev` boots.
-// Source: RESEARCH.md §Environment Availability + CONTEXT.md D-F-01..04.
+// field list if a required var is missing. Phase 4 promotes RESEND_API_KEY
+// and ADMIN_GITHUB_LOGINS (renamed from the prior admin-allowlist var) to
+// required and adds 6 more vars for admin dashboard, cron auth, email, archive.
 import { z } from 'zod';
 
 const EnvSchema = z.object({
@@ -19,9 +19,17 @@ const EnvSchema = z.object({
   // Phase 3 required (Plan 03-00 Task 1 — research_company tool depends on it)
   EXA_API_KEY: z.string().min(20),
 
-  // Phase 4 placeholders (still optional)
-  RESEND_API_KEY: z.string().optional(),
-  ADMIN_GITHUB_USERNAMES: z.string().optional(),
+  // Phase 4 required (D-H-01)
+  RESEND_API_KEY: z.string().startsWith('re_'),
+  RESEND_FROM_EMAIL: z.email(),
+  JOE_NOTIFICATION_EMAIL: z.email(),
+  ADMIN_GITHUB_LOGINS: z.string().min(1), // comma-separated GitHub usernames
+  CRON_SECRET: z.string().min(32),
+  SUPABASE_STORAGE_ARCHIVE_BUCKET: z.string().default('transcripts-archive'),
+
+  // Phase 4 optional (D-H-01)
+  BETTERSTACK_DASHBOARD_URL: z.url().optional(),
+  HEARTBEAT_LLM_PREWARM: z.string().optional().default('true'),
 });
 
 export const env = EnvSchema.parse(process.env);
