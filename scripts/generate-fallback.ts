@@ -13,6 +13,7 @@
 // tests does not trigger the script body.
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import matter from 'gray-matter';
 import yaml from 'js-yaml';
 
@@ -142,14 +143,24 @@ export const FALLBACK_ROLES: ReadonlyArray<{ title: string; company: string; dat
 // trigger main() (which would crash if cwd lacks kb fixtures or fail-exit
 // poisons the test process). The explicit env flag is the simplest, most
 // portable guard across tsx ESM and CJS runtimes.
-if (process.env.GENERATE_FALLBACK_RUN === '1') {
-  main();
-} else if (
-  typeof process !== 'undefined' &&
-  process.argv[1] &&
-  /generate-fallback\.ts$/.test(process.argv[1])
-) {
-  // Direct invocation `tsx scripts/generate-fallback.ts` — argv[1] ends with
-  // the script path. This makes manual runs work without setting the env flag.
+//
+// WR-06 fix: previously the direct-invocation fallback used a regex against
+// the script's basename (`/generate-fallback\.ts$/`) which silently broke if
+// the script were ever renamed. Replaced with the Node-recommended
+// `import.meta.url`-vs-`argv[1]` self-detection idiom: it survives renames
+// because the comparison is filename-agnostic.
+const isDirectRun = (() => {
+  try {
+    return (
+      typeof process !== 'undefined' &&
+      typeof process.argv[1] === 'string' &&
+      import.meta.url === pathToFileURL(process.argv[1]).href
+    );
+  } catch {
+    return false;
+  }
+})();
+
+if (process.env.GENERATE_FALLBACK_RUN === '1' || isDirectRun) {
   main();
 }
