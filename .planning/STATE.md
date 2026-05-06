@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 03-05-PLAN.md
-last_updated: "2026-05-06T01:41:03.636Z"
+status: verifying
+stopped_at: Completed 03-03-PLAN.md
+last_updated: "2026-05-06T02:14:47.778Z"
 last_activity: 2026-05-06
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 14
-  completed_plans: 13
-  percent: 93
+  completed_plans: 14
+  percent: 100
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 
 Phase: 3 (tools-resilience) — EXECUTING
 Plan: 6 of 6
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-05-06
 
 Progress: [░░░░░░░░░░] 0%
@@ -61,6 +61,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03 P04 | 11min | 3 tasks | 11 files |
 | Phase 03-tools-resilience P02 | 8min | 3 tasks | 5 files |
 | Phase 03-tools-resilience P05 | 14min | 3 tasks | 12 files |
+| Phase 03-tools-resilience P03 | 22min | 4 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,12 @@ Recent decisions affecting current work:
 - [Phase 03-tools-resilience]: Plan 03-05: W5 dual-fixture regression coverage live for extractLastNRoles (real format + degenerate format); future kb/resume.md format change that breaks regex now produces deterministic CI failure
 - [Phase 03-tools-resilience]: Plan 03-05: B1 fix landed clean — fetchHealth + HealthShape extracted from inline-in-StatusBanner to src/lib/fetch-health.ts; both StatusBanner and page.tsx import from one source
 - [Phase 03-tools-resilience]: Plan 03-05: B2 ownership lock verified — src/components/ChatUI.tsx NOT in this plan's commit diff; Plan 03-03 owns persistent-500 → /?fallback=1 redirect end-to-end
+- [Phase 03-tools-resilience]: Plan 03-03: Discriminated-union MessageBubbleProps ({ role: 'user'; text } | { role: 'assistant'; parts }) — TS narrows tight, user path stays byte-clean Phase 2, missing required fields surface as compile errors
+- [Phase 03-tools-resilience]: Plan 03-03: B2 absorbed into ChatUI via onError/onFinish callbacks (not useEffect-on-error) — onError fires once per failure, onFinish fires once on stream-completion; cleaner than watching status+error and inferring state
+- [Phase 03-tools-resilience]: Plan 03-03: errorCountRef = useRef(0) not useState — counter only mutated inside callbacks; useState would force re-render on every error event for no UI benefit
+- [Phase 03-tools-resilience]: Plan 03-03: shadcn Card forwards data-testid via spread; no wrapper div needed — verified by reading src/components/ui/card.tsx (note for future plans using shadcn Card)
+- [Phase 03-tools-resilience]: Plan 03-03: Two-step cast m.parts as unknown as AssistantProps['parts'] in ChatUI render — AI SDK v6 UIMessage.parts wider than MessageBubble's narrower (TextPart | ToolPart) union; unknown bridge is honest about narrowing
+- [Phase 03-tools-resilience]: Plan 03-03: jsdom missing scrollIntoView — stubbed in beforeAll co-located with the test file; per-test-file quirks stay per-test-file (not in global setup.ts)
 
 ### Pending Todos
 
@@ -120,6 +127,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-06T01:39:44.054Z
-Stopped at: Completed 03-05-PLAN.md
+Last session: 2026-05-06T02:14:47.774Z
+Stopped at: Completed 03-03-PLAN.md
 Resume file: None

@@ -31,7 +31,7 @@
 - [x] **CHAT-10** — Conversation capped at 30 turns per session with graceful "we've covered a lot, email Joe to keep going" message
 - [x] **CHAT-11** — All messages (user + assistant + tool) persisted to `messages` table with classifier verdict, token counts, and latency
 - [x] **CHAT-12** — Message persistence uses app-generated UUIDs (not AI SDK message IDs)
-- [ ] **CHAT-13** — Every tool call rendered in a collapsible "See what I did" trace panel under the assistant reply
+- [x] **CHAT-13** — Every tool call rendered in a collapsible "See what I did" trace panel under the assistant reply
 - [x] **CHAT-14** — Suggested starter prompts / three tool buttons visible from the empty-state chat UI
 
 ### Knowledge Base & Voice (VOICE)
@@ -187,7 +187,7 @@ Each v1 requirement is mapped to exactly one phase. Coverage: 94/94.
 | CHAT-10 | Phase 2 | Complete |
 | CHAT-11 | Phase 2 | Complete |
 | CHAT-12 | Phase 2 | Complete |
-| CHAT-13 | Phase 3 | Pending |
+| CHAT-13 | Phase 3 | Complete |
 | CHAT-14 | Phase 2 | Complete |
 | VOICE-01 | Phase 1 | Pending |
 | VOICE-02 | Phase 1 | Pending |
