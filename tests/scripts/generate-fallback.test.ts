@@ -91,6 +91,31 @@ describe('extractLastNRoles — current real resume format (W5 fixture A)', () =
   });
 });
 
+describe('extractLastNRoles — hyphen-in-company-name (WR-05 regression guard)', () => {
+  // WR-05: the company-name split regex previously accepted hyphen as a
+  // separator, which would have misfired on company names that legitimately
+  // contain a hyphen (e.g. "Acme-Co"). Tightened to em/en-dash only.
+  it('preserves hyphens within company names (em-dash separator)', () => {
+    const md = `### Acme-Co — Berlin
+
+**Engineer** — 2024–Present
+`;
+    const roles = extractLastNRoles(md, 1);
+    expect(roles).toHaveLength(1);
+    expect(roles[0].company).toBe('Acme-Co');
+  });
+
+  it('preserves hyphens within company names (en-dash separator)', () => {
+    const md = `### My-Co – Remote
+
+**PM** — 2023–2024
+`;
+    const roles = extractLastNRoles(md, 1);
+    expect(roles).toHaveLength(1);
+    expect(roles[0].company).toBe('My-Co');
+  });
+});
+
 describe('extractLastNRoles — degenerate resume format (W5 fixture B)', () => {
   // Degenerate format: bold-only role names without H3 headings. Documenting
   // the failure mode here means a future format change to resume.md that

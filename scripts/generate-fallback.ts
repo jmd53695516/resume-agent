@@ -67,10 +67,16 @@ export function extractLastNRoles(resumeMd: string, n: number): Role[] {
     const headingMatch = lines[i].match(/^###\s+(.+)/);
     if (!headingMatch) continue;
 
-    // Company name is everything before the first em/en/hyphen-dash separator
-    // in the H3 line. "Nimbl Digital — Berwyn, PA" → "Nimbl Digital".
+    // Company name is everything before the first em/en-dash separator in the
+    // H3 line. "Nimbl Digital — Berwyn, PA" → "Nimbl Digital".
+    //
+    // WR-05 fix: previously the regex also accepted a hyphen `-` as separator,
+    // but kb/resume.md uses em/en-dashes exclusively for separators. Including
+    // `-` would mis-split company names that legitimately contain a hyphen
+    // (e.g. `### Acme-Co — Berlin` is fine, but `### Foo-Bar - SF` could break).
+    // Tightened to em/en-dash only — matches the canonical resume.md shape.
     const headingText = headingMatch[1].trim();
-    const company = headingText.split(/\s+[—–-]\s+/)[0].trim();
+    const company = headingText.split(/\s+[—–]\s+/)[0].trim();
     if (!company) continue;
 
     // Look ahead 1-5 lines for the role line: **Role** — Dates (or **Role** -- Dates).
