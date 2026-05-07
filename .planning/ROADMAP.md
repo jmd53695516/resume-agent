@@ -105,7 +105,20 @@ Plans:
   4. Three human friend-testers complete a session — at least one PM and at least one non-PM — and the non-PM answers "feels substantive, not gimmicky" as yes; any "that's awkward" issues are fixed before the resume link goes live
   5. The app is deployed to a memorable public URL, a QR code is generated and printed on the paper resume, the URL is added to the PDF/LinkedIn/personal site, all EVAL requirements pass against the production deploy, `guardrails.md` is Joe-signed, and Joe has verified at least one real transcript end-to-end in the admin dashboard
   6. Weekly scheduled eval runs catch drift from KB edits, LLM version shifts, or Exa data drift; judge models are version-pinned and human baseline calibration runs monthly to detect LLM-judge self-preference
-**Plans**: TBD
+**Plans:** 12 plans
+Plans:
+- [ ] 05-01-PLAN.md — Pre-launch smoke: walk all 20 outstanding HUMAN-UAT items + go/no-go verdict
+- [ ] 05-02-PLAN.md — Migration 0003_phase5.sql + db push + judge-model const + workflow stub on master + 4 env vars (EVAL-13, EVAL-14)
+- [ ] 05-03-PLAN.md — Eval CLI scaffold + judge wrapper + storage + YAML loader + cost module (EVAL-01, EVAL-13, EVAL-14)
+- [ ] 05-04-PLAN.md — Cat 1 fabrication: 15 cases + name-token allowlist + det-judge hybrid + runCat1 (EVAL-02)
+- [ ] 05-05-PLAN.md — Cat 2 tools (9 cases incl. spend-cap synthetic) + Cat 3 persona (6 cases) (EVAL-03, EVAL-04, EVAL-10)
+- [ ] 05-06-PLAN.md — Cat 4 LLM-judge: 5 voice prompts + voice.yaml rubric + runCat4Judge (EVAL-06)
+- [ ] 05-07-PLAN.md — Cat 5 abuse (6 OWASP + 1 false-positive) + Cat 6 Playwright UX smoke (EVAL-07, EVAL-08)
+- [ ] 05-08-PLAN.md — /admin/eval-ab page + ab-mapping + cat4 blind A/B runner (EVAL-05)
+- [ ] 05-09-PLAN.md — /admin/evals index + detail + calibrate + Cohen's kappa + AdminNav (EVAL-12, EVAL-14)
+- [ ] 05-10-PLAN.md — Real eval workflow body + branch protection + Vercel Deployment Checks + A7 spot-test (EVAL-09, EVAL-13)
+- [ ] 05-11-PLAN.md — /api/cron/run-eval + 5th alarm condition (weekly_eval_failure 24h NX) + cron-job.org schedule (EVAL-11)
+- [ ] 05-12-PLAN.md — Launch: domain CNAME + PDF + QR + LinkedIn/PDF/site URL + SAFE-12 evidence + friend-test + LAUNCH-CHECKLIST signed (LAUNCH-01..07, SAFE-12)
 
 ## Progress
 
@@ -118,4 +131,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Safe Chat Core | 0/TBD | Not started | - |
 | 3. Tools & Resilience | 0/TBD | Not started | - |
 | 4. Admin & Observability | 0/7 | Not started | - |
-| 5. Eval Gates & Launch | 0/TBD | Not started | - |
+| 5. Eval Gates & Launch | 0/12 | Not started | - |
