@@ -6,3 +6,15 @@ import { nanoid } from 'nanoid';
 export function newMessageId(): string {
   return nanoid(21);
 }
+
+/**
+ * nanoid-based id for `public.alarms_fired.id` (text PK).
+ * `alm_` prefix keeps alarm ids visually distinct from message ids in logs +
+ * dashboard SQL queries. 21-char body matches `newMessageId` so collision
+ * probability is identical (~1 per billion years at 1000 IDs/hr).
+ *
+ * Phase 4 Plan 04-06 / D-G-01.
+ */
+export function newAlarmId(): string {
+  return `alm_${nanoid(21)}`;
+}
