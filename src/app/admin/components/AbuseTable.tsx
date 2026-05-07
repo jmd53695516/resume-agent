@@ -74,7 +74,9 @@ export function AbuseTable({
         })}
       </ul>
       {totalCount > 100 && (
-        <p className="mt-4 text-xs text-muted-foreground">Showing last 100 flagged events.</p>
+        <p className="mt-4 text-xs text-muted-foreground">
+          Showing last 100 of {totalCount} flagged events.
+        </p>
       )}
     </>
   );

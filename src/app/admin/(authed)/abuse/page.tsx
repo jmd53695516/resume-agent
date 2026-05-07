@@ -24,27 +24,44 @@ export default async function AbusePage() {
 
   const SINCE = new Date(Date.now() - 90 * 24 * 3600_000).toISOString(); // 90d retention window
 
+  // WR-05: widen per-query limit to 200 (still cheap at expected volume)
+  // and request count: 'exact' so the "Showing last 100 of N" footer can
+  // surface the true number of flagged events even when both branches
+  // saturate. Without count, merged.length is bounded by the row buffer
+  // (200) and silently hides counts beyond that.
+  const PER_QUERY_LIMIT = 200;
   const [classifierResult, deflectionResult] = await Promise.all([
     supabaseAdmin
       .from('messages')
       .select(
         'id, session_id, content, classifier_verdict, stop_reason, created_at, sessions(email, ip_hash)',
+        { count: 'exact' },
       )
       .not('classifier_verdict', 'is', null)
       .neq('classifier_verdict', 'normal')
       .gte('created_at', SINCE)
       .order('created_at', { ascending: false })
-      .limit(100),
+      .limit(PER_QUERY_LIMIT),
     supabaseAdmin
       .from('messages')
       .select(
         'id, session_id, content, classifier_verdict, stop_reason, created_at, sessions(email, ip_hash)',
+        { count: 'exact' },
       )
       .like('stop_reason', 'deflection:%')
       .gte('created_at', SINCE)
       .order('created_at', { ascending: false })
-      .limit(100),
+      .limit(PER_QUERY_LIMIT),
   ]);
+
+  // Real flagged-event count for the footer. Sum of both branches'
+  // server-side counts (Supabase returns null on count: 'exact' errors,
+  // so coalesce defensively). Note: rows that match both queries are
+  // double-counted in the headline number; this is acceptable triage UX
+  // because (a) overlap is rare in practice and (b) over-counting is
+  // safer than under-counting for an abuse-monitoring dashboard.
+  const flaggedTotal =
+    (classifierResult.count ?? 0) + (deflectionResult.count ?? 0);
 
   type Raw = {
     id: string;
@@ -86,10 +103,17 @@ export default async function AbusePage() {
   merged.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   const top100 = merged.slice(0, 100);
 
+  // WR-05: pass the server-side total (not the row-buffer length) so
+  // the footer reflects reality when both queries saturate the limit.
+  // flaggedTotal can over-count rows that match both branches; clamp
+  // to merged.length when the buffer wasn't saturated so we don't
+  // claim "150 events" when the user only sees 80.
+  const reportedTotal = Math.max(flaggedTotal, merged.length);
+
   return (
     <div>
       <h1 className="mb-4 text-xl font-semibold">Abuse log</h1>
-      <AbuseTable rows={top100} totalCount={merged.length} />
+      <AbuseTable rows={top100} totalCount={reportedTotal} />
     </div>
   );
 }

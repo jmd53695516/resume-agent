@@ -61,13 +61,15 @@ describe('AbuseTable', () => {
     expect(ip?.className).toContain('font-mono');
   });
 
-  it('shows >100 footer when totalCount exceeds 100', () => {
+  it('shows >100 footer with real total when totalCount exceeds 100 (WR-05)', () => {
     render(<AbuseTable rows={[rows[0]]} totalCount={150} />);
-    expect(screen.getByText('Showing last 100 flagged events.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Showing last 100 of 150 flagged events.'),
+    ).toBeInTheDocument();
   });
 
   it('does NOT show footer when totalCount <= 100', () => {
     render(<AbuseTable rows={[rows[0]]} totalCount={1} />);
-    expect(screen.queryByText('Showing last 100 flagged events.')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Showing last 100/)).not.toBeInTheDocument();
   });
 });
