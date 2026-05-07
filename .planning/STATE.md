@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-03-PLAN.md
-last_updated: "2026-05-07T00:17:54.966Z"
+stopped_at: Completed 04-04-PLAN.md
+last_updated: "2026-05-07T00:29:15.004Z"
 last_activity: 2026-05-07
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 21
-  completed_plans: 18
-  percent: 86
+  completed_plans: 19
+  percent: 90
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 ## Current Position
 
 Phase: 04 (admin-observability) — EXECUTING
-Plan: 5 of 7
+Plan: 6 of 7
 Status: Ready to execute
 Last activity: 2026-05-07
 
@@ -67,6 +67,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04-admin-observability P02 | 11min | 5 tasks | 9 files |
 | Phase 04-admin-observability P05 | 7min | 4 tasks | 8 files |
 | Phase 04 P03 | 12min | 6 tasks | 13 files |
+| Phase 04-admin-observability P04 | 6min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -129,6 +130,9 @@ Recent decisions affecting current work:
 - [Phase 04]: Plan 04-03: Route group (authed)/ for auth-guarded admin layout — /admin/login (Plan 04-02 OAuth entry) is sibling under /admin/, plan-prescribed layout-level requireAdmin would have rendered NotAuthorized for unauth login visitors. Route group preserves URLs and isolates auth shell.
 - [Phase 04]: Plan 04-03: TracePanel data-variant=admin|chat attribute (not duplicate data-testid) for variant disambiguation — preserves Phase 3 E2E selector contract verbatim while admin tests can grep by attribute.
 - [Phase 04]: Plan 04-03: Imported canonical isFreeMail from @/lib/free-mail-domains (Plan 04-05) instead of plan-suggested inline fallback — Plan 04-05 already shipped, single source of truth, resolves the refactor breadcrumb 04-05 SUMMARY left for this plan.
+- [Phase 04-admin-observability]: Plan 04-04: Pages live under (authed)/ route group inheriting Plan 04-03's requireAdmin layout — wave-context override of plan frontmatter paths; URLs unchanged
+- [Phase 04-admin-observability]: Plan 04-04: AbuseTable uses two parallel Supabase queries + array merge instead of single OR-shaped join — supabase-js .or() awkward across foreign-table joins
+- [Phase 04-admin-observability]: Plan 04-04: All three new admin pages set force-dynamic ONLY (no revalidate=60) — single freshness mechanism, no dead code
 
 ### Pending Todos
 
@@ -144,6 +148,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-07T00:17:54.962Z
-Stopped at: Completed 04-03-PLAN.md
+Last session: 2026-05-07T00:29:00.714Z
+Stopped at: Completed 04-04-PLAN.md
 Resume file: None

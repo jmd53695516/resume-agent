@@ -87,8 +87,8 @@
 - [x] **OBSV-02** — Admin email allowlist enforced at API/middleware layer, not just UI
 - [x] **OBSV-03** — Sessions table view: last 100 sessions with email, domain, timestamp, flag column, sortable by date/domain
 - [x] **OBSV-04** — Transcript viewer: click a session → full conversation with tool-call traces rendered inline
-- [ ] **OBSV-05** — Cost tracker: rolling 24h / 7d / 30d Anthropic spend; per-tool breakdown; prompt-cache hit rate
-- [ ] **OBSV-06** — Abuse log: classifier-flagged messages + rate-limit hits with hashed IP and email
+- [x] **OBSV-05** — Cost tracker: rolling 24h / 7d / 30d Anthropic spend; per-tool breakdown; prompt-cache hit rate
+- [x] **OBSV-06** — Abuse log: classifier-flagged messages + rate-limit hits with hashed IP and email
 - [x] **OBSV-07** — Tool health: ping endpoint status (Anthropic / Exa / Supabase / Upstash) green/yellow/red
 - [x] **OBSV-08** — Per-session email notification to Joe when a recruiter starts chatting; company-domain (non-free-mail) subject-line priority flag
 - [ ] **OBSV-09** — Alarm email on hard spend-cap trigger, error rate >2% over 10min, any dependency down, ≥5 unique IPs hitting rate limits within an hour
@@ -231,8 +231,8 @@ Each v1 requirement is mapped to exactly one phase. Coverage: 94/94.
 | OBSV-02 | Phase 4 | Complete |
 | OBSV-03 | Phase 4 | Complete |
 | OBSV-04 | Phase 4 | Complete |
-| OBSV-05 | Phase 4 | Pending |
-| OBSV-06 | Phase 4 | Pending |
+| OBSV-05 | Phase 4 | Complete |
+| OBSV-06 | Phase 4 | Complete |
 | OBSV-07 | Phase 3 | Complete |
 | OBSV-08 | Phase 4 | Complete |
 | OBSV-09 | Phase 4 | Pending |
