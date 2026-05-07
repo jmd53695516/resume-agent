@@ -112,6 +112,34 @@ export async function POST(req: Request): Promise<Response> {
     ? await warmPromptCache()
     : { cache_read_tokens: 0, cost_cents: 0, ok: true };
 
+  // WR-04: refresh heartbeat:classifier whenever the cron-side ping succeeds.
+  // Without this, /admin/health's classifier heartbeat row only refreshes
+  // inside /api/chat's onFinish, so on a low-traffic day the dashboard
+  // shows a stale '—' even when the classifier is healthy.
+  if (classifierPing.value === 'ok') {
+    try {
+      await redis.set('heartbeat:classifier', Date.now(), { ex: 120 });
+    } catch (err) {
+      log(
+        { event: 'heartbeat_classifier_write_failed', error_message: (err as Error).message },
+        'warn',
+      );
+    }
+  }
+  // Also refresh heartbeat:anthropic from the live ping when prompt-cache
+  // prewarm is disabled — otherwise that key is never written and the
+  // dashboard goes yellow during business hours despite the ping being green.
+  if (!llmPrewarmEnabled && anthropicPing.value === 'ok') {
+    try {
+      await redis.set('heartbeat:anthropic', Date.now(), { ex: 120 });
+    } catch (err) {
+      log(
+        { event: 'heartbeat_anthropic_write_failed', error_message: (err as Error).message },
+        'warn',
+      );
+    }
+  }
+
   log({
     event: 'heartbeat',
     deps_pinged: ['supabase', 'upstash', 'exa', 'anthropic', 'classifier'],

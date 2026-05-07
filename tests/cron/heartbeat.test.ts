@@ -141,13 +141,25 @@ describe('POST /api/cron/heartbeat', () => {
     );
   });
 
-  it('skips Anthropic call when HEARTBEAT_LLM_PREWARM=false', async () => {
+  it('skips Anthropic call when HEARTBEAT_LLM_PREWARM=false but still refreshes heartbeat keys from live pings (WR-04)', async () => {
     mocks.HEARTBEAT_LLM_PREWARM = 'false';
+    mocks.redisSet.mockResolvedValue('OK');
 
     const res = await POST(makeReq({ auth: `Bearer ${mocks.CRON_SECRET}` }));
     expect(res.status).toBe(200);
     expect(mocks.messagesCreate).not.toHaveBeenCalled();
-    expect(mocks.redisSet).not.toHaveBeenCalled();
+    // WR-04: with prewarm disabled, the live anthropic + classifier pings
+    // still refresh their heartbeat keys so /admin/health doesn't go yellow.
+    expect(mocks.redisSet).toHaveBeenCalledWith(
+      'heartbeat:classifier',
+      expect.any(Number),
+      { ex: 120 },
+    );
+    expect(mocks.redisSet).toHaveBeenCalledWith(
+      'heartbeat:anthropic',
+      expect.any(Number),
+      { ex: 120 },
+    );
     expect(mocks.log).toHaveBeenCalledWith(
       expect.objectContaining({
         event: 'heartbeat',
@@ -160,6 +172,7 @@ describe('POST /api/cron/heartbeat', () => {
 
   it('returns 200 when Anthropic call throws (best-effort heartbeat)', async () => {
     mocks.messagesCreate.mockRejectedValue(new Error('rate limited'));
+    mocks.redisSet.mockResolvedValue('OK');
 
     const res = await POST(makeReq({ auth: `Bearer ${mocks.CRON_SECRET}` }));
     expect(res.status).toBe(200);
@@ -167,8 +180,58 @@ describe('POST /api/cron/heartbeat', () => {
       expect.objectContaining({ event: 'heartbeat_anthropic_failed' }),
       'warn',
     );
-    // No heartbeat key written on failed prewarm
-    expect(mocks.redisSet).not.toHaveBeenCalled();
+    // The Anthropic prewarm threw, so heartbeat:anthropic is NOT written
+    // (warmPromptCache returned ok:false). The classifier ping still
+    // succeeds and refreshes heartbeat:classifier (WR-04).
+    expect(mocks.redisSet).not.toHaveBeenCalledWith(
+      'heartbeat:anthropic',
+      expect.any(Number),
+      expect.anything(),
+    );
+    expect(mocks.redisSet).toHaveBeenCalledWith(
+      'heartbeat:classifier',
+      expect.any(Number),
+      { ex: 120 },
+    );
+  });
+
+  it('refreshes heartbeat:classifier on every successful run (WR-04)', async () => {
+    mocks.messagesCreate.mockResolvedValue({
+      usage: { cache_read_input_tokens: 0, cache_creation_input_tokens: 0, input_tokens: 1, output_tokens: 1 },
+    });
+    mocks.redisSet.mockResolvedValue('OK');
+
+    await POST(makeReq({ auth: `Bearer ${mocks.CRON_SECRET}` }));
+
+    // Both anthropic (from warmPromptCache) and classifier (from live ping)
+    // heartbeat keys must be refreshed so /admin/health stays green even on
+    // low-traffic days when /api/chat isn't invoked.
+    expect(mocks.redisSet).toHaveBeenCalledWith(
+      'heartbeat:anthropic',
+      expect.any(Number),
+      { ex: 120 },
+    );
+    expect(mocks.redisSet).toHaveBeenCalledWith(
+      'heartbeat:classifier',
+      expect.any(Number),
+      { ex: 120 },
+    );
+  });
+
+  it('does not write heartbeat:classifier when classifier ping fails (WR-04)', async () => {
+    mocks.messagesCreate.mockResolvedValue({
+      usage: { cache_read_input_tokens: 0, cache_creation_input_tokens: 0, input_tokens: 1, output_tokens: 1 },
+    });
+    mocks.redisSet.mockResolvedValue('OK');
+    mocks.pingClassifier.mockResolvedValue('down');
+
+    await POST(makeReq({ auth: `Bearer ${mocks.CRON_SECRET}` }));
+
+    expect(mocks.redisSet).not.toHaveBeenCalledWith(
+      'heartbeat:classifier',
+      expect.any(Number),
+      expect.anything(),
+    );
   });
 
   it('pings all 5 deps and records latencies in heartbeat log', async () => {
