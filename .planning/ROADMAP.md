@@ -91,7 +91,7 @@ Plans:
 - [x] 04-04-PLAN.md — Cost + Abuse + Health pages (Wave 3; OBSV-05, OBSV-06)
 - [x] 04-05-PLAN.md — Email infra: Resend + free-mail allowlist + per-session email via after() in /api/chat (Wave 2; OBSV-08)
 - [x] 04-06-PLAN.md — Cron auth + check-alarms cron + 4-condition dispatcher (Wave 3; OBSV-09)
-- [ ] 04-07-PLAN.md — Heartbeat cron + Archive cron + retention (Wave 3; OBSV-13, OBSV-14, OBSV-15)
+- [x] 04-07-PLAN.md — Heartbeat cron + Archive cron + retention (Wave 3; OBSV-13, OBSV-14, OBSV-15)
 **UI hint**: yes
 
 ### Phase 5: Eval Gates & Launch

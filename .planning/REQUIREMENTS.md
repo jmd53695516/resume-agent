@@ -95,8 +95,8 @@
 - [x] **OBSV-10** — `/api/health` endpoint returns per-dependency status for the framing-page status banner
 - [x] **OBSV-11** — Status banner on framing page: yellow if any dependency is degraded (e.g., "Company-pitch tool temporarily offline, everything else works")
 - [x] **OBSV-12** — Plain-HTML fallback at the same URL: if `/api/chat` returns 500, recruiter sees a static snapshot of Joe's background + direct-email CTA
-- [ ] **OBSV-13** — External synthetic monitor (BetterStack or UptimeRobot) pinging from outside Vercel to catch Vercel-originated outages
-- [ ] **OBSV-14** — Scheduled jobs via `cron-job.org` (free, unlimited): pre-warm heartbeat every 5 min during business hours to keep prompt cache + Supabase warm
+- [x] **OBSV-13** — External synthetic monitor (BetterStack or UptimeRobot) pinging from outside Vercel to catch Vercel-originated outages
+- [x] **OBSV-14** — Scheduled jobs via `cron-job.org` (free, unlimited): pre-warm heartbeat every 5 min during business hours to keep prompt cache + Supabase warm
 - [x] **OBSV-15** — Session transcripts retained 180 days hot, then archived to cold storage indefinitely; captured emails retained indefinitely; classifier flags 90 days
 - [x] **OBSV-16** — Pino structured JSON logging (no pino-pretty transports in prod) to Vercel logs for server-side events
 
@@ -239,8 +239,8 @@ Each v1 requirement is mapped to exactly one phase. Coverage: 94/94.
 | OBSV-10 | Phase 3 | Complete |
 | OBSV-11 | Phase 3 | Complete |
 | OBSV-12 | Phase 3 | Complete |
-| OBSV-13 | Phase 4 | Pending |
-| OBSV-14 | Phase 4 | Pending |
+| OBSV-13 | Phase 4 | Complete |
+| OBSV-14 | Phase 4 | Complete |
 | OBSV-15 | Phase 4 | Complete |
 | OBSV-16 | Phase 3 | Complete |
 | EVAL-01 | Phase 5 | Pending |

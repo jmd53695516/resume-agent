@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 04-06-PLAN.md
-last_updated: "2026-05-07T00:41:30.809Z"
+status: verifying
+stopped_at: Completed 04-07-PLAN.md (Phase 4 last plan — ready for verification)
+last_updated: "2026-05-07T00:54:32.808Z"
 last_activity: 2026-05-07
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 21
-  completed_plans: 20
-  percent: 95
+  completed_plans: 21
+  percent: 100
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 
 Phase: 04 (admin-observability) — EXECUTING
 Plan: 7 of 7
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-05-07
 
 Progress: [░░░░░░░░░░] 0%
@@ -69,6 +69,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04 P03 | 12min | 6 tasks | 13 files |
 | Phase 04-admin-observability P04 | 6min | 3 tasks | 8 files |
 | Phase 04 P06 | 6min | 4 tasks | 7 files |
+| Phase 04-admin-observability P07 | 7min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -137,6 +138,10 @@ Recent decisions affecting current work:
 - [Phase 04-admin-observability]: Plan 04-06: per-condition Redis NX suppression — resume-agent:alarms:fired:<condition> EX 3600; firing one condition does NOT suppress others; fail-open on Redis throw (T-04-06-07: better over-fire than drop)
 - [Phase 04-admin-observability]: Plan 04-06: validateCronAuth uses constant-time XOR compare on Bearer token — overkill at this scale but cheap and removes a class of timing-oracle risk; rejects non-POST methods as belt-and-suspenders
 - [Phase 04-admin-observability]: Plan 04-06: checkErrorRate trips on ratio > 2% strictly (not >=); minSample default = 10 to suppress false positives in low-traffic windows; runAllAlarms uses Promise.all on 4 checks (no shared state, 5x latency win)
+- [Phase 04-admin-observability]: Plan 04-07: Upload-first-then-delete order in archiveSession enforced by callOrder test (Pitfall 9 — failed Storage upload MUST not destroy transcripts)
+- [Phase 04-admin-observability]: Plan 04-07: Heartbeat route uses literal buildSystemPrompt() (Pitfall 5 — Phase 1 D-E byte-identical determinism contract); never inline a copy. Refreshes heartbeat:anthropic Redis key with TTL=120s on success — mute mechanism for Plan 04-06 dep-down alarm during business hours
+- [Phase 04-admin-observability]: Plan 04-07: HEARTBEAT_LLM_PREWARM env var (default 'true') gates the Anthropic prompt-cache pre-warm — single env-var escape hatch when cost vs. coverage trade tightens; ~$15/business-week at default cadence and 85k cached tokens
+- [Phase 04-admin-observability]: Plan 04-07: Classifier purge in /api/cron/archive runs even when archive candidates are empty — they're independent retention policies; status='partial' (vs 'ok' / 'error') flags any per-session error in the run for cron-job.org alerting
 
 ### Pending Todos
 
@@ -152,6 +157,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-07T00:41:30.804Z
-Stopped at: Completed 04-06-PLAN.md
+Last session: 2026-05-07T00:54:32.804Z
+Stopped at: Completed 04-07-PLAN.md (Phase 4 last plan — ready for verification)
 Resume file: None
