@@ -30,6 +30,15 @@ const EnvSchema = z.object({
   // Phase 4 optional (D-H-01)
   BETTERSTACK_DASHBOARD_URL: z.url().optional(),
   HEARTBEAT_LLM_PREWARM: z.string().optional().default('true'),
+
+  // Phase 4 optional URL bases for buildAdminUrl in src/lib/email.ts (WR-03).
+  // NEXT_PUBLIC_SITE_URL is the canonical production URL when set; VERCEL_URL
+  // is auto-injected on Vercel deployments (without a scheme — bare hostname).
+  // Both optional: in dev neither is required; in prod missing-both yields a
+  // relative admin URL plus a warn-level log rather than a clickable
+  // localhost link.
+  NEXT_PUBLIC_SITE_URL: z.url().optional(),
+  VERCEL_URL: z.string().optional(),
 });
 
 export const env = EnvSchema.parse(process.env);

@@ -44,10 +44,17 @@ function priorityFor(email_domain: string): boolean {
 }
 
 function buildAdminUrl(session_id: string): string {
-  // VERCEL_URL is set on Vercel deployments; fall back to localhost for dev.
+  // WR-03: prefer NEXT_PUBLIC_SITE_URL, fall back to VERCEL_URL (auto-set on
+  // Vercel previews + prod). If neither is present we emit a relative path
+  // and log a warning — better an unreachable relative link than a
+  // clickable http://localhost:3000 link in a recruiter notification.
   const base =
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+    env.NEXT_PUBLIC_SITE_URL ??
+    (env.VERCEL_URL ? `https://${env.VERCEL_URL}` : null);
+  if (!base) {
+    log({ event: 'admin_url_no_base', session_id }, 'warn');
+    return `/admin/sessions/${session_id}`;
+  }
   return `${base}/admin/sessions/${session_id}`;
 }
 
