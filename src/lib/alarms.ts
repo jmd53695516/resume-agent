@@ -1,0 +1,264 @@
+// src/lib/alarms.ts
+// Phase 4 D-C-06..07 — alarm condition checks + per-condition Redis NX
+// suppression + sendAlarm dispatch + alarms_fired INSERT.
+//
+// The 4 conditions (D-C-06):
+//   1. spend-cap        — Redis spend counter >= 300 cents (mirrors SAFE-04 threshold)
+//   2. error-rate       — assistant turns in last 10min with stop_reason='error' or empty
+//                         non-deflection content; tripped iff sample >= 10 AND ratio > 2%
+//   3. dep-down         — any /api/health dep returns degraded or down
+//   4. rate-limit-abuse — >= 5 unique sessions.ip_hash hitting deflection:ratelimit in last 1h
+//
+// Per-condition Redis NX suppression with TTL=3600s makes alarms idempotent:
+// firing 'spend-cap' does NOT suppress 'dep-down', and re-firing the same
+// condition within 1h is a no-op (returns false from claimAlarmSuppression).
+import { redis, getSpendToday } from './redis';
+import {
+  pingAnthropic,
+  pingClassifier,
+  pingSupabase,
+  pingUpstash,
+  pingExa,
+} from './health';
+import { supabaseAdmin } from './supabase-server';
+import { sendAlarm } from './email';
+import { newAlarmId } from './id';
+import { log } from './logger';
+
+export type AlarmCondition =
+  | 'spend-cap'
+  | 'error-rate'
+  | 'dep-down'
+  | 'rate-limit-abuse';
+
+/**
+ * Returns true iff the alarm should fire (NX claim succeeded — key was absent).
+ * Returns false when blocked by an existing key (already fired within the last hour).
+ *
+ * Fail-open on Redis error: better to over-fire under partial outage than to
+ * silently drop alarms (T-04-06-07 disposition: accept).
+ */
+export async function claimAlarmSuppression(
+  condition: AlarmCondition,
+): Promise<boolean> {
+  const key = `resume-agent:alarms:fired:${condition}`;
+  try {
+    const result = await redis.set(key, '1', { ex: 3600, nx: true });
+    // RESEARCH §6 / Pitfall 6: 'OK' === claim succeeded (key was absent);
+    // null === blocked (key existed — NX prevented write).
+    return result === 'OK';
+  } catch (err) {
+    log(
+      {
+        event: 'alarm_suppression_redis_failed',
+        condition,
+        error_message: (err as Error).message,
+      },
+      'warn',
+    );
+    return true;
+  }
+}
+
+type CheckResult = { tripped: boolean; summary: string };
+
+export async function checkSpendCap(): Promise<CheckResult> {
+  const cents = await getSpendToday();
+  return {
+    tripped: cents >= 300,
+    summary: `Rolling 24h spend = ${cents}c (cap = 300c).`,
+  };
+}
+
+/**
+ * Counts assistant turns in `windowMinutes`; counts those with
+ * stop_reason='error' OR empty content + non-deflection stop_reason as errors.
+ * Trips iff sample >= minSample AND error ratio > 2%.
+ *
+ * minSample default = 10 (Claude's discretion per CONTEXT — suppresses false
+ * positives on low-traffic periods).
+ */
+export async function checkErrorRate(
+  windowMinutes = 10,
+  minSample = 10,
+): Promise<CheckResult> {
+  const since = new Date(Date.now() - windowMinutes * 60_000).toISOString();
+  const { data, error } = await supabaseAdmin
+    .from('messages')
+    .select('id, stop_reason, content')
+    .eq('role', 'assistant')
+    .gte('created_at', since);
+
+  if (error || !data) {
+    return {
+      tripped: false,
+      summary: `Error-rate check: query failed (${error?.message ?? 'no data'}).`,
+    };
+  }
+
+  const rows = data as Array<{ stop_reason: string | null; content: string | null }>;
+  const total = rows.length;
+  const errors = rows.filter((r) => {
+    if (r.stop_reason === 'error') return true;
+    // Empty content + non-deflection stop reason — silent failure.
+    if (
+      (r.content ?? '').length === 0 &&
+      !(r.stop_reason ?? '').startsWith('deflection:')
+    ) {
+      return true;
+    }
+    return false;
+  }).length;
+
+  if (total < minSample) {
+    return {
+      tripped: false,
+      summary: `Error-rate window has ${total} turns (<${minSample}); skipping.`,
+    };
+  }
+
+  const ratio = errors / total;
+  return {
+    tripped: ratio > 0.02,
+    summary: `Error-rate ${(ratio * 100).toFixed(1)}% (${errors}/${total} turns in last ${windowMinutes}m; threshold 2%).`,
+  };
+}
+
+export async function checkDependencies(): Promise<CheckResult> {
+  const [anthropic, classifier, supabase, upstash, exa] = await Promise.all([
+    pingAnthropic(),
+    pingClassifier(),
+    pingSupabase(),
+    pingUpstash(),
+    pingExa(),
+  ]);
+  const statuses = { anthropic, classifier, supabase, upstash, exa };
+  const non_ok = Object.entries(statuses).filter(([, s]) => s !== 'ok');
+  const tripped = non_ok.length > 0;
+  const summary = tripped
+    ? `Dependencies non-ok: ${non_ok.map(([k, v]) => `${k}=${v}`).join(', ')}.`
+    : 'All dependencies ok.';
+  return { tripped, summary };
+}
+
+/**
+ * Counts DISTINCT sessions.ip_hash rows for messages with
+ * stop_reason='deflection:ratelimit' in the last `windowHours`.
+ * Trips iff distinct count >= threshold.
+ */
+export async function checkRateLimitAbuse(
+  windowHours = 1,
+  threshold = 5,
+): Promise<CheckResult> {
+  const since = new Date(Date.now() - windowHours * 3600_000).toISOString();
+  const { data, error } = await supabaseAdmin
+    .from('messages')
+    .select('session_id, sessions(ip_hash)')
+    .eq('stop_reason', 'deflection:ratelimit')
+    .gte('created_at', since);
+
+  if (error || !data) {
+    return {
+      tripped: false,
+      summary: `Rate-limit-abuse check: query failed (${error?.message ?? 'no data'}).`,
+    };
+  }
+
+  const ipSet = new Set<string>();
+  type SessionRow = { ip_hash: string } | { ip_hash: string }[] | null;
+  for (const row of data as Array<{ sessions: SessionRow }>) {
+    const sess = Array.isArray(row.sessions) ? row.sessions[0] : row.sessions;
+    if (sess && 'ip_hash' in sess && sess.ip_hash) ipSet.add(sess.ip_hash);
+  }
+  return {
+    tripped: ipSet.size >= threshold,
+    summary: `Unique IP-hashes hitting rate-limit in last ${windowHours}h = ${ipSet.size} (threshold ${threshold}).`,
+  };
+}
+
+export type AlarmDispatchResult = {
+  condition: AlarmCondition;
+  tripped: boolean;
+  fired: boolean; // true = claim succeeded AND email send attempted
+  resend_send_id: string | null;
+};
+
+/**
+ * Run all 4 alarm checks; for each tripped condition, attempt the
+ * per-condition Redis NX claim; on successful claim, send the alarm email
+ * and INSERT a row into public.alarms_fired (audit log for /admin/health
+ * "Recent alarms" widget — Plan 04-04).
+ */
+export async function runAllAlarms(): Promise<AlarmDispatchResult[]> {
+  // Run the 4 checks in parallel — they share no state, and serialising would
+  // add ~5x latency for no benefit.
+  const [spend, errorRate, deps, rateLimit] = await Promise.all([
+    checkSpendCap(),
+    checkErrorRate(),
+    checkDependencies(),
+    checkRateLimitAbuse(),
+  ]);
+
+  const checks: Array<[AlarmCondition, CheckResult]> = [
+    ['spend-cap', spend],
+    ['error-rate', errorRate],
+    ['dep-down', deps],
+    ['rate-limit-abuse', rateLimit],
+  ];
+
+  const results: AlarmDispatchResult[] = [];
+  for (const [condition, check] of checks) {
+    if (!check.tripped) {
+      results.push({ condition, tripped: false, fired: false, resend_send_id: null });
+      continue;
+    }
+    const claimed = await claimAlarmSuppression(condition);
+    if (!claimed) {
+      // Suppressed — already fired within the last hour
+      results.push({ condition, tripped: true, fired: false, resend_send_id: null });
+      log({ event: 'alarm_suppressed', condition, summary: check.summary });
+      continue;
+    }
+    const { id: resend_send_id } = await sendAlarm({
+      condition,
+      summary: check.summary,
+    });
+    // Insert audit row (non-fatal if it fails — alarm email is the primary
+    // signal; the row is for the /admin/health Last 5 widget).
+    try {
+      const { error: insertErr } = await supabaseAdmin.from('alarms_fired').insert({
+        id: newAlarmId(),
+        condition,
+        resend_send_id,
+        body_summary: check.summary.slice(0, 1000), // bound length — T-04-06-03
+      });
+      if (insertErr) {
+        log(
+          {
+            event: 'alarm_fired_insert_failed',
+            condition,
+            error_message: insertErr.message,
+          },
+          'error',
+        );
+      }
+    } catch (err) {
+      log(
+        {
+          event: 'alarm_fired_insert_failed',
+          condition,
+          error_message: (err as Error).message,
+        },
+        'error',
+      );
+    }
+    log({
+      event: 'alarm_fired',
+      condition,
+      resend_send_id,
+      suppression_until_ts: new Date(Date.now() + 3600_000).toISOString(),
+    });
+    results.push({ condition, tripped: true, fired: true, resend_send_id });
+  }
+  return results;
+}
