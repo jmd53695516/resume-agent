@@ -65,7 +65,10 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 }
 
 export const config = {
-  // /admin/* EXCEPT /admin/login (so unauthed users can reach the sign-in
-  // button). All /api/admin/* paths are protected (no exclusion).
-  matcher: ['/admin/((?!login).*)', '/api/admin/:path*'],
+  // /admin/* EXCEPT the exact /admin/login segment (so unauthed users can
+  // reach the sign-in button). The lookahead anchors `login` to a segment
+  // boundary — `(?:/|$)` — so siblings like /admin/loginx or /admin/login-foo
+  // are still caught by Layer 1 (WR-01). All /api/admin/* paths are
+  // protected (no exclusion).
+  matcher: ['/admin/((?!login(?:/|$)).*)', '/api/admin/:path*'],
 };

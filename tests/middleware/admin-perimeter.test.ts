@@ -73,7 +73,7 @@ describe('config.matcher', () => {
     // Light structural check — the matcher is a glob-ish regex string.
     // Next.js evaluates this at build time; here we just verify the
     // exclusion pattern is present.
-    expect(config.matcher).toContain('/admin/((?!login).*)');
+    expect(config.matcher).toContain('/admin/((?!login(?:/|$)).*)');
     expect(config.matcher).toContain('/api/admin/:path*');
   });
 });
