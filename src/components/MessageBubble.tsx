@@ -19,8 +19,8 @@ type TextPart = { type: 'text'; text: string };
 type Part = TextPart | ToolPart;
 
 type MessageBubbleProps =
-  | { role: 'user'; text: string; parts?: undefined }
-  | { role: 'assistant'; parts: Part[]; text?: undefined };
+  | { role: 'user'; text: string; parts?: undefined; alwaysExpandTrace?: undefined }
+  | { role: 'assistant'; parts: Part[]; text?: undefined; alwaysExpandTrace?: boolean };
 
 // CONTEXT D-I-07: assistant prose has markdown headers (# / ## / ###) stripped —
 // belt-and-suspenders since the system prompt also bans them.
@@ -97,7 +97,11 @@ export function MessageBubble(props: MessageBubbleProps) {
         <MetricCard key={`card-${p.toolCallId}`} data={p.output} />
       ))}
       {toolParts.map((p) => (
-        <TracePanel key={p.toolCallId} part={p} />
+        <TracePanel
+          key={p.toolCallId}
+          part={p}
+          alwaysExpanded={props.alwaysExpandTrace ?? false}
+        />
       ))}
     </div>
   );
