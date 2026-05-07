@@ -5,7 +5,8 @@
 //   1. findArchiveCandidates(100) → up to 100 session_ids with messages > 180d old
 //   2. for each session_id: archiveSession(id)
 //      - SELECT all messages for that session (regardless of age — full transcript)
-//      - gzip JSONL → upload to Supabase Storage at archive/<yyyy>/<mm>/<id>.jsonl.gz
+//      - gzip JSONL → upload to Supabase Storage at archive/<id>.jsonl.gz
+//        (stable canonical path; upsert overwrites in place — WR-06)
 //      - DELETE messages WHERE session_id = ? AND created_at < now() - interval '180 days'
 //   3. deleteClassifierFlags90d() — hard-purge 90d-old classifier-flagged rows
 //
@@ -30,10 +31,14 @@ export function buildJsonlGzip(rows: MessageRow[]): Buffer {
   return gzipSync(Buffer.from(jsonl, 'utf8'));
 }
 
-function archivePath(session_id: string, now = new Date()): string {
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  return `archive/${year}/${month}/${session_id}.jsonl.gz`;
+// WR-06: stable canonical path. Previous version embedded the current
+// year/month at archive time, so re-archiving a session in a later month
+// (when more old rows aged into the >180d window) wrote a second snapshot
+// at a different key while the prior month's snapshot stayed in place.
+// A canonical path lets upsert: true overwrite-in-place — one path per
+// session, no scanning monthly prefixes to find a session's archive.
+function archivePath(session_id: string): string {
+  return `archive/${session_id}.jsonl.gz`;
 }
 
 /** Upload to Supabase Storage. Returns false on error (logged); never throws. */

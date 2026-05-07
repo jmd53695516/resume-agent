@@ -170,7 +170,7 @@ describe('archiveSession', () => {
     expect(mocks.uploadMock).not.toHaveBeenCalled();
   });
 
-  it('uploads to archive/<yyyy>/<mm>/<id>.jsonl.gz path with gzip content type', async () => {
+  it('uploads to stable archive/<id>.jsonl.gz path with gzip content type (WR-06)', async () => {
     mocks.selectMock.mockReturnValue(
       chain({
         data: [{ id: 'm1', session_id: 's_path', content: 'x', created_at: '2020-01-01T00:00:00Z' }],
@@ -184,7 +184,10 @@ describe('archiveSession', () => {
 
     expect(mocks.storageFromMock).toHaveBeenCalledWith('transcripts-archive');
     const [pathArg, , optsArg] = mocks.uploadMock.mock.calls[0] as [string, Buffer, { contentType: string; upsert: boolean }];
-    expect(pathArg).toMatch(/^archive\/\d{4}\/\d{2}\/s_path\.jsonl\.gz$/);
+    // WR-06: canonical path — no year/month grouping. Re-runs in later
+    // months upsert in place rather than scattering snapshots across
+    // archive/<yyyy>/<mm>/ prefixes.
+    expect(pathArg).toBe('archive/s_path.jsonl.gz');
     expect(optsArg).toEqual({ contentType: 'application/gzip', upsert: true });
   });
 
