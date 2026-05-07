@@ -69,10 +69,15 @@ export async function uploadArchive(path: string, buffer: Buffer): Promise<boole
  */
 export async function findArchiveCandidates(maxSessions = 100): Promise<string[]> {
   const cutoffISO = new Date(Date.now() - HOT_DAYS * 24 * 3600_000).toISOString();
+  // WR-02: order by session_id so the row budget walks across distinct
+  // sessions instead of being consumed by a single very-heavy session
+  // (which previously could violate the "up to N distinct session_ids"
+  // contract when one session has >= maxSessions*100 old rows).
   const { data, error } = await supabaseAdmin
     .from('messages')
     .select('session_id')
     .lt('created_at', cutoffISO)
+    .order('session_id', { ascending: true })
     .limit(maxSessions * 100); // overshoot — dedupe in Node (we only need distinct ids)
 
   if (error || !data) {
