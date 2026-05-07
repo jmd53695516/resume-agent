@@ -23,14 +23,14 @@ A recruiter in under five minutes walks away with a distinctive, specific impres
 - [x] Tool: structured metric framework rendered as card + Joe's commentary (`design_metric_framework`) — *Validated in Phase 3: Tools & Resilience (Haiku 4.5 forced-tool-output + Zod-validated, MetricCard renders six sections; live render pending in 03-HUMAN-UAT)*
 - [x] Tool-call trace panel visible to the user ("see what I did") — *Validated in Phase 3: Tools & Resilience (TracePanel walks message.parts; chevron UX pending in 03-HUMAN-UAT)*
 - [x] Graceful degradation banner when any dependency is impaired; friendly "come back later" on spend cap — *Validated in Phase 3: Tools & Resilience (/api/health always-200, StatusBanner SC + ChatStatusBanner CC, plain-HTML fallback at /?fallback=1 + error.tsx safety net)*
+- [x] Admin dashboard (GitHub-OAuth-gated) with sessions, transcripts, cost tracking, abuse log, tool-health ping — *Validated in Phase 4: Admin & Observability (proxy.ts perimeter + requireAdmin Layer 2, sessions list with always-expanded TracePanel admin variant, cost tracker with 24h/7d/30d windows + cache hit rate, abuse log w/ ip_hash[:8], health grid w/ 5 deps + heartbeats + alarms; live OAuth + dashboard smoke pending in 04-HUMAN-UAT)*
+- [x] New-session email notifications to Joe (with company-domain priority) — *Validated in Phase 4: Admin & Observability (Resend + React Email template, atomic-claim UPDATE-WHERE-IS-NULL idempotency, [PRIORITY] subject prefix for non-free-mail, after()-fired post-persistNormalTurn; 4-condition alarm dispatcher with NX suppression; live email observation pending in 04-HUMAN-UAT)*
 
 ### Active
 
 <!-- Current scope. Building toward these. All hypotheses until shipped. -->
 
-- [ ] End-of-session optional feedback prompt ("was this useful?") — Phase 4
-- [ ] Admin dashboard (GitHub-OAuth-gated) with sessions, transcripts, cost tracking, abuse log, tool-health ping — Phase 4
-- [ ] New-session email notifications to Joe (with company-domain priority) — Phase 4
+- [ ] End-of-session optional feedback prompt ("was this useful?") — deferred (not landed in Phase 4)
 - [ ] Eval suite (~40 cases) across 6 categories: factual fidelity, tool correctness, persona, voice fidelity, abuse resilience, UX smoke — Phase 5
 - [ ] Deployed to public URL with QR code linked from Joe's resume — Phase 5
 
@@ -116,19 +116,25 @@ This document evolves at phase transitions and milestone boundaries.
 
 ## Current State
 
-**Phase 3 (Tools & Resilience) closed 2026-05-06.** All three agentic tools are live in `/api/chat` (`research_company`, `get_case_study`, `design_metric_framework`) with Zod schemas, prompt-injection sanitizer at the boundary, and TOOL-09's FETCHED_CONTENT_RULE in the system prompt. `prepareStep` enforces ≤3 tool calls/turn (TOOL-07) and stops on duplicate args (SAFE-15); `onFinish` writes `heartbeat:anthropic` + `heartbeat:classifier` (ex:120) and persists tool-call rows via `persistToolCallTurn`. The six-gate prelude order is preserved by a durable assertion test. The UI surfaces tools via TracePanel + MetricCard rendered exclusively from `message.parts`. Resilience visibility: `/api/health` (always-200), StatusBanner Server Component on `/` and `/chat/*`, plain-HTML fallback at `/?fallback=1` (build-time generated from KB) plus `error.tsx` safety net. Code review surfaced 6 warnings, all auto-fixed (notably the StatusBanner self-fetch anti-pattern → in-process ping helpers via `unstable_cache`, and Pino log-discipline drift in error paths). 220/220 tests pass.
+**Phase 4 (Admin & Observability) closed 2026-05-07.** GitHub-OAuth-gated `/admin` is live behind a two-layer perimeter (`src/proxy.ts` + `requireAdmin()` per page); the `(authed)/` route group keeps `/admin/login` reachable. Sessions list (last 100, URL-driven sort) → transcript viewer reuses Phase 3's TracePanel via a new `alwaysExpanded` admin variant (label "Tool trace", no chevron). Cost dashboard runs 24h/7d/30d windows with per-tool breakdown + cache-hit-rate; abuse log merges classifier verdicts + deflection stop-reasons with ip_hash[:8]; health grid pings 5 deps, surfaces heartbeats, and conditionally renders the BetterStack link. Email infra: Resend + React Email template, atomic UPDATE-WHERE-IS-NULL idempotency, `[PRIORITY]` subject prefix for non-free-mail (canonical 25-domain allowlist), fired via Next.js 16 `after()` post-persistNormalTurn. Alarm dispatcher (4 conditions: spend-cap ≥$3, error-rate >2% over 10min w/ minSample=10, dep-down across 5 pings, ≥5 distinct rate-limit IPs in 1h) with per-condition Redis NX suppression and `alarms_fired` audit. Heartbeat cron pre-warms prompt cache + refreshes both Anthropic + classifier heartbeat keys; archive cron runs 180d hot→cold (gzip-JSONL upload-first-then-delete to private `transcripts-archive` bucket) + 90d classifier purge. Migration `0002_phase4.sql` applied to live DB. Code review surfaced 6 warnings — all auto-fixed (proxy matcher path-segment anchor, archive starvation interleave, prod localhost URL fallback, missing classifier heartbeat refresh, abuse-page true-count surface, stable canonical archive path). 330/330 tests pass.
 
 Deferred from Phase 2 (still tracked):
 - **SAFE-12** — Anthropic $20/mo org-level spend cap (operational only, no code) — gates Phase 5 LAUNCH-06 deploy
 - **REVIEW WR-01** (Phase 2) — message-length cap on `/api/chat` (classifier cost scales with input tokens before the local $3 cap fires)
 - **REVIEW WR-02..05** (Phase 2) — IP spoofing on `/api/session`, atomic Redis ops, classifier delimiter wrap, `/api/session` rate limit
 
-Phase 3 follow-ups (tracked in 03-HUMAN-UAT.md, not blocking closure):
-- 9 human-verification items requiring live runtime testing (real EXA_API_KEY, DevTools observation, prose-shape eval, visual rendering pass, full-stack 500-induction). Best smoked manually before public deploy or as part of Phase 5 evals.
-- Resume PDF placement at `/joe-dollinger-resume.pdf` — currently expected 404; Joe drops the PDF in `public/` before public deploy (Phase 5 LAUNCH-* responsibility).
-- 9 Info-severity code-review items deferred per `fix_scope: critical_warning` — minor consistency/robustness suggestions documented in 03-REVIEW.md.
+Phase 3 follow-ups (still tracked in 03-HUMAN-UAT.md):
+- 9 human-verification items requiring live runtime testing — best smoked manually before public deploy or as part of Phase 5 evals.
+- Resume PDF placement at `/joe-dollinger-resume.pdf` — Joe drops the PDF in `public/` before public deploy (Phase 5 LAUNCH-* responsibility).
+- 9 Info-severity code-review items deferred per `fix_scope: critical_warning`.
 
-Next up: Phase 4 (Admin & Observability) — admin dashboard with sessions, transcripts, cost tracking, abuse log, tool-health ping, and end-of-session feedback prompt.
+Phase 4 follow-ups (tracked in 04-HUMAN-UAT.md, not blocking closure):
+- 11 human-verification items: live OAuth round-trip happy/sad path, real per-session email + idempotency, cron auth gate + force-trip spend-cap alarm, heartbeat with `cache_read_tokens > 0`, archive smoke, **3 cron-job.org schedules to configure**, **BetterStack synthetic monitor + dashboard URL env var**, visual confirm always-expanded admin trace.
+- One-time `oauth_debug_claims_shape` Pino log in `/auth/callback` — schedule a removal commit after Joe verifies the claims shape on Vercel logs from the first real GitHub login (resolves RESEARCH Open Q 1).
+- 5 Info-severity code-review items left as documented follow-ups (TracePanel click-lock, OAuth diagnostic log, magic threshold constants, streamText error reason hack, direct `process.env` reads in supabase-browser).
+- End-of-session feedback prompt ("was this useful?") was originally listed for Phase 4 in the early roadmap but did not land — moved back to Active with no phase assignment until prioritized.
+
+Next up: Phase 5 (Eval Gates & Launch) — ~40-case eval suite across 6 categories (factual fidelity zero-tolerance, tool correctness, persona, voice fidelity blind A/B, abuse resilience, UX smoke), three friend-tester sessions including one non-PM, and the final QR-code-on-resume launch.
 
 ---
-*Last updated: 2026-05-06 after Phase 3 (Tools & Resilience) closure*
+*Last updated: 2026-05-07 after Phase 4 (Admin & Observability) closure*
