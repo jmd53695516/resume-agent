@@ -1,14 +1,22 @@
 ---
-status: partial
+status: deferred
 phase: 04-admin-observability
 source: [04-VERIFICATION.md]
 started: 2026-05-06T00:00:00Z
-updated: 2026-05-06T00:00:00Z
+updated: 2026-05-06T12:00:00Z
+deferred_to: 05-launch-hardening
+deferred_reason: |
+  9 of 11 tests require a deployed Vercel preview + external services
+  (GitHub OAuth, Resend, cron-job.org, BetterStack) that don't exist yet.
+  No git remote is configured; the repo is local-only. Phase 5 (Launch &
+  Hardening) will set up GitHub push → Vercel project → preview deploy →
+  cron-job.org schedules → BetterStack monitor → DKIM swap. Run this UAT
+  at the end of Phase 5 when all infrastructure is in place.
 ---
 
 ## Current Test
 
-[awaiting human testing]
+[deferred to Phase 5 — see frontmatter for reason]
 
 ## Tests
 
