@@ -6,6 +6,7 @@
 //
 // UI contract: 04-UI-SPEC.md §1 — centered card on --bg-page, shadcn Button
 // with GitHub icon, error message via ?error=oauth_failed query param.
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { supabaseBrowser } from '@/lib/supabase-browser';
@@ -30,10 +31,20 @@ function GitHubMark({ size = 18 }: { size?: number }) {
   );
 }
 
-export default function AdminLoginPage() {
+// Next.js 16 prerender requires any useSearchParams() consumer to live under a
+// <Suspense> boundary; the rest of the login shell is static, so we isolate the
+// query-param read in this child instead of opting the whole page out of SSG.
+function OAuthErrorMessage() {
   const sp = useSearchParams();
-  const oauthFailed = sp.get('error') === 'oauth_failed';
+  if (sp.get('error') !== 'oauth_failed') return null;
+  return (
+    <p className="mt-4 text-center text-sm text-destructive">
+      Sign in failed. Try again or contact Joe.
+    </p>
+  );
+}
 
+export default function AdminLoginPage() {
   async function signInWithGitHub() {
     await supabaseBrowser.auth.signInWithOAuth({
       provider: 'github',
@@ -59,11 +70,9 @@ export default function AdminLoginPage() {
           <GitHubMark size={18} />
           Sign in with GitHub
         </Button>
-        {oauthFailed && (
-          <p className="mt-4 text-center text-sm text-destructive">
-            Sign in failed. Try again or contact Joe.
-          </p>
-        )}
+        <Suspense fallback={null}>
+          <OAuthErrorMessage />
+        </Suspense>
       </div>
     </main>
   );

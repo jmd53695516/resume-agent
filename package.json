@@ -40,6 +40,8 @@
     "pino": "^10.3.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "resend": "^6.12.3",
     "shadcn": "^4.4.0",
     "tailwind-merge": "^3.5.0",

@@ -11,6 +11,9 @@
 // User role behavior is unchanged from Phase 2 — text-only bubble. The
 // data-testid contracts (msg-user, msg-assistant) are preserved end-to-end so
 // the Phase 2 E2E test (tests/e2e/chat-happy-path.spec.ts) continues to pass.
+import type { ComponentProps } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/utils';
 import { TracePanel, type ToolPart } from './TracePanel';
 import { MetricCard } from './MetricCard';
@@ -23,13 +26,39 @@ type MessageBubbleProps =
   | { role: 'assistant'; parts: Part[]; text?: undefined; alwaysExpandTrace?: boolean };
 
 // CONTEXT D-I-07: assistant prose has markdown headers (# / ## / ###) stripped —
-// belt-and-suspenders since the system prompt also bans them.
+// belt-and-suspenders since the system prompt also bans them. Kept as a first
+// pass even though the ReactMarkdown renderer below also collapses h1-h6 → <p>.
 function stripMarkdownHeaders(text: string): string {
   return text
     .split('\n')
     .map((line) => line.replace(/^#{1,6}\s+/, ''))
     .join('\n');
 }
+
+// BL-10: render assistant prose as Markdown so URLs and links from the pitch
+// tool become clickable. remark-gfm auto-links bare URLs (recruiter pitches
+// often emit `https://...` lines, not `[label](url)` form). Heading nodes are
+// flattened to <p> so a smuggled `# foo` cannot stylize itself even after the
+// stripMarkdownHeaders pre-pass (defense-in-depth, D-I-07).
+const PROSE_COMPONENTS: ComponentProps<typeof ReactMarkdown>['components'] = {
+  a: ({ children, href, ...rest }) => (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="underline underline-offset-2 hover:opacity-80"
+      {...rest}
+    >
+      {children}
+    </a>
+  ),
+  h1: ({ children }) => <p>{children}</p>,
+  h2: ({ children }) => <p>{children}</p>,
+  h3: ({ children }) => <p>{children}</p>,
+  h4: ({ children }) => <p>{children}</p>,
+  h5: ({ children }) => <p>{children}</p>,
+  h6: ({ children }) => <p>{children}</p>,
+};
 
 function isToolPart(p: Part): p is ToolPart {
   return p.type.startsWith('tool-');
@@ -85,12 +114,16 @@ export function MessageBubble(props: MessageBubbleProps) {
       {textConcat && (
         <div
           className={cn(
-            'max-w-[78%] whitespace-pre-wrap break-words rounded-[20px] px-[13px] pt-[8px] pb-[9px] text-[16px] tracking-[-0.01em]',
+            'max-w-[78%] break-words rounded-[20px] px-[13px] pt-[8px] pb-[9px] text-[16px] tracking-[-0.01em]',
             'bg-[var(--them)] text-[var(--them-fg)]',
+            // ReactMarkdown emits real <p> blocks, so stack them with vertical rhythm.
+            '[&>p]:mb-2 [&>p:last-child]:mb-0',
           )}
           style={{ lineHeight: 1.28, overflowWrap: 'anywhere' }}
         >
-          {stripMarkdownHeaders(textConcat)}
+          <ReactMarkdown remarkPlugins={[remarkGfm]} components={PROSE_COMPONENTS}>
+            {stripMarkdownHeaders(textConcat)}
+          </ReactMarkdown>
         </div>
       )}
       {metricFrameworkParts.map((p) => (

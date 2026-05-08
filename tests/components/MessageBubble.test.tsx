@@ -143,6 +143,30 @@ describe('MessageBubble', () => {
     expect(screen.queryByTestId('metric-card')).not.toBeInTheDocument();
   });
 
+  it('BL-10: bare URLs in assistant prose autolink with target=_blank', () => {
+    render(
+      <MessageBubble
+        role="assistant"
+        parts={[
+          {
+            type: 'text',
+            text:
+              'Para 1.\n\nPara 2.\n\nSources:\nhttps://anthropic.com/news/claude-sonnet-4-6\nhttps://anthropic.com/research',
+          },
+        ]}
+      />,
+    );
+    const anchors = document.querySelectorAll('[data-testid="msg-assistant"] a[href]');
+    const hrefs = Array.from(anchors).map((a) => a.getAttribute('href'));
+    expect(hrefs).toContain('https://anthropic.com/news/claude-sonnet-4-6');
+    expect(hrefs).toContain('https://anthropic.com/research');
+    // Each link should open in new tab with safe rel.
+    Array.from(anchors).forEach((a) => {
+      expect(a.getAttribute('target')).toBe('_blank');
+      expect(a.getAttribute('rel')).toContain('noopener');
+    });
+  });
+
   it('empty assistant parts renders the wrapper but no children content', () => {
     render(<MessageBubble role="assistant" parts={[]} />);
     expect(screen.getByTestId('msg-assistant')).toBeInTheDocument();

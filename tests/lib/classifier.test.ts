@@ -56,6 +56,20 @@ describe('classifyUserMessage', () => {
     });
     expect(await classifyUserMessage('hi')).toEqual({ label: 'normal', confidence: 0.9 });
   });
+  it('extracts JSON when Haiku appends trailing prose (BL-09)', async () => {
+    messagesCreate.mockResolvedValueOnce({
+      content: [
+        {
+          type: 'text',
+          text: '{"label":"normal","confidence":0.95}\nReasoning: this is a routine recruiter question.',
+        },
+      ],
+    });
+    expect(await classifyUserMessage('What was Joe’s biggest impact at Gap?')).toEqual({
+      label: 'normal',
+      confidence: 0.95,
+    });
+  });
   it('fail-closed on API error → offtopic conf 1.0', async () => {
     messagesCreate.mockRejectedValueOnce(new Error('rate limited'));
     expect(await classifyUserMessage('anything')).toEqual({ label: 'offtopic', confidence: 1.0 });
