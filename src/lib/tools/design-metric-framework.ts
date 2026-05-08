@@ -62,6 +62,7 @@ const OUTPUT_METRIC_FRAMEWORK_TOOL: AnthropicTool = {
       'proposed_experiment',
       'open_questions',
     ],
+    additionalProperties: false,
   },
   strict: true,
 };
@@ -124,6 +125,7 @@ export const design_metric_framework = tool({
           latency_ms: Date.now() - started,
           status: 'error',
           error_class: (err as Error).name ?? 'Error',
+          error_message: (err as Error).message ?? String(err),
         },
         'error',
       );
