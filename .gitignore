@@ -53,3 +53,11 @@ next-env.d.ts
 
 # Supabase CLI temp output (runtime artifacts)
 /supabase/.temp/
+
+# Eval CLI runtime output (per-run playwright JSON, transient captures, etc.)
+# sample-stream.txt is the committed test fixture for src/lib/eval/agent-client.ts
+# (Plan 05-03 Task 4) — keep it tracked. Note: must use `.eval-tmp/*` not
+# `.eval-tmp/`, because the latter ignores the directory itself and prevents
+# git from traversing into it (the negation never applies).
+.eval-tmp/*
+!.eval-tmp/sample-stream.txt

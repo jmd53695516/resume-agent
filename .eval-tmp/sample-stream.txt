@@ -1,0 +1,8 @@
+data: {"type":"text-start","id":"845ac41d-4edd-448f-81e4-446f2248a28d"}
+
+data: {"type":"text-delta","id":"845ac41d-4edd-448f-81e4-446f2248a28d","delta":"Not sure I caught that. Can you rephrase? I'm good with background questions or running the three tools."}
+
+data: {"type":"text-end","id":"845ac41d-4edd-448f-81e4-446f2248a28d"}
+
+data: [DONE]
+
