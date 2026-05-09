@@ -23,16 +23,21 @@ vi.mock('next/navigation', () => ({
 }));
 
 // Capture the onError / onFinish callbacks passed by ChatUI to useChat. Tests
-// invoke them directly (one-shot per simulated event). The mock must allow
-// either the onError/onFinish hook config OR a useEffect-on-error pattern;
-// implementation chose onError/onFinish, so the mock exposes those.
+// invoke them directly (one-shot per simulated event). BL-18: onFinish in
+// AI SDK v6 receives { isError, isAbort, isDisconnect, ... } and fires after
+// EVERY request including errors. The captured signature reflects that.
+type FinishArg = {
+  isError?: boolean;
+  isAbort?: boolean;
+  isDisconnect?: boolean;
+};
 let capturedOnError: ((err: Error) => void) | null = null;
-let capturedOnFinish: (() => void) | null = null;
+let capturedOnFinish: ((arg?: FinishArg) => void) | null = null;
 
 vi.mock('@ai-sdk/react', () => ({
   useChat: (cfg: {
     onError?: (err: Error) => void;
-    onFinish?: () => void;
+    onFinish?: (arg?: FinishArg) => void;
   }) => {
     capturedOnError = cfg.onError ?? null;
     capturedOnFinish = cfg.onFinish ?? null;
@@ -82,9 +87,36 @@ describe('ChatUI persistent-500 fallback redirect (B2 — moved from 03-05)', ()
 
   it('counter resets after a successful onFinish — third error does not redirect', () => {
     capturedOnError?.(new Error('500')); // count = 1
-    capturedOnFinish?.(); // count reset to 0
+    capturedOnFinish?.({ isError: false, isAbort: false, isDisconnect: false }); // count reset to 0
     capturedOnError?.(new Error('500')); // count = 1, NOT 2
     expect(push).not.toHaveBeenCalled();
+  });
+
+  // BL-18: AI SDK v6 fires onFinish in a finally block AFTER onError on every
+  // request, including errors. The arg includes isError/isAbort/isDisconnect.
+  // ChatUI's onFinish must NOT reset the counter when isError is true,
+  // otherwise two consecutive 5xx responses oscillate counter 0→1→0→1 and
+  // the redirect never fires. Discovered 2026-05-09 during P3 #8 walk.
+  it('counter does NOT reset after onFinish with isError:true — two errors still redirect', () => {
+    capturedOnError?.(new Error('503')); // count = 1
+    capturedOnFinish?.({ isError: true }); // counter must stay at 1
+    capturedOnError?.(new Error('503')); // count = 2 → redirect
+    capturedOnFinish?.({ isError: true });
+    expect(push).toHaveBeenCalledWith('/?fallback=1');
+  });
+
+  it('counter does NOT reset after onFinish with isAbort:true', () => {
+    capturedOnError?.(new Error('aborted'));
+    capturedOnFinish?.({ isAbort: true });
+    capturedOnError?.(new Error('aborted'));
+    expect(push).toHaveBeenCalledWith('/?fallback=1');
+  });
+
+  it('counter does NOT reset after onFinish with isDisconnect:true', () => {
+    capturedOnError?.(new Error('disconnect'));
+    capturedOnFinish?.({ isDisconnect: true });
+    capturedOnError?.(new Error('disconnect'));
+    expect(push).toHaveBeenCalledWith('/?fallback=1');
   });
 
   it('redirect target is exactly /?fallback=1 (not a different path)', () => {

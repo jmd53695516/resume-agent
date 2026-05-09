@@ -43,9 +43,15 @@ export function ChatUI({ sessionId }: ChatUIProps) {
         router.push('/?fallback=1');
       }
     },
-    onFinish: () => {
-      // Reset on any successful response — single transient 500 is forgiven.
-      errorCountRef.current = 0;
+    onFinish: ({ isError, isAbort, isDisconnect } = {}) => {
+      // BL-18: AI SDK v6's Chat.makeRequest fires onFinish in a finally
+      // block AFTER onError on every request, including errors. Resetting
+      // unconditionally here defeats the 2-consecutive-error redirect
+      // protection — counter alternates 0→1→0→1 and never crosses the
+      // threshold. Only reset on a genuinely successful response.
+      if (!isError && !isAbort && !isDisconnect) {
+        errorCountRef.current = 0;
+      }
     },
   });
 

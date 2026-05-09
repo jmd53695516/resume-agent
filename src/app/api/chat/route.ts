@@ -120,8 +120,28 @@ export async function POST(req: Request): Promise<Response> {
     .select('email, email_domain, ended_at')
     .eq('id', session_id)
     .single();
-  if (sessionErr || !session || session.ended_at) {
-    return Response.json({ error: 'Session unknown or ended' }, { status: 404 });
+  // BL-17: discriminate genuine session-not-found (PGRST116 = .single()
+  // got 0 rows) from infrastructure failure (Supabase unreachable, auth
+  // error, etc.). Conflating them returned 404 on network failure, which
+  // useChat treats as graceful-end and silently absorbs — defeating the
+  // 2-consecutive-500 redirect protection in ChatUI.
+  if (sessionErr) {
+    if (sessionErr.code === 'PGRST116') {
+      return Response.json({ error: 'Session unknown' }, { status: 404 });
+    }
+    log(
+      {
+        event: 'session_lookup_failed',
+        error_message: sessionErr.message,
+        error_code: sessionErr.code ?? 'unknown',
+        session_id,
+      },
+      'error',
+    );
+    return Response.json({ error: 'Service unavailable' }, { status: 503 });
+  }
+  if (!session || session.ended_at) {
+    return Response.json({ error: 'Session ended' }, { status: 404 });
   }
 
   // 3. 30-turn cap (CHAT-10) — 30 user+assistant pairs == 60 rows
