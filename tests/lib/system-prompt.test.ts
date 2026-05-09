@@ -31,6 +31,17 @@ describe('buildSystemPrompt determinism', () => {
     expect(p).toMatch(/HALLUCINATION RULES/);
   });
 
+  // BL-11: after research_company, Sonnet must emit a Sources: footer with
+  // bare URLs so the recruiter can verify pitch claims. Auto-clickable via
+  // BL-10's react-markdown + remark-gfm autolink. Without this rule URL
+  // emission was whim-driven and the clickability work was unobservable.
+  it('contains the BL-11 SOURCES FOOTER RULE', () => {
+    const p = buildSystemPrompt();
+    expect(p).toMatch(/SOURCES FOOTER RULE/);
+    expect(p).toMatch(/research_company/);
+    expect(p).toMatch(/Sources:/);
+  });
+
   it('falls within sanity length bounds', () => {
     const p = buildSystemPrompt();
     expect(p.length).toBeGreaterThan(500);

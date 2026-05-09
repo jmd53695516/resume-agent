@@ -175,4 +175,81 @@ describe('MessageBubble', () => {
     const allTestids = document.querySelectorAll('[data-testid^="trace-"]');
     expect(allTestids.length).toBe(0);
   });
+
+  // BL-16b: in-flight chip shown while a tool is mid-call (input-available
+  // state). AI SDK v6 doesn't stream Sonnet's prose during a tool sub-call,
+  // so without this the recruiter sees a silent loading state for the whole
+  // tool duration. Discovered during 05-01 walk (38.7s metric tool sample).
+  it('BL-16b: shows in-flight chip for input-available tool state', () => {
+    render(
+      <MessageBubble
+        role="assistant"
+        parts={[
+          {
+            type: 'tool-design_metric_framework',
+            toolCallId: 'call_mf_running',
+            state: 'input-available',
+            input: { description: 'measuring agent quality' },
+          },
+        ]}
+      />,
+    );
+    const chip = screen.getByTestId('tool-progress-call_mf_running');
+    expect(chip).toBeInTheDocument();
+    expect(chip.textContent).toMatch(/Drafting the metric framework/);
+  });
+
+  it('BL-16b: shows in-flight chip for input-streaming tool state', () => {
+    render(
+      <MessageBubble
+        role="assistant"
+        parts={[
+          {
+            type: 'tool-research_company',
+            toolCallId: 'call_rc_streaming',
+            state: 'input-streaming',
+          },
+        ]}
+      />,
+    );
+    const chip = screen.getByTestId('tool-progress-call_rc_streaming');
+    expect(chip).toBeInTheDocument();
+    expect(chip.textContent).toMatch(/Researching the company/);
+  });
+
+  it('BL-16b: NO in-flight chip after tool reaches output-available', () => {
+    render(
+      <MessageBubble
+        role="assistant"
+        parts={[
+          { type: 'text', text: 'I looked them up.' },
+          {
+            type: 'tool-research_company',
+            toolCallId: 'call_rc_done',
+            state: 'output-available',
+            input: { company: 'Acme' },
+            output: { paragraphs: ['p1'] },
+          },
+        ]}
+      />,
+    );
+    expect(screen.queryByTestId('tool-progress-call_rc_done')).not.toBeInTheDocument();
+  });
+
+  it('BL-16b: NO in-flight chip after tool reaches output-error', () => {
+    render(
+      <MessageBubble
+        role="assistant"
+        parts={[
+          {
+            type: 'tool-design_metric_framework',
+            toolCallId: 'call_mf_err',
+            state: 'output-error',
+            errorText: 'tripped',
+          },
+        ]}
+      />,
+    );
+    expect(screen.queryByTestId('tool-progress-call_mf_err')).not.toBeInTheDocument();
+  });
 });

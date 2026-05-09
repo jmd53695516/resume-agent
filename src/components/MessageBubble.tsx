@@ -64,6 +64,17 @@ function isToolPart(p: Part): p is ToolPart {
   return p.type.startsWith('tool-');
 }
 
+// BL-16b: in-flight chip shown while a tool is running between
+// input-available and output-available states. AI SDK v6 doesn't stream
+// Sonnet's prose during the tool sub-call, so without this the recruiter
+// sees a silent loading state for the whole tool duration (38.7s observed
+// for the metric tool during 05-01 walk).
+const IN_FLIGHT_LABELS: Record<string, string> = {
+  'tool-research_company': 'Researching the company',
+  'tool-get_case_study': 'Pulling up the case study',
+  'tool-design_metric_framework': 'Drafting the metric framework',
+};
+
 // Visual: Chat Stream design (claude.ai/design handoff, 2026-04-30).
 // Both roles render as bubbles — user (right, blue --me) and assistant (left,
 // dark grey --them). This is a deliberate reversal of Phase 2 D-I-05's
@@ -105,6 +116,12 @@ export function MessageBubble(props: MessageBubbleProps) {
       p.state === 'output-available' &&
       p.output !== undefined,
   );
+  // BL-16b: first tool whose state is still pre-output. Show an in-flight
+  // chip with present-tense label + pulsing dot so the recruiter doesn't
+  // perceive the agent as unresponsive during a long tool sub-call.
+  const inFlightTool = toolParts.find(
+    (p) => p.state === 'input-streaming' || p.state === 'input-available',
+  );
 
   return (
     <div
@@ -129,6 +146,15 @@ export function MessageBubble(props: MessageBubbleProps) {
       {metricFrameworkParts.map((p) => (
         <MetricCard key={`card-${p.toolCallId}`} data={p.output} />
       ))}
+      {inFlightTool && (
+        <div
+          data-testid={`tool-progress-${inFlightTool.toolCallId}`}
+          className="inline-flex items-center gap-2 rounded-full bg-[var(--them)] px-3 py-1.5 text-[13px] italic text-[var(--them-fg)]"
+        >
+          <span className="typing-dot h-[6px] w-[6px] rounded-full bg-white/55" />
+          {IN_FLIGHT_LABELS[inFlightTool.type] ?? 'Working'}…
+        </div>
+      )}
       {toolParts.map((p) => (
         <TracePanel
           key={p.toolCallId}

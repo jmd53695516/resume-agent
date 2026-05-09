@@ -140,6 +140,17 @@ export async function POST(req: Request): Promise<Response> {
     }
   }
 
+  // BL-13: when prewarm is enabled, the prewarm result IS the authoritative
+  // current state for anthropic. pingAnthropic only reads heartbeat:anthropic
+  // which warmPromptCache is about to write — reading-before-writing produced
+  // statuses.anthropic='degraded' in the heartbeat event payload even on a
+  // healthy prewarm. Prefer the post-write state (prewarm.ok) over the stale
+  // pre-write read. When prewarm is disabled, fall back to the ping (then the
+  // dashboard refresh path at line 132-141 keeps the key warm via the live ping).
+  const anthropicStatus = llmPrewarmEnabled
+    ? (prewarm.ok ? 'ok' : 'degraded')
+    : anthropicPing.value;
+
   log({
     event: 'heartbeat',
     deps_pinged: ['supabase', 'upstash', 'exa', 'anthropic', 'classifier'],
@@ -154,7 +165,7 @@ export async function POST(req: Request): Promise<Response> {
       supabase: supabasePing.value,
       upstash: upstashPing.value,
       exa: exaPing.value,
-      anthropic: anthropicPing.value,
+      anthropic: anthropicStatus,
       classifier: classifierPing.value,
     },
     anthropic_cache_read_tokens: prewarm.cache_read_tokens,
