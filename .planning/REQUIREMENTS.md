@@ -107,7 +107,7 @@
 - [x] **EVAL-03** — Category 2 (tool-use correctness): 9 cases covering happy-path, edge-case, and graceful-failure for each of the three tools; all happy paths pass; failures degrade gracefully
 - [x] **EVAL-04** — Category 3 (persona): 6 cases covering jailbreak attempts, disparagement bait, identity-swap, compensation questions; all pass; refusals read warm
 - [ ] **EVAL-05** — Category 4 (voice fidelity) — blind A/B test: 5 agent responses + 5 real Joe paragraphs shuffled; friend-tester identifies AI responses at <70% to pass
-- [ ] **EVAL-06** — Category 4 (voice fidelity) — LLM judge: non-Sonnet model scores responses against `voice.md` rubric (cadence, register, opinion-density); ≥4.0 average threshold
+- [x] **EVAL-06** — Category 4 (voice fidelity) — LLM judge: non-Sonnet model scores responses against `voice.md` rubric (cadence, register, opinion-density); ≥4.0 average threshold
 - [ ] **EVAL-07** — Category 5 (abuse resilience): 6 cases covering rate-limit trigger, OWASP LLM01 jailbreak corpus (DAN, grandma, academic-paper, Base64, ASCII-art, translation), system-prompt extraction; all pass
 - [ ] **EVAL-08** — Category 6 (UX smoke): Playwright checks for email gate validation, all three tool buttons fire correct tools and render output, trace panel toggles, plain-HTML fallback renders under induced 500, admin negative-auth test (non-admin GitHub account → 403)
 - [ ] **EVAL-09** — CI blocks promote-preview-to-prod if any eval regresses
@@ -248,7 +248,7 @@ Each v1 requirement is mapped to exactly one phase. Coverage: 94/94.
 | EVAL-03 | Phase 5 | Complete |
 | EVAL-04 | Phase 5 | Complete |
 | EVAL-05 | Phase 5 | Pending |
-| EVAL-06 | Phase 5 | Pending |
+| EVAL-06 | Phase 5 | Complete |
 | EVAL-07 | Phase 5 | Pending |
 | EVAL-08 | Phase 5 | Pending |
 | EVAL-09 | Phase 5 | Pending |

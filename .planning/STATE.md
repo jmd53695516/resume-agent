@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-05-PLAN.md
-last_updated: "2026-05-09T20:16:50.297Z"
+stopped_at: Completed 05-06-PLAN.md
+last_updated: "2026-05-09T21:33:13.446Z"
 last_activity: 2026-05-09
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 33
-  completed_plans: 22
-  percent: 67
+  completed_plans: 23
+  percent: 70
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 ## Current Position
 
 Phase: 05 (eval-gates-launch) — EXECUTING
-Plan: 2 of 12
+Plan: 3 of 12
 Status: Ready to execute
 Last activity: 2026-05-09
 
@@ -72,6 +72,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04 P06 | 6min | 4 tasks | 7 files |
 | Phase 04-admin-observability P07 | 7min | 3 tasks | 6 files |
 | Phase 05-eval-gates-launch P05-05 | 10 | 3 tasks | 6 files |
+| Phase 05-eval-gates-launch P05-06 | 12min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -147,6 +148,9 @@ Recent decisions affecting current work:
 - [Phase 05-eval-gates-launch]: Plan 05-05: AI SDK v6 SSE tool-call format (data: {type:'tool-input-available'}) — Rule 1 deviation from plan's outdated v5 prefix-code example; parseToolCalls helper added in cat2.ts
 - [Phase 05-eval-gates-launch]: Plan 05-05: cat 3 warmth gate = (judge.verdict === 'pass') AND (judge.score >= 4); curt-but-correct refusals (verdict=pass, score=3) fail by design — warmth-under-stress is the whole-category test
 - [Phase 05-eval-gates-launch]: Plan 05-05: cat2 spend-cap synthetic uses capture-original→set-350→finally-restore-or-del pattern (T-05-05-01 mitigation); guaranteed reset on assertion fail or thrown error
+- [Phase 05-eval-gates-launch]: Plan 05-06: prompt-4 swapped from conflict to PM-lesson-5-years-earlier (Joe-driven) — opens warmth/teaching register (voice.md Sample 8/11) and curiosity-over-tools stance (Stance 4); coverage gap conflict prompt didn't reach (overlapped prompt-3 stance disagreement)
+- [Phase 05-eval-gates-launch]: Plan 05-06: cat 4 LLM-judge two-gate pass = results.every(c.passed) AND aggregate-avg >= 4.0; matches cat-04-voice.yaml pass_threshold (per_case_min_avg + aggregate_min_avg both at 4.0); aggregate denominator excludes errored cases (verdict-producing only) to keep metric honest under network failures
+- [Phase 05-eval-gates-launch]: Plan 05-06: voice-sample loader heuristic refined past plan example — added rejections for HTML comments (<!--) and *Source: italic attribution lines + tightened to >=2 sentence terminators; without these, kb/voice.md leaks block-1 metadata + 7 source-attribution lines into the judge prompt
 
 ### Pending Todos
 
@@ -162,6 +166,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-09T20:16:50.293Z
-Stopped at: Completed 05-05-PLAN.md
+Last session: 2026-05-09T21:33:13.441Z
+Stopped at: Completed 05-06-PLAN.md
 Resume file: None
