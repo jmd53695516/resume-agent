@@ -39,6 +39,14 @@ const EnvSchema = z.object({
   // localhost link.
   NEXT_PUBLIC_SITE_URL: z.url().optional(),
   VERCEL_URL: z.string().optional(),
+
+  // Phase 5 optional (Plan 05-02 — eval harness)
+  // Consumed by the eval CLI (Plan 05-03) and weekly drift cron (Plan 05-11).
+  // All optional so the chat path loads without them.
+  GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(20).optional(),
+  EVAL_JUDGE_MODEL: z.string().optional(),
+  EVAL_TARGET_URL: z.url().optional(),
+  GH_DISPATCH_TOKEN: z.string().min(10).optional(),
 });
 
 export const env = EnvSchema.parse(process.env);
