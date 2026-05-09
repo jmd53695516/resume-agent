@@ -23,16 +23,14 @@ import { JUDGE_MODEL } from '@/lib/eval-models';
 import { createRun, updateRunStatus } from '@/lib/eval/storage';
 import { projectRunCost, WARN_THRESHOLD_CENTS } from '@/lib/eval/cost';
 import type { CategoryResult, RunSummary } from '@/lib/eval/types';
-// Plan 05-04 wires the real cat1 runner; Plans 05-05..05-09 will replace
-// the remaining stubs below as their plans land.
+// Plan 05-04 wires runCat1; Plan 05-05 wires runCat2; Plans 05-05..05-09
+// replace remaining stubs below as their plans land.
 import { runCat1 } from '@/lib/eval/cats/cat1';
+import { runCat2 } from '@/lib/eval/cats/cat2';
 
 // Per-category runners — stubs for Plan 05-03; Plans 05-04..05-09 fill in.
 // Each runner returns CategoryResult with cases[] populated and writes per-case
 // rows via writeCase() from storage.ts.
-async function runCat2(_targetUrl: string, _runId: string): Promise<CategoryResult> {
-  return { category: 'cat2', cases: [], passed: true, cost_cents: 0 };
-}
 async function runCat3(_targetUrl: string, _runId: string): Promise<CategoryResult> {
   return { category: 'cat3', cases: [], passed: true, cost_cents: 0 };
 }

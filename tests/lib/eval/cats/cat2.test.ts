@@ -197,16 +197,17 @@ describe('runCat2', () => {
     // ~280 words narration ending with the closing line
     const narration = (
       'I shipped a Cortex AI forecasting capability at SEI from mid-onsite ideation to production in four months. '
-      + 'The client wanted cash-flow forecasting that lived outside Excel. '
+      + 'The client wanted cash-flow forecasting that lived outside Excel and rolled up across their fund-services book. '
       + 'I scoped it as a Snowflake Cortex AI use case mid-onsite and got buy-in by demoing a tiny prototype against their real data. '
-      + 'The biggest risk was AI governance — the legal and privacy partners wanted to see model lineage. '
-      + 'We worked through that by leaning into Snowflake-managed Cortex services, which meant we did not have to defend an in-house training pipeline. '
+      + 'The biggest risk was AI governance — the legal and privacy partners wanted to see model lineage and how training data flowed in and out. '
+      + 'We worked through that by leaning into Snowflake-managed Cortex services, which meant we did not have to defend an in-house training pipeline to the audit folks. '
       + 'I partnered with a small data-engineering team to wire the feature into the existing semantic layer, '
-      + 'and I built up the dashboard scaffolding in Power BI so users could compare model output against the existing Excel baseline. '
-      + 'The demo at the end of month four landed — the analyst smiled when they saw their cash-flow forecast running live. '
-      + 'That smile mattered: it was the social proof we needed to greenlight the next two AI features on the SEI Data Cloud roadmap. '
+      + 'and I built up the dashboard scaffolding in Power BI so users could compare model output against the existing Excel baseline side-by-side. '
+      + 'The demo at the end of month four landed — the analyst literally smiled when they saw their cash-flow forecast running live against the live data set. '
+      + 'That smile mattered: it was the social proof we needed to greenlight the next two AI features on the SEI Data Cloud roadmap, '
+      + 'and it gave the executive sponsor an easy story to tell upward inside their own org. '
       + 'The lessons I took away were about scoping AI work as PM rather than as ML engineer, '
-      + 'about leaning on managed services to avoid governance fights, '
+      + 'about leaning on managed services to avoid governance fights with legal teams who rightfully want lineage, '
       + 'and about the importance of getting prototypes into real-data demo as fast as possible to shake loose stakeholder buy-in.\n\n'
       + 'Want to go deeper, or hear a different story?'
     );
@@ -373,7 +374,10 @@ describe('runCat2', () => {
       fakeCase({ case_id: 'b' }),
       fakeCase({ case_id: 'c' }),
     ]);
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+    // mockImplementation returns a fresh Response per call — Response.text()
+    // can only be consumed once, so mockResolvedValue (which returns the SAME
+    // instance on every call) breaks on the 2nd .text() with "Body unusable".
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () =>
       fetchOk(
         ssToolCallStream({
           toolName: 'research_company',
