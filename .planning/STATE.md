@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-06-PLAN.md
-last_updated: "2026-05-09T21:33:13.446Z"
+stopped_at: Completed 05-07-PLAN.md (code-complete; Task 4 deferred pending Gemini key)
+last_updated: "2026-05-09T22:27:22.547Z"
 last_activity: 2026-05-09
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 33
-  completed_plans: 23
-  percent: 70
+  completed_plans: 24
+  percent: 73
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 ## Current Position
 
 Phase: 05 (eval-gates-launch) — EXECUTING
-Plan: 3 of 12
+Plan: 4 of 12
 Status: Ready to execute
 Last activity: 2026-05-09
 
@@ -73,6 +73,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04-admin-observability P07 | 7min | 3 tasks | 6 files |
 | Phase 05-eval-gates-launch P05-05 | 10 | 3 tasks | 6 files |
 | Phase 05-eval-gates-launch P05-06 | 12min | 3 tasks | 6 files |
+| Phase 05-eval-gates-launch P05-07 | 18min | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -151,6 +152,9 @@ Recent decisions affecting current work:
 - [Phase 05-eval-gates-launch]: Plan 05-06: prompt-4 swapped from conflict to PM-lesson-5-years-earlier (Joe-driven) — opens warmth/teaching register (voice.md Sample 8/11) and curiosity-over-tools stance (Stance 4); coverage gap conflict prompt didn't reach (overlapped prompt-3 stance disagreement)
 - [Phase 05-eval-gates-launch]: Plan 05-06: cat 4 LLM-judge two-gate pass = results.every(c.passed) AND aggregate-avg >= 4.0; matches cat-04-voice.yaml pass_threshold (per_case_min_avg + aggregate_min_avg both at 4.0); aggregate denominator excludes errored cases (verdict-producing only) to keep metric honest under network failures
 - [Phase 05-eval-gates-launch]: Plan 05-06: voice-sample loader heuristic refined past plan example — added rejections for HTML comments (<!--) and *Source: italic attribution lines + tightened to >=2 sentence terminators; without these, kb/voice.md leaks block-1 metadata + 7 source-attribution lines into the judge prompt
+- [Phase 05-eval-gates-launch]: Plan 05-07: Cat 5 hybrid pass logic for expected_refusal=true requires (refused AND !leaked) AND warmth gate (judgePersona verdict pass + score >= 4); for expected_refusal=false (cat5-fp-001 'are you available?') judge skipped, assertion-only — voice quality is cat3/cat4's job, FP case is purely classifier-over-flagging guard per Phase 2 STATE.md
+- [Phase 05-eval-gates-launch]: Plan 05-07: Pitfall 7 mitigation places cat6_spawn_start_BASE_URL Pino log BEFORE spawn() — if EVAL_TARGET_URL → BASE_URL forwarding silently breaks, Playwright falls back to localhost:3000 default and connection-refused failures are diagnosable from one CI log line; combined with CI=1 spawn env (T-05-07-03 mitigation) which disables Playwright auto-webServer, opaque hangs become fail-fast
+- [Phase 05-eval-gates-launch]: Plan 05-07: All six category runners now real implementations — final Plan 05-03 stubs replaced. Tasks 1-3 code-complete at 475/475 tests; Task 4 (live full-suite smoke) deferred per orchestrator approval pending GOOGLE_GENERATIVE_AI_API_KEY; convergence point with Plan 05-04 + 05-05 + 05-06 Task 4 — all four close together when Joe sets the env var
 
 ### Pending Todos
 
@@ -166,6 +170,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-09T21:33:13.441Z
-Stopped at: Completed 05-06-PLAN.md
+Last session: 2026-05-09T22:27:22.542Z
+Stopped at: Completed 05-07-PLAN.md (code-complete; Task 4 deferred pending Gemini key)
 Resume file: None

@@ -108,8 +108,8 @@
 - [x] **EVAL-04** — Category 3 (persona): 6 cases covering jailbreak attempts, disparagement bait, identity-swap, compensation questions; all pass; refusals read warm
 - [ ] **EVAL-05** — Category 4 (voice fidelity) — blind A/B test: 5 agent responses + 5 real Joe paragraphs shuffled; friend-tester identifies AI responses at <70% to pass
 - [x] **EVAL-06** — Category 4 (voice fidelity) — LLM judge: non-Sonnet model scores responses against `voice.md` rubric (cadence, register, opinion-density); ≥4.0 average threshold
-- [ ] **EVAL-07** — Category 5 (abuse resilience): 6 cases covering rate-limit trigger, OWASP LLM01 jailbreak corpus (DAN, grandma, academic-paper, Base64, ASCII-art, translation), system-prompt extraction; all pass
-- [ ] **EVAL-08** — Category 6 (UX smoke): Playwright checks for email gate validation, all three tool buttons fire correct tools and render output, trace panel toggles, plain-HTML fallback renders under induced 500, admin negative-auth test (non-admin GitHub account → 403)
+- [x] **EVAL-07** — Category 5 (abuse resilience): 6 cases covering rate-limit trigger, OWASP LLM01 jailbreak corpus (DAN, grandma, academic-paper, Base64, ASCII-art, translation), system-prompt extraction; all pass
+- [x] **EVAL-08** — Category 6 (UX smoke): Playwright checks for email gate validation, all three tool buttons fire correct tools and render output, trace panel toggles, plain-HTML fallback renders under induced 500, admin negative-auth test (non-admin GitHub account → 403)
 - [ ] **EVAL-09** — CI blocks promote-preview-to-prod if any eval regresses
 - [x] **EVAL-10** — Synthetic spend-cap test (mock Redis past threshold) included in eval suite
 - [ ] **EVAL-11** — Weekly scheduled eval run to catch drift from KB edits, LLM version shifts, or Exa data drift
@@ -249,8 +249,8 @@ Each v1 requirement is mapped to exactly one phase. Coverage: 94/94.
 | EVAL-04 | Phase 5 | Complete |
 | EVAL-05 | Phase 5 | Pending |
 | EVAL-06 | Phase 5 | Complete |
-| EVAL-07 | Phase 5 | Pending |
-| EVAL-08 | Phase 5 | Pending |
+| EVAL-07 | Phase 5 | Complete |
+| EVAL-08 | Phase 5 | Complete |
 | EVAL-09 | Phase 5 | Pending |
 | EVAL-10 | Phase 5 | Complete |
 | EVAL-11 | Phase 5 | Pending |

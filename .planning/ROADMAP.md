@@ -113,7 +113,7 @@ Plans:
 - [ ] 05-04-PLAN.md — Cat 1 fabrication: 15 cases + name-token allowlist + det-judge hybrid + runCat1 (EVAL-02)
 - [x] 05-05-PLAN.md — Cat 2 tools (9 cases incl. spend-cap synthetic) + Cat 3 persona (6 cases) (EVAL-03, EVAL-04, EVAL-10)
 - [x] 05-06-PLAN.md — Cat 4 LLM-judge: 5 voice prompts + voice.yaml rubric + runCat4Judge (EVAL-06)
-- [ ] 05-07-PLAN.md — Cat 5 abuse (6 OWASP + 1 false-positive) + Cat 6 Playwright UX smoke (EVAL-07, EVAL-08)
+- [x] 05-07-PLAN.md — Cat 5 abuse (6 OWASP + 1 false-positive) + Cat 6 Playwright UX smoke (EVAL-07, EVAL-08)
 - [ ] 05-08-PLAN.md — /admin/eval-ab page + ab-mapping + cat4 blind A/B runner (EVAL-05)
 - [ ] 05-09-PLAN.md — /admin/evals index + detail + calibrate + Cohen's kappa + AdminNav (EVAL-12, EVAL-14)
 - [ ] 05-10-PLAN.md — Real eval workflow body + branch protection + Vercel Deployment Checks + A7 spot-test (EVAL-09, EVAL-13)
