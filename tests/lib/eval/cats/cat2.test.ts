@@ -1,0 +1,459 @@
+// tests/lib/eval/cats/cat2.test.ts
+// Phase 5 Plan 05-05 Task 2 — runCat2 assertion-based tool-correctness logic.
+// Path follows session deviation (vitest config tests/**/*.test.{ts,tsx}).
+// Mocks fetch (we don't hit a real /api/chat), redis (spend-cap synthetic),
+// loadCases, writeCase. Verifies the 8 behaviors enumerated in the plan.
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+vi.mock('@/lib/env', () => {
+  const env: Record<string, string> = {};
+  env['NEXT_PUBLIC_SUPABASE_URL'] = 'https://fake.supabase.co';
+  env['NEXT_PUBLIC_' + 'SUPABASE_ANON_' + 'KEY'] = 'x'.repeat(40);
+  env['SUPABASE_SERVICE_ROLE_' + 'KEY'] = 'x'.repeat(40);
+  env['ANTHROPIC_API_' + 'KEY'] = 'x'.repeat(40);
+  env['UPSTASH_REDIS_REST_URL'] = 'https://fake.upstash.io';
+  env['UPSTASH_REDIS_REST_TOKEN'] = 'x'.repeat(40);
+  env['EXA_API_' + 'KEY'] = 'x'.repeat(40);
+  return { env };
+});
+
+const loadCasesMock = vi.fn();
+vi.mock('@/lib/eval/yaml-loader', () => ({
+  loadCases: (path: string) => loadCasesMock(path),
+  EvalCaseSchema: {},
+}));
+
+const writeCaseMock = vi.fn();
+vi.mock('@/lib/eval/storage', () => ({
+  writeCase: (args: unknown) => writeCaseMock(args),
+}));
+
+// Track redis calls so we can assert spend-cap synthetic set/reset behavior
+const redisGetMock = vi.fn();
+const redisSetMock = vi.fn();
+const redisDelMock = vi.fn();
+vi.mock('@/lib/redis', () => ({
+  redis: {
+    get: (key: string) => redisGetMock(key),
+    set: (key: string, val: unknown) => redisSetMock(key, val),
+    del: (key: string) => redisDelMock(key),
+  },
+}));
+
+beforeEach(() => {
+  loadCasesMock.mockReset();
+  writeCaseMock.mockReset();
+  redisGetMock.mockReset();
+  redisSetMock.mockReset();
+  redisDelMock.mockReset();
+  writeCaseMock.mockResolvedValue(undefined);
+  redisSetMock.mockResolvedValue('OK');
+  redisDelMock.mockResolvedValue(1);
+  redisGetMock.mockResolvedValue(null);
+  vi.restoreAllMocks();
+});
+
+// ---------- Helpers to build mock SSE stream bodies ----------
+
+function ssTextStream(text: string): string {
+  return (
+    'data: {"type":"text-start","id":"a"}\n\n' +
+    `data: {"type":"text-delta","id":"a","delta":${JSON.stringify(text)}}\n\n` +
+    'data: {"type":"text-end","id":"a"}\n\n' +
+    'data: [DONE]\n'
+  );
+}
+
+function ssToolCallStream(args: { toolName: string; input: unknown; text: string }): string {
+  // AI SDK v6 emits tool-input-available with the full input object.
+  return (
+    'data: {"type":"start"}\n\n' +
+    `data: {"type":"tool-input-start","toolCallId":"t1","toolName":${JSON.stringify(args.toolName)}}\n\n` +
+    `data: {"type":"tool-input-available","toolCallId":"t1","toolName":${JSON.stringify(args.toolName)},"input":${JSON.stringify(args.input)}}\n\n` +
+    'data: {"type":"text-start","id":"a"}\n\n' +
+    `data: {"type":"text-delta","id":"a","delta":${JSON.stringify(args.text)}}\n\n` +
+    'data: {"type":"text-end","id":"a"}\n\n' +
+    'data: [DONE]\n'
+  );
+}
+
+function fetchOk(body: string): Response {
+  return new Response(body, { status: 200, statusText: 'OK' });
+}
+
+const fakeCase = (overrides: Record<string, unknown> = {}) => ({
+  case_id: 'cat2-tool-research-001',
+  category: 'cat2' as const,
+  prompt: 'Pitch me on Anthropic',
+  tool_expected: 'research_company',
+  tags: ['tool-correctness', 'happy-path', 'research_company'],
+  ...overrides,
+});
+
+describe('runCat2', () => {
+  // ---- Behavior 1: loads cases from evals/cat-02-tools.yaml
+  it('loads cases from evals/cat-02-tools.yaml', async () => {
+    loadCasesMock.mockResolvedValue([
+      fakeCase({
+        prompt: 'Pitch',
+        tool_expected: 'research_company',
+      }),
+    ]);
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      fetchOk(
+        ssToolCallStream({
+          toolName: 'research_company',
+          input: { name: 'Anthropic' },
+          text:
+            'Anthropic is a frontier AI lab.\n\n' +
+            'They built Claude — and a lot of the safety research literature behind it.\n\n' +
+            'Joe would fit because he ships AI things and writes about how he products them. https://anthropic.com',
+        }),
+      ),
+    );
+
+    const { runCat2 } = await import('@/lib/eval/cats/cat2');
+    await runCat2('http://localhost:3000', 'run_test_1');
+    expect(loadCasesMock).toHaveBeenCalledWith(expect.stringContaining('cat-02-tools.yaml'));
+  });
+
+  // ---- Behavior 2: calls /api/chat against targetUrl with each case prompt
+  it('calls /api/chat against targetUrl for each case', async () => {
+    loadCasesMock.mockResolvedValue([
+      fakeCase({ case_id: 'a' }),
+      fakeCase({ case_id: 'b' }),
+    ]);
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      fetchOk(
+        ssToolCallStream({
+          toolName: 'research_company',
+          input: { name: 'X' },
+          text:
+            'P1.\n\nP2 has https://example.com link.\n\nP3 wraps it up with another sentence to clear the 30-char per-paragraph filter.',
+        }),
+      ),
+    );
+    const { runCat2 } = await import('@/lib/eval/cats/cat2');
+    await runCat2('http://localhost:3000', 'run_test_2');
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    expect(fetchSpy).toHaveBeenCalledWith(
+      'http://localhost:3000/api/chat',
+      expect.objectContaining({ method: 'POST' }),
+    );
+  });
+
+  // ---- Behavior 3 & 4: parses streaming response → extracts tool_call → asserts expected tool fired
+  it('asserts the expected tool fired (research_company happy-path)', async () => {
+    loadCasesMock.mockResolvedValue([
+      fakeCase({
+        case_id: 'happy-research',
+        tool_expected: 'research_company',
+        prompt: 'Pitch me on Anthropic',
+      }),
+    ]);
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      fetchOk(
+        ssToolCallStream({
+          toolName: 'research_company',
+          input: { name: 'Anthropic' },
+          text:
+            'Anthropic is a frontier AI lab building Claude.\n\n' +
+            'Their safety research is well-known and well-published.\n\n' +
+            'Joe would fit because he ships and writes — see https://anthropic.com for context.',
+        }),
+      ),
+    );
+    const { runCat2 } = await import('@/lib/eval/cats/cat2');
+    const result = await runCat2('http://localhost:3000', 'run_test_3');
+    expect(result.cases[0].passed).toBe(true);
+    expect(result.cases[0].judge_verdict).toBe('pass');
+  });
+
+  // ---- Behavior 5: response shape assertions for each tool type
+  it('fails research_company when paragraphs <3 (shape assertion)', async () => {
+    loadCasesMock.mockResolvedValue([fakeCase({ tool_expected: 'research_company' })]);
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      fetchOk(
+        ssToolCallStream({
+          toolName: 'research_company',
+          input: { name: 'X' },
+          text: 'Just one short paragraph with https://x.com link.',
+        }),
+      ),
+    );
+    const { runCat2 } = await import('@/lib/eval/cats/cat2');
+    const result = await runCat2('http://localhost:3000', 'run_test_4');
+    expect(result.cases[0].passed).toBe(false);
+  });
+
+  it('passes get_case_study happy-path with closing line + word count in range', async () => {
+    loadCasesMock.mockResolvedValue([
+      fakeCase({
+        case_id: 'walkthrough-001',
+        tool_expected: 'get_case_study',
+        prompt: 'Walk me through cortex-ai-client-win',
+      }),
+    ]);
+    // ~280 words narration ending with the closing line
+    const narration = (
+      'I shipped a Cortex AI forecasting capability at SEI from mid-onsite ideation to production in four months. '
+      + 'The client wanted cash-flow forecasting that lived outside Excel. '
+      + 'I scoped it as a Snowflake Cortex AI use case mid-onsite and got buy-in by demoing a tiny prototype against their real data. '
+      + 'The biggest risk was AI governance — the legal and privacy partners wanted to see model lineage. '
+      + 'We worked through that by leaning into Snowflake-managed Cortex services, which meant we did not have to defend an in-house training pipeline. '
+      + 'I partnered with a small data-engineering team to wire the feature into the existing semantic layer, '
+      + 'and I built up the dashboard scaffolding in Power BI so users could compare model output against the existing Excel baseline. '
+      + 'The demo at the end of month four landed — the analyst smiled when they saw their cash-flow forecast running live. '
+      + 'That smile mattered: it was the social proof we needed to greenlight the next two AI features on the SEI Data Cloud roadmap. '
+      + 'The lessons I took away were about scoping AI work as PM rather than as ML engineer, '
+      + 'about leaning on managed services to avoid governance fights, '
+      + 'and about the importance of getting prototypes into real-data demo as fast as possible to shake loose stakeholder buy-in.\n\n'
+      + 'Want to go deeper, or hear a different story?'
+    );
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      fetchOk(
+        ssToolCallStream({
+          toolName: 'get_case_study',
+          input: { slug: 'cortex-ai-client-win' },
+          text: narration,
+        }),
+      ),
+    );
+    const { runCat2 } = await import('@/lib/eval/cats/cat2');
+    const result = await runCat2('http://localhost:3000', 'run_test_5');
+    expect(result.cases[0].passed).toBe(true);
+  });
+
+  it('passes get_case_study edge-case (unknown slug → menu)', async () => {
+    loadCasesMock.mockResolvedValue([
+      fakeCase({
+        case_id: 'walkthrough-002',
+        tool_expected: 'get_case_study',
+        prompt: 'Walk me through bigfoot',
+      }),
+    ]);
+    // Menu response: short, lists case-study slugs
+    const menu = 'Here are the case studies I have on hand: cortex-ai-client-win, snowflake-edw-migration, ua-project-rescue.';
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      fetchOk(
+        ssToolCallStream({
+          toolName: 'get_case_study',
+          input: { slug: 'bigfoot' },
+          text: menu,
+        }),
+      ),
+    );
+    const { runCat2 } = await import('@/lib/eval/cats/cat2');
+    const result = await runCat2('http://localhost:3000', 'run_test_6');
+    expect(result.cases[0].passed).toBe(true);
+  });
+
+  it('passes design_metric_framework when ≥4 of 6 sections present', async () => {
+    loadCasesMock.mockResolvedValue([
+      fakeCase({
+        case_id: 'metric-001',
+        tool_expected: 'design_metric_framework',
+        prompt: 'Design a metric for onboarding',
+      }),
+    ]);
+    const framework = (
+      'Here is a metric framework.\n\n'
+      + 'north_star: % of users completing onboarding in their first session.\n'
+      + 'input_metrics: time-to-first-action, % users hitting step 3.\n'
+      + 'counter_metrics: tickets opened during onboarding.\n'
+      + 'guardrails: NPS does not regress.\n'
+      + 'experiment: A/B test the new onboarding flow.\n'
+      + 'open_questions: do we count partial completion?'
+    );
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      fetchOk(
+        ssToolCallStream({
+          toolName: 'design_metric_framework',
+          input: { description: 'onboarding completion' },
+          text: framework,
+        }),
+      ),
+    );
+    const { runCat2 } = await import('@/lib/eval/cats/cat2');
+    const result = await runCat2('http://localhost:3000', 'run_test_7');
+    expect(result.cases[0].passed).toBe(true);
+  });
+
+  // ---- Behavior 6: spend-cap synthetic test sets/resets Redis
+  it('spend-cap case: sets resume-agent:spend:<today> to 350 BEFORE call, resets AFTER', async () => {
+    loadCasesMock.mockResolvedValue([
+      {
+        case_id: 'cat2-tool-metric-003',
+        category: 'cat2' as const,
+        prompt: 'Design a metric for renewal risk',
+        tool_expected: 'design_metric_framework',
+        tags: ['tool-correctness', 'spend-cap', 'synthetic'],
+      },
+    ]);
+    // Original spend was null → after the test, redis.del should be called
+    redisGetMock.mockResolvedValue(null);
+    // Deflection text from /api/chat (DEFLECTIONS.spendcap pattern)
+    const deflection = "I'm taking a breather for the day — back tomorrow, or email Joe directly at joe.dollinger@gmail.com.";
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(fetchOk(ssTextStream(deflection)));
+
+    const { runCat2 } = await import('@/lib/eval/cats/cat2');
+    const result = await runCat2('http://localhost:3000', 'run_test_8');
+
+    // SET to 350 must have been called BEFORE the fetch (verified by mock call order)
+    const today = new Date().toISOString().slice(0, 10);
+    const expectedKey = `resume-agent:spend:${today}`;
+    expect(redisSetMock).toHaveBeenCalledWith(expectedKey, 350);
+    // After the test, redis.del should have been called (originalSpend was null)
+    expect(redisDelMock).toHaveBeenCalledWith(expectedKey);
+    // The case should pass: deflection text + no tool fired + 200 status
+    expect(result.cases[0].passed).toBe(true);
+  });
+
+  it('spend-cap reset still runs when assertion fails (finally block)', async () => {
+    loadCasesMock.mockResolvedValue([
+      {
+        case_id: 'cat2-tool-metric-003',
+        category: 'cat2' as const,
+        prompt: 'X',
+        tool_expected: 'design_metric_framework',
+        tags: ['spend-cap', 'synthetic'],
+      },
+    ]);
+    redisGetMock.mockResolvedValue(null);
+    // Response is NOT a deflection — assertion will fail. Reset must still run.
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      fetchOk(
+        ssToolCallStream({
+          toolName: 'design_metric_framework',
+          input: { description: 'X' },
+          text: 'Here is a metric (this means the spend-cap gate did NOT fire as expected).',
+        }),
+      ),
+    );
+
+    const { runCat2 } = await import('@/lib/eval/cats/cat2');
+    const result = await runCat2('http://localhost:3000', 'run_test_9');
+    const today = new Date().toISOString().slice(0, 10);
+    const expectedKey = `resume-agent:spend:${today}`;
+    // Reset must run even though assertion failed
+    expect(redisDelMock).toHaveBeenCalledWith(expectedKey);
+    expect(result.cases[0].passed).toBe(false);
+  });
+
+  it('spend-cap reset restores original value when one was present', async () => {
+    loadCasesMock.mockResolvedValue([
+      {
+        case_id: 'cat2-tool-metric-003',
+        category: 'cat2' as const,
+        prompt: 'X',
+        tool_expected: 'design_metric_framework',
+        tags: ['spend-cap', 'synthetic'],
+      },
+    ]);
+    // Pre-existing spend value of 42
+    redisGetMock.mockResolvedValue(42);
+    const deflection = "I'm taking a breather for the day — email Joe directly.";
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(fetchOk(ssTextStream(deflection)));
+
+    const { runCat2 } = await import('@/lib/eval/cats/cat2');
+    await runCat2('http://localhost:3000', 'run_test_10');
+    const today = new Date().toISOString().slice(0, 10);
+    const expectedKey = `resume-agent:spend:${today}`;
+    // Sets 350 first (synthetic threshold), then sets back to 42 in finally
+    expect(redisSetMock).toHaveBeenCalledWith(expectedKey, 350);
+    expect(redisSetMock).toHaveBeenCalledWith(expectedKey, 42);
+    // Should NOT delete since originalSpend was present
+    expect(redisDelMock).not.toHaveBeenCalled();
+  });
+
+  // ---- Behavior 7: writes one eval_cases row per case
+  it('writes one eval_cases row per case via writeCase', async () => {
+    loadCasesMock.mockResolvedValue([
+      fakeCase({ case_id: 'a' }),
+      fakeCase({ case_id: 'b' }),
+      fakeCase({ case_id: 'c' }),
+    ]);
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      fetchOk(
+        ssToolCallStream({
+          toolName: 'research_company',
+          input: { name: 'X' },
+          text:
+            'Para one with content beyond thirty chars to clear filter.\n\n'
+            + 'Para two with content beyond thirty chars to clear filter and a https://x.com.\n\n'
+            + 'Para three with content beyond thirty chars to clear the filter as well.',
+        }),
+      ),
+    );
+    const { runCat2 } = await import('@/lib/eval/cats/cat2');
+    await runCat2('http://localhost:3000', 'run_test_11');
+    expect(writeCaseMock).toHaveBeenCalledTimes(3);
+  });
+
+  // ---- Behavior 8: returns CategoryResult with passed = cases.every(passed)
+  it('returns CategoryResult with passed = cases.every(c.passed)', async () => {
+    loadCasesMock.mockResolvedValue([
+      fakeCase({ case_id: 'a' }),
+      fakeCase({ case_id: 'b' }),
+    ]);
+    // First call: passes shape assertion
+    // Second call: fails (only 1 paragraph)
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+    fetchSpy.mockResolvedValueOnce(
+      fetchOk(
+        ssToolCallStream({
+          toolName: 'research_company',
+          input: { name: 'X' },
+          text:
+            'Para one with content beyond thirty chars to clear filter.\n\n'
+            + 'Para two with content beyond thirty chars and https://x.com.\n\n'
+            + 'Para three with content beyond thirty chars to clear filter.',
+        }),
+      ),
+    );
+    fetchSpy.mockResolvedValueOnce(
+      fetchOk(
+        ssToolCallStream({
+          toolName: 'research_company',
+          input: { name: 'X' },
+          text: 'Single short para.',
+        }),
+      ),
+    );
+    const { runCat2 } = await import('@/lib/eval/cats/cat2');
+    const result = await runCat2('http://localhost:3000', 'run_test_12');
+    expect(result.cases.length).toBe(2);
+    expect(result.cases[0].passed).toBe(true);
+    expect(result.cases[1].passed).toBe(false);
+    expect(result.passed).toBe(false);
+  });
+
+  it('handles network errors per-case without aborting the whole category', async () => {
+    loadCasesMock.mockResolvedValue([
+      fakeCase({ case_id: 'a' }),
+      fakeCase({ case_id: 'b' }),
+    ]);
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+    fetchSpy.mockRejectedValueOnce(new TypeError('fetch failed: ECONNREFUSED'));
+    fetchSpy.mockResolvedValueOnce(
+      fetchOk(
+        ssToolCallStream({
+          toolName: 'research_company',
+          input: { name: 'X' },
+          text:
+            'Para one with content beyond thirty chars to clear filter.\n\n'
+            + 'Para two with content beyond thirty chars and https://x.com.\n\n'
+            + 'Para three with content beyond thirty chars to clear filter.',
+        }),
+      ),
+    );
+    const { runCat2 } = await import('@/lib/eval/cats/cat2');
+    const result = await runCat2('http://localhost:3000', 'run_test_13');
+    expect(result.cases.length).toBe(2);
+    expect(result.cases[0].passed).toBe(false);
+    expect(result.cases[0].judge_rationale).toContain('error');
+    expect(result.cases[1].passed).toBe(true);
+    // Both rows still written
+    expect(writeCaseMock).toHaveBeenCalledTimes(2);
+  });
+});
