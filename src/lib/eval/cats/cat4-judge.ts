@@ -28,7 +28,7 @@ import { childLogger } from '@/lib/logger';
 import { loadCases } from '@/lib/eval/yaml-loader';
 import { writeCase } from '@/lib/eval/storage';
 import { judgeVoiceFidelity } from '@/lib/eval/judge';
-import { callAgent } from '@/lib/eval/agent-client';
+import { callAgent, mintEvalSession } from '@/lib/eval/agent-client';
 import type { CategoryResult, EvalCase, EvalCaseResult } from '@/lib/eval/types';
 
 const log = childLogger({ event: 'eval_cat4_judge' });
@@ -68,8 +68,15 @@ export async function runCat4Judge(targetUrl: string, runId: string): Promise<Ca
   const yamlPath = path.join(process.cwd(), 'evals', 'cat-04-prompts.yaml');
   const cases: EvalCase[] = await loadCases(yamlPath);
   const voiceSamples = await loadVoiceSamples();
+  // Quick task 260509-q00: mint ONE real session per category.
+  const sessionId = await mintEvalSession(targetUrl);
   log.info(
-    { runId, caseCount: cases.length, voiceSampleCount: voiceSamples.length },
+    {
+      runId,
+      caseCount: cases.length,
+      voiceSampleCount: voiceSamples.length,
+      sessionId,
+    },
     'cat4_judge_started',
   );
 
@@ -83,7 +90,7 @@ export async function runCat4Judge(targetUrl: string, runId: string): Promise<Ca
       const { response } = await callAgent({
         targetUrl,
         prompt: c.prompt,
-        sessionId: `eval-cli-cat4-judge-${c.case_id}`,
+        sessionId,
       });
       const judge = await judgeVoiceFidelity({
         response,

@@ -37,8 +37,11 @@ vi.mock('@/lib/eval/storage', () => ({
 }));
 
 const callAgentMock = vi.fn();
+const mintEvalSessionMock = vi.fn();
 vi.mock('@/lib/eval/agent-client', () => ({
   callAgent: (args: unknown) => callAgentMock(args),
+  mintEvalSession: (targetUrl: string) => mintEvalSessionMock(targetUrl),
+  parseChatStream: (raw: string) => raw,
 }));
 
 beforeEach(() => {
@@ -46,7 +49,9 @@ beforeEach(() => {
   judgeMock.mockReset();
   writeCaseMock.mockReset();
   callAgentMock.mockReset();
+  mintEvalSessionMock.mockReset();
   writeCaseMock.mockResolvedValue(undefined);
+  mintEvalSessionMock.mockResolvedValue('test-session-id-cat4-judge');
 });
 
 const fakeCase = (overrides: Record<string, unknown> = {}) => ({
@@ -122,7 +127,8 @@ describe('runCat4Judge', () => {
     expect(callAgentMock).toHaveBeenCalledWith({
       targetUrl: 'http://localhost:3000',
       prompt: 'voice prompt',
-      sessionId: 'eval-cli-cat4-judge-cp-1',
+      // Quick task 260509-q00: synthetic id replaced with minted session id.
+      sessionId: 'test-session-id-cat4-judge',
     });
     const judgeCall = judgeMock.mock.calls[0][0];
     expect(judgeCall.response).toBe('agent reply text');

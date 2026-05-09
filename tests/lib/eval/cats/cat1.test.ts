@@ -51,8 +51,11 @@ vi.mock('@/lib/eval/storage', () => ({
 }));
 
 const callAgentMock = vi.fn();
+const mintEvalSessionMock = vi.fn();
 vi.mock('@/lib/eval/agent-client', () => ({
   callAgent: (args: unknown) => callAgentMock(args),
+  mintEvalSession: (targetUrl: string) => mintEvalSessionMock(targetUrl),
+  parseChatStream: (raw: string) => raw,
 }));
 
 beforeEach(() => {
@@ -61,7 +64,11 @@ beforeEach(() => {
   judgeMock.mockReset();
   writeCaseMock.mockReset();
   callAgentMock.mockReset();
+  mintEvalSessionMock.mockReset();
   writeCaseMock.mockResolvedValue(undefined);
+  // Default: mint succeeds with a stable id so the runner can enter the loop.
+  // Tests that need to exercise mint-failure can override per-test.
+  mintEvalSessionMock.mockResolvedValue('test-session-id-cat1');
 });
 
 const fakeCase = (overrides: Record<string, unknown> = {}) => ({
@@ -116,7 +123,15 @@ describe('runCat1', () => {
     expect(callAgentMock).toHaveBeenCalledTimes(2);
     const firstCall = callAgentMock.mock.calls[0][0];
     expect(firstCall.targetUrl).toBe('http://localhost:3000');
-    expect(firstCall.sessionId).toMatch(/^eval-cli-cat1-/);
+    // Quick task 260509-q00: sessionId is now the minted real session id,
+    // shared across all cases in the category. Both calls must use the same
+    // sessionId (one mint at runner start).
+    expect(firstCall.sessionId).toBe('test-session-id-cat1');
+    const secondCall = callAgentMock.mock.calls[1][0];
+    expect(secondCall.sessionId).toBe('test-session-id-cat1');
+    // Mint was called exactly once per runner invocation, not per case.
+    expect(mintEvalSessionMock).toHaveBeenCalledTimes(1);
+    expect(mintEvalSessionMock).toHaveBeenCalledWith('http://localhost:3000');
   });
 
   it('runs LLM judge for every case and combines with deterministic check', async () => {

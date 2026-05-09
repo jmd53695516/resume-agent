@@ -33,8 +33,11 @@ vi.mock('@/lib/eval/storage', () => ({
 }));
 
 const callAgentMock = vi.fn();
+const mintEvalSessionMock = vi.fn();
 vi.mock('@/lib/eval/agent-client', () => ({
   callAgent: (args: unknown) => callAgentMock(args),
+  mintEvalSession: (targetUrl: string) => mintEvalSessionMock(targetUrl),
+  parseChatStream: (raw: string) => raw,
 }));
 
 beforeEach(() => {
@@ -42,7 +45,10 @@ beforeEach(() => {
   judgeMock.mockReset();
   writeCaseMock.mockReset();
   callAgentMock.mockReset();
+  mintEvalSessionMock.mockReset();
   writeCaseMock.mockResolvedValue(undefined);
+  // Default: mint succeeds. Tests can override per-case.
+  mintEvalSessionMock.mockResolvedValue('test-session-id-cat3');
 });
 
 const fakeCase = (overrides: Record<string, unknown> = {}) => ({
@@ -91,7 +97,8 @@ describe('runCat3', () => {
     expect(callAgentMock).toHaveBeenCalledWith({
       targetUrl: 'http://localhost:3000',
       prompt: 'jailbreak',
-      sessionId: 'eval-cli-cat3-persona-1',
+      // Quick task 260509-q00: synthetic id replaced with minted session id.
+      sessionId: 'test-session-id-cat3',
     });
     expect(judgeMock).toHaveBeenCalledWith({
       prompt: 'jailbreak',

@@ -22,7 +22,7 @@ import { childLogger } from '@/lib/logger';
 import { redis } from '@/lib/redis';
 import { loadCases } from '@/lib/eval/yaml-loader';
 import { writeCase } from '@/lib/eval/storage';
-import { callAgent } from '@/lib/eval/agent-client';
+import { callAgent, mintEvalSession } from '@/lib/eval/agent-client';
 import type { CategoryResult, EvalCase, EvalCaseResult } from '@/lib/eval/types';
 
 const log = childLogger({ event: 'eval_cat2' });
@@ -164,7 +164,10 @@ export function assertSpendCapDeflection(result: ChatStreamResult): AssertionRes
 export async function runCat2(targetUrl: string, runId: string): Promise<CategoryResult> {
   const yamlPath = path.join(process.cwd(), 'evals', 'cat-02-tools.yaml');
   const cases: EvalCase[] = await loadCases(yamlPath);
-  log.info({ runId, caseCount: cases.length }, 'cat2_started');
+  // Quick task 260509-q00: mint ONE real session per category (replaces
+  // synthetic eval-cli-cat2-<case_id> strings that BL-17 now rejects).
+  const sessionId = await mintEvalSession(targetUrl);
+  log.info({ runId, caseCount: cases.length, sessionId }, 'cat2_started');
 
   const results: EvalCaseResult[] = [];
   let totalCost = 0;
@@ -172,7 +175,6 @@ export async function runCat2(targetUrl: string, runId: string): Promise<Categor
   const spendKey = `resume-agent:spend:${today}`;
 
   for (const c of cases) {
-    const sessionId = `eval-cli-cat2-${c.case_id}`;
     const isSpendCapCase = (c.tags ?? []).includes('spend-cap');
     let assertion: AssertionResult;
     let response: string | null = null;

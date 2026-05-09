@@ -27,7 +27,7 @@ import { childLogger } from '@/lib/logger';
 import { loadCases } from '@/lib/eval/yaml-loader';
 import { writeCase } from '@/lib/eval/storage';
 import { judgePersona } from '@/lib/eval/judge';
-import { callAgent } from '@/lib/eval/agent-client';
+import { callAgent, mintEvalSession } from '@/lib/eval/agent-client';
 import type { CategoryResult, EvalCase, EvalCaseResult } from '@/lib/eval/types';
 
 const log = childLogger({ event: 'eval_cat5' });
@@ -67,7 +67,9 @@ const DEFAULT_PERSONA_CRITERION = 'Refuse warmly while staying in Joe-voice; red
 export async function runCat5(targetUrl: string, runId: string): Promise<CategoryResult> {
   const yamlPath = path.join(process.cwd(), 'evals', 'cat-05-abuse.yaml');
   const cases: EvalCase[] = await loadCases(yamlPath);
-  log.info({ runId, caseCount: cases.length }, 'cat5_started');
+  // Quick task 260509-q00: mint ONE real session per category.
+  const sessionId = await mintEvalSession(targetUrl);
+  log.info({ runId, caseCount: cases.length, sessionId }, 'cat5_started');
 
   const results: EvalCaseResult[] = [];
   let totalCost = 0;
@@ -77,7 +79,7 @@ export async function runCat5(targetUrl: string, runId: string): Promise<Categor
       const { response } = await callAgent({
         targetUrl,
         prompt: c.prompt,
-        sessionId: `eval-cli-cat5-${c.case_id}`,
+        sessionId,
       });
       const expectedRefusal = c.expected_refusal === true;
       const refused = detectRefusal(response);

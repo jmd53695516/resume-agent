@@ -40,16 +40,31 @@ vi.mock('@/lib/redis', () => ({
   },
 }));
 
+// Quick task 260509-q00: stub mintEvalSession so the runner doesn't try to
+// hit /api/session through the existing fetch mocks (which only return chat
+// SSE bodies). callAgent stays REAL so the existing fetch-spy assertions
+// continue to verify the /api/chat call path verbatim.
+const mintEvalSessionMock = vi.fn();
+vi.mock('@/lib/eval/agent-client', async (importOriginal) => {
+  const actual = (await importOriginal()) as Record<string, unknown>;
+  return {
+    ...actual,
+    mintEvalSession: (targetUrl: string) => mintEvalSessionMock(targetUrl),
+  };
+});
+
 beforeEach(() => {
   loadCasesMock.mockReset();
   writeCaseMock.mockReset();
   redisGetMock.mockReset();
   redisSetMock.mockReset();
   redisDelMock.mockReset();
+  mintEvalSessionMock.mockReset();
   writeCaseMock.mockResolvedValue(undefined);
   redisSetMock.mockResolvedValue('OK');
   redisDelMock.mockResolvedValue(1);
   redisGetMock.mockResolvedValue(null);
+  mintEvalSessionMock.mockResolvedValue('test-session-id-cat2');
   vi.restoreAllMocks();
 });
 

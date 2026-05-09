@@ -21,7 +21,7 @@ import { loadCases } from '@/lib/eval/yaml-loader';
 import { writeCase } from '@/lib/eval/storage';
 import { checkAllowlist, loadAllowlist } from '@/lib/eval/fabrication';
 import { judgeFactualFidelity } from '@/lib/eval/judge';
-import { callAgent } from '@/lib/eval/agent-client';
+import { callAgent, mintEvalSession } from '@/lib/eval/agent-client';
 import type { CategoryResult, EvalCase, EvalCaseResult } from '@/lib/eval/types';
 
 const log = childLogger({ event: 'eval_cat1' });
@@ -38,8 +38,14 @@ export async function runCat1(
   const yamlPath = path.join(process.cwd(), 'evals', 'cat-01-fabrication.yaml');
   const cases: EvalCase[] = await loadCases(yamlPath);
   const allowlist: string[] = await loadAllowlist();
+  // Quick task 260509-q00: mint ONE real session per category. /api/chat
+  // (BL-17) validates session_id existence in Supabase; synthetic
+  // `eval-cli-cat1-<case_id>` strings now bounce with 404. Mint failure here
+  // propagates up — one bad mint should fail the run loud, not produce 15
+  // silent per-case error rows.
+  const sessionId = await mintEvalSession(targetUrl);
   log.info(
-    { runId, caseCount: cases.length, allowlistSize: allowlist.length },
+    { runId, caseCount: cases.length, allowlistSize: allowlist.length, sessionId },
     'cat1_started',
   );
 
@@ -51,7 +57,7 @@ export async function runCat1(
       const { response } = await callAgent({
         targetUrl,
         prompt: c.prompt,
-        sessionId: `eval-cli-cat1-${c.case_id}`,
+        sessionId,
       });
       // Sonnet usage isn't surfaced via the streaming body; /api/chat persists
       // it server-side. Cat 1 cost is dominated by the judge call.

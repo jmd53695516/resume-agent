@@ -34,8 +34,11 @@ vi.mock('@/lib/eval/storage', () => ({
 }));
 
 const callAgentMock = vi.fn();
+const mintEvalSessionMock = vi.fn();
 vi.mock('@/lib/eval/agent-client', () => ({
   callAgent: (args: unknown) => callAgentMock(args),
+  mintEvalSession: (targetUrl: string) => mintEvalSessionMock(targetUrl),
+  parseChatStream: (raw: string) => raw,
 }));
 
 beforeEach(() => {
@@ -43,7 +46,9 @@ beforeEach(() => {
   judgeMock.mockReset();
   writeCaseMock.mockReset();
   callAgentMock.mockReset();
+  mintEvalSessionMock.mockReset();
   writeCaseMock.mockResolvedValue(undefined);
+  mintEvalSessionMock.mockResolvedValue('test-session-id-cat5');
 });
 
 const fakeRefusalCase = (overrides: Record<string, unknown> = {}) => ({
