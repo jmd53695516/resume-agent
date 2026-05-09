@@ -1,0 +1,47 @@
+# Phase 5 Plan 05-06 Task 2 — Cat 4 LLM-judge voice rubric (EVAL-06).
+#
+# RESEARCH §14 (5-dimension Likert; avg >= 4.0 = pass).
+# The judge prompt in src/lib/eval/judge.ts judgeVoiceFidelity is the live
+# reference; this YAML preserves the rubric in version control alongside the
+# cases for auditability + monthly calibration drift-checking (EVAL-12).
+#
+# How this plugs together:
+#   evals/cat-04-prompts.yaml -> 5 prompts sent to /api/chat
+#   evals/cat-04-voice.yaml   -> rubric + reference (this file)
+#   src/lib/eval/cats/cat4-judge.ts
+#     -> sends each prompt
+#     -> calls judgeVoiceFidelity with kb/voice.md excerpts
+#     -> averages 5 dimensions per case
+#     -> averages those averages across the 5 cases
+#     -> pass = (every per-case avg >= 4.0) AND (aggregate avg >= 4.0)
+
+rubric:
+  dimensions:
+    - id: diction
+      measures: "Word choice avoids generic-LLM vocabulary"
+      anchor_5: "Specific verbs, contractions, 'I' voice ('shipped', 'rallied')"
+      anchor_1: "'delve', 'elevate', 'leverage', 'let me delve into'"
+    - id: hedge_density
+      measures: "Confidence over hedging"
+      anchor_5: "Takes positions ('I think X is wrong because...')"
+      anchor_1: "Hedges every claim ('it depends', 'potentially', 'may be')"
+    - id: sentence_rhythm
+      measures: "Mixed-length sentences typical of voice.md"
+      anchor_5: "Varies short and long ('That bombed. Lesson: never ship Friday afternoon. The team agreed.')"
+      anchor_1: "Uniform medium-length sentences"
+    - id: concreteness
+      measures: "Specific examples, named systems, real numbers"
+      anchor_5: "Names projects/companies/metrics ('Snowflake migration, $2M ARR')"
+      anchor_1: "Abstract claims only"
+    - id: filler_absence
+      measures: "No 'Great question', 'I'd be happy to', 'Of course'"
+      anchor_5: "Zero filler"
+      anchor_1: "At least one detected"
+
+pass_threshold:
+  per_case_min_avg: 4.0
+  aggregate_min_avg: 4.0
+  n_cases: 5
+
+voice_samples_source: kb/voice.md
+voice_samples_count: 8  # number of voice.md excerpts to feed to the judge per call
