@@ -8,6 +8,7 @@ import {
   WARN_THRESHOLD_CENTS,
   projectRunCost,
   extractAnthropicCost,
+  extractAnthropicJudgeCost,
   extractGoogleCost,
 } from '@/lib/eval/cost';
 
@@ -86,5 +87,46 @@ describe('extractGoogleCost', () => {
 
   it('treats missing fields as zero', () => {
     expect(extractGoogleCost({})).toBe(0);
+  });
+});
+
+describe('extractAnthropicJudgeCost', () => {
+  // Quick task 260509-r39 — judge swapped from Gemini 2.5 Flash to Claude
+  // Haiku 4.5 ($1/$5 per MTok). Distinct from extractAnthropicCost (Sonnet,
+  // $3/$15) which serves the chat-path cost contract — the two extractors
+  // MUST stay separate. Repointing one to the other is T-r39-02 in the
+  // threat model.
+  it('handles Haiku usage shape (inputTokens/outputTokens) at $1/$5 per MTok', () => {
+    // 1M input @ $1 + 1M output @ $5 = $6 = 600 cents
+    const cents = extractAnthropicJudgeCost({
+      inputTokens: 1_000_000,
+      outputTokens: 1_000_000,
+    });
+    expect(cents).toBe(600);
+  });
+
+  it('returns ~0 cents for a typical (1500 in / 200 out) judge call (sub-cent)', () => {
+    // 1500 * $1/MTok = $0.0015
+    // 200  * $5/MTok = $0.001
+    // total = $0.0025 ≈ 0.25 cents → rounds to 0
+    const cents = extractAnthropicJudgeCost({
+      inputTokens: 1500,
+      outputTokens: 200,
+    });
+    expect(cents).toBeGreaterThanOrEqual(0);
+    expect(cents).toBeLessThanOrEqual(1);
+  });
+
+  it('treats missing fields as zero', () => {
+    expect(extractAnthropicJudgeCost({})).toBe(0);
+  });
+
+  it('does NOT return Sonnet-priced cents for the same usage (guard against repointing)', () => {
+    // Same usage shape → Sonnet extractor returns 1800, Haiku-judge extractor
+    // returns 600. Distinct results lock the two extractors apart.
+    const usage = { inputTokens: 1_000_000, outputTokens: 1_000_000 };
+    expect(extractAnthropicCost(usage)).toBe(1800);
+    expect(extractAnthropicJudgeCost(usage)).toBe(600);
+    expect(extractAnthropicCost(usage)).not.toBe(extractAnthropicJudgeCost(usage));
   });
 });

@@ -74,7 +74,9 @@ export function extractAnthropicCost(usage: {
 }
 
 /** Extract cost from a @ai-sdk/google generateObject usage object.
- * AI SDK v6 LanguageModelUsage shape: { inputTokens, outputTokens, totalTokens, ... }. */
+ * AI SDK v6 LanguageModelUsage shape: { inputTokens, outputTokens, totalTokens, ... }.
+ * Retained because `projectRunCost` still references gemini constants in its
+ * coarse cost model; runtime callers (judge.ts) now use extractAnthropicJudgeCost. */
 export function extractGoogleCost(usage: {
   inputTokens?: number;
   outputTokens?: number;
@@ -82,5 +84,25 @@ export function extractGoogleCost(usage: {
   const input = (usage.inputTokens ?? 0) / 1_000_000;
   const output = (usage.outputTokens ?? 0) / 1_000_000;
   const dollars = input * PRICES.gemini_input + output * PRICES.gemini_output;
+  return Math.round(dollars * 100);
+}
+
+/** Extract cost from a Haiku-judge usage object (AI SDK Anthropic camelCase shape).
+ * Uses Haiku 4.5 pricing ($1/$5 per MTok). Distinct from `extractAnthropicCost`
+ * which is Sonnet-priced ($3/$15) and consumed by the chat-path cost contract.
+ * Repointing one to the other trips the cost.test.ts guard tests (T-r39-02).
+ *
+ * Cache fields intentionally NOT consumed: Haiku judge calls aren't cached at
+ * this scale (Haiku min cache block is 4096 tokens — > our judge prompts of
+ * ~1500-1800 input tokens). If judge prompts ever grow past 4096 and we add
+ * `cache_control: ephemeral`, extend this extractor with haiku_cache_read /
+ * haiku_cache_write prices and add corresponding entries to PRICES. */
+export function extractAnthropicJudgeCost(usage: {
+  inputTokens?: number;
+  outputTokens?: number;
+}): number {
+  const input = (usage.inputTokens ?? 0) / 1_000_000;
+  const output = (usage.outputTokens ?? 0) / 1_000_000;
+  const dollars = input * PRICES.haiku_input + output * PRICES.haiku_output;
   return Math.round(dollars * 100);
 }

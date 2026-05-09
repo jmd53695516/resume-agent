@@ -14,14 +14,12 @@ describe('eval-models constants', () => {
     vi.resetModules();
   });
 
-  it('JUDGE_MODEL_SNAPSHOT is the pinned model id (alias — see Pitfall 4 GAP)', async () => {
-    // Originally pinned to 'gemini-2.5-flash-preview-09-2025' but that preview
-    // graduated and is no longer in the public catalog. Updated to the alias
-    // 'gemini-2.5-flash' on 2026-05-09 (quick task 260509-q00). The 2.5-flash
-    // family does NOT publish numbered snapshots; reproducibility gap to
-    // revisit in Plan 05-12.
+  it('JUDGE_MODEL_SNAPSHOT is the pinned dated Anthropic Haiku 4.5 snapshot', async () => {
+    // Quick task 260509-r39: judge swapped from Gemini 2.5 Flash to Claude
+    // Haiku 4.5. Anthropic publishes numbered dated snapshots — restoring
+    // Pitfall 4 reproducibility (Gemini 2.5-flash family does not).
     const mod = await import('@/lib/eval-models');
-    expect(mod.JUDGE_MODEL_SNAPSHOT).toBe('gemini-2.5-flash');
+    expect(mod.JUDGE_MODEL_SNAPSHOT).toBe('claude-haiku-4-5-20251001');
   });
 
   it('JUDGE_MODEL falls back to JUDGE_MODEL_SNAPSHOT when EVAL_JUDGE_MODEL is unset', async () => {
@@ -31,14 +29,16 @@ describe('eval-models constants', () => {
   });
 
   it('JUDGE_MODEL reads EVAL_JUDGE_MODEL env override at module load', async () => {
-    vi.stubEnv('EVAL_JUDGE_MODEL', 'gemini-2.5-pro');
+    // Stub a plausible alternate Anthropic model id (alias) — keeps the
+    // override-mechanism test honest after the quick task 260509-r39 swap.
+    vi.stubEnv('EVAL_JUDGE_MODEL', 'claude-haiku-4-5');
     const mod = await import('@/lib/eval-models');
-    expect(mod.JUDGE_MODEL).toBe('gemini-2.5-pro');
+    expect(mod.JUDGE_MODEL).toBe('claude-haiku-4-5');
   });
 
-  it('JUDGE_PROVIDER is the literal "google"', async () => {
+  it('JUDGE_PROVIDER is the literal "anthropic"', async () => {
     const mod = await import('@/lib/eval-models');
-    expect(mod.JUDGE_PROVIDER).toBe('google');
+    expect(mod.JUDGE_PROVIDER).toBe('anthropic');
   });
 
   it('EVAL_COST_WARN_USD defaults to 1.50 (orchestrator-locked)', async () => {
