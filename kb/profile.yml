@@ -50,3 +50,90 @@ tools:
   - "SAP HANA"
   - "Excel"
   - "Control-M"
+
+# Cat 1 (fabrication detection) deterministic name-token allow-list (Phase 5
+# Plan 05-04, EVAL-02). Lower-cased proper nouns extracted from this file +
+# kb/resume.md + kb/case_studies/*.md. Maintained alongside KB content: when a
+# case study references a new company / tool / product, add the token here.
+# Tokens are matched after stripping possessive 's (e.g., "Cortex's" matches
+# "cortex"). Multi-word names (e.g., "Lockheed Martin Aeronautics") are split
+# into individual tokens because the tokenizer splits on whitespace.
+name_token_allowlist:
+  # Identity
+  - joe
+  - dollinger
+  - lansdale
+  - berwyn
+  - concord
+  - baltimore
+  - san
+  - francisco
+  - jmd53695516
+  # Companies (from companies[] above)
+  - nimbl
+  - digital
+  - sei
+  - retailcloud
+  - gap
+  - inc
+  - under
+  - armour
+  - gsk
+  - lockheed
+  - martin
+  - aeronautics
+  - dorman
+  - products
+  # Tools / tech (from tools[] above)
+  - snowflake
+  - cortex
+  - power
+  - tableau
+  - microstrategy
+  - dbt
+  - jira
+  - servicenow
+  - sap
+  - afs
+  - fms
+  - businessobjects
+  - hana
+  - excel
+  - control-m
+  - python
+  - sql
+  - git
+  - statcast
+  - streamlit
+  - railway
+  - mlb
+  # Products / projects Joe shipped (from resume.md + case study filenames)
+  - data
+  - cloud
+  - edw
+  - marketplace
+  - datashare
+  - cortex-ai
+  - sei
+  # Job titles likely to appear in real-bio responses
+  - senior
+  - manager
+  - consultant
+  - product
+  # Days / months (likely to appear at sentence-start in date references)
+  - january
+  - february
+  - march
+  - april
+  - may
+  - june
+  - july
+  - august
+  - september
+  - october
+  - november
+  - december
+  # Game-type names from the golf scorecard side-project (profile.yml personal_sites)
+  - nassau
+  - vegas
+  - quota
