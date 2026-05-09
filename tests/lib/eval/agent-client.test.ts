@@ -3,10 +3,27 @@
 // Plan-spec path was src/lib/__tests__/eval/agent-client.test.ts; vitest config
 // only includes tests/**/*.test.{ts,tsx}, so tests live here per the established
 // session deviation (see types/cost/yaml-loader/judge/storage tests).
+//
+// Quick task 260509-q00 added mintEvalSession + 5 tests for the eval-CLI
+// session-mint helper (success / non-200 / missing-id / network-error /
+// request-shape).
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { parseChatStream, callAgent } from '@/lib/eval/agent-client';
+
+// Mock @/lib/logger — mintEvalSession calls childLogger().info on success.
+// Pattern mirrors Plan 03-00 vi.mock factory; only .info is invoked but we
+// stub the full Level interface for safety.
+vi.mock('@/lib/logger', () => ({
+  childLogger: () => ({
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+  }),
+}));
+
+import { parseChatStream, callAgent, mintEvalSession } from '@/lib/eval/agent-client';
 
 describe('parseChatStream — synthetic fixtures', () => {
   it('returns concatenated text from a single text-delta event', () => {
@@ -124,5 +141,76 @@ describe('callAgent — mocked fetch', () => {
         sessionId: 'sess_test_dns',
       }),
     ).rejects.toThrow(/callAgent network error.*ENOTFOUND/);
+  });
+});
+
+describe('mintEvalSession — mocked fetch', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('returns the id from /api/session on a 200 response', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ id: 'abc123xyz789def456' }), {
+        status: 200,
+        statusText: 'OK',
+      }),
+    );
+    const id = await mintEvalSession('http://localhost:3000');
+    expect(id).toBe('abc123xyz789def456');
+  });
+
+  it('throws with status code on non-200 response', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response('{"error":"Invalid email."}', {
+        status: 400,
+        statusText: 'Bad Request',
+      }),
+    );
+    await expect(mintEvalSession('http://localhost:3000')).rejects.toThrow(
+      /mintEvalSession failed: 400/,
+    );
+  });
+
+  it('throws when response is 200 but missing the id field', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response('{"foo":"bar"}', { status: 200, statusText: 'OK' }),
+    );
+    await expect(mintEvalSession('http://localhost:3000')).rejects.toThrow(
+      /mintEvalSession.*missing.*id/i,
+    );
+  });
+
+  it('throws with original error.message on fetch network failure', async () => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(
+      new TypeError('fetch failed: ECONNREFUSED 127.0.0.1:3000'),
+    );
+    await expect(mintEvalSession('http://localhost:3000')).rejects.toThrow(
+      /mintEvalSession network error.*ECONNREFUSED/,
+    );
+  });
+
+  it('POSTs JSON to ${targetUrl}/api/session with synthetic email and no turnstile_token', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ id: 'sess_xyz' }), {
+        status: 200,
+        statusText: 'OK',
+      }),
+    );
+    await mintEvalSession('http://localhost:3000');
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchSpy.mock.calls[0];
+    expect(url).toBe('http://localhost:3000/api/session');
+    expect(init?.method).toBe('POST');
+    // headers may be a plain object or a Headers instance; normalize for assertion
+    const headers = init?.headers as Record<string, string> | undefined;
+    const ct =
+      headers?.['content-type'] ??
+      headers?.['Content-Type'] ??
+      (init?.headers instanceof Headers ? init.headers.get('content-type') : undefined);
+    expect(ct).toMatch(/application\/json/);
+    const body = init?.body as string;
+    expect(body).toContain('"email":"eval-cli@joedollinger.dev"');
+    expect(body).not.toContain('turnstile_token');
   });
 });

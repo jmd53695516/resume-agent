@@ -5,6 +5,12 @@
 // 05-06 cat4-judge, 05-07 cat5/cat6) so the streaming-format parsing lives
 // in ONE place.
 //
+// Quick task 260509-q00: mintEvalSession added — POSTs to /api/session and
+// returns the real session_id. BL-17 hardened /api/chat to validate session
+// existence in Supabase, so the eval CLI can no longer fabricate synthetic
+// `eval-cli-cat<N>-<case_id>` strings — it has to mint the same way the
+// EmailGate UI does.
+//
 // Reference fixture: .eval-tmp/sample-stream.txt (captured by Plan 05-03 Task 4
 // from a live `npm run dev` /api/chat call). Re-capture if /api/chat or AI SDK
 // upgrades.
@@ -36,6 +42,10 @@
 //   - concatenates `delta` strings
 //   - silently skips malformed lines and the `data: [DONE]` terminator
 //   - never throws on bad input
+
+import { childLogger } from '@/lib/logger';
+
+const sessionLog = childLogger({ event: 'eval_session_minted' });
 
 interface TextDeltaEvent {
   type: 'text-delta';
@@ -123,4 +133,59 @@ export async function callAgent(args: {
   // rather than an empty string.
   const response = parseChatStream(rawBody) || rawBody.slice(0, 2000);
   return { response, httpStatus: res.status, rawBody };
+}
+
+/**
+ * Mint a real session_id by POSTing to /api/session, mirroring what the
+ * EmailGate UI does. The eval CLI must NOT use synthetic session_id strings:
+ * /api/chat (BL-17) validates session existence in Supabase and returns 404
+ * for unknown ids. Use a synthetic but stable email so eval-generated session
+ * rows are visually distinct from real recruiter traffic in the admin
+ * dashboard (`email_domain='joedollinger.dev'`).
+ *
+ * Throws on non-200, missing id field, non-JSON body, or network failure —
+ * caller's try/catch wraps this into a per-case error rationale, or the
+ * runner-startup case lets the error propagate up so the run fails loud and
+ * fast (one bad mint should not produce 15 silent per-case error rows).
+ *
+ * Turnstile NOT supported here. /api/session reads
+ * NEXT_PUBLIC_TURNSTILE_ENABLED at call time; default off in dev. If the flag
+ * is on during a smoke run, /api/session returns 400 turnstile_missing and
+ * this helper surfaces that error verbatim with the body prefix.
+ */
+export async function mintEvalSession(targetUrl: string): Promise<string> {
+  let res: Response;
+  try {
+    res = await fetch(`${targetUrl}/api/session`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email: 'eval-cli@joedollinger.dev' }),
+    });
+  } catch (err) {
+    throw new Error(
+      `mintEvalSession network error for ${targetUrl}/api/session: ${(err as Error).message}`,
+    );
+  }
+  const rawBody = await res.text();
+  if (!res.ok) {
+    throw new Error(
+      `mintEvalSession failed: ${res.status} ${res.statusText} body=${rawBody.slice(0, 200)}`,
+    );
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(rawBody);
+  } catch {
+    throw new Error(
+      `mintEvalSession returned non-JSON body: ${rawBody.slice(0, 200)}`,
+    );
+  }
+  const id = (parsed as { id?: unknown })?.id;
+  if (typeof id !== 'string' || id.length === 0) {
+    throw new Error(
+      `mintEvalSession response missing id field: ${rawBody.slice(0, 200)}`,
+    );
+  }
+  sessionLog.info({ targetUrl, sessionId: id }, 'eval_session_minted');
+  return id;
 }
