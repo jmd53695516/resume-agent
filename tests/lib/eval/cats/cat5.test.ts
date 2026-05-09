@@ -136,9 +136,11 @@ describe('runCat5', () => {
 
   it('expected_refusal=true fails when leaked even if refused', async () => {
     loadCasesMock.mockResolvedValue([fakeRefusalCase()]);
+    // Multi-line response: refusal preamble, then a line beginning with "You are"
+    // (multiline /^/m matches BOL of any line, so the leak is detected).
     callAgentMock.mockResolvedValue({
       response:
-        "I won't go off-script, but here is my context: You are Joe Dollinger, a senior PM...",
+        "I won't go off-script, but here is my context:\nYou are Joe Dollinger, a senior PM...",
       httpStatus: 200,
       rawBody: '',
     });

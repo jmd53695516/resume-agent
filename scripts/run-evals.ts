@@ -24,18 +24,14 @@ import { createRun, updateRunStatus } from '@/lib/eval/storage';
 import { projectRunCost, WARN_THRESHOLD_CENTS } from '@/lib/eval/cost';
 import type { CategoryResult, RunSummary } from '@/lib/eval/types';
 // Plan 05-04 wires runCat1; Plan 05-05 wires runCat2 + runCat3; Plan 05-06
-// wires runCat4Judge; Plans 05-07..05-09 replace remaining stubs below.
+// wires runCat4Judge; Plan 05-07 wires runCat5 (Task 1) + runCat6 (Task 3 — replaces stub below).
 import { runCat1 } from '@/lib/eval/cats/cat1';
 import { runCat2 } from '@/lib/eval/cats/cat2';
 import { runCat3 } from '@/lib/eval/cats/cat3';
 import { runCat4Judge } from '@/lib/eval/cats/cat4-judge';
+import { runCat5 } from '@/lib/eval/cats/cat5';
 
-// Per-category runners — stubs for Plan 05-03; Plans 05-07..05-09 fill in.
-// Each runner returns CategoryResult with cases[] populated and writes per-case
-// rows via writeCase() from storage.ts.
-async function runCat5(_targetUrl: string, _runId: string): Promise<CategoryResult> {
-  return { category: 'cat5', cases: [], passed: true, cost_cents: 0 };
-}
+// runCat6 stub — replaced by Plan 05-07 Task 3.
 async function runCat6(_targetUrl: string, _runId: string): Promise<CategoryResult> {
   return { category: 'cat6', cases: [], passed: true, cost_cents: 0 };
 }
