@@ -47,7 +47,7 @@ describe('createRun', () => {
     const { createRun } = await import('@/lib/eval/storage');
     const runId = await createRun({
       targetUrl: 'http://localhost:3000',
-      judgeModel: 'gemini-2.5-flash-preview-09-2025',
+      judgeModel: 'gemini-2.5-flash',
       gitSha: 'abc1234',
       scheduled: false,
     });
@@ -58,7 +58,7 @@ describe('createRun', () => {
     expect(insertCall).toMatchObject({
       id: runId,
       target_url: 'http://localhost:3000',
-      judge_model: 'gemini-2.5-flash-preview-09-2025',
+      judge_model: 'gemini-2.5-flash',
       git_sha: 'abc1234',
       scheduled: false,
       status: 'running',

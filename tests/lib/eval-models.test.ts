@@ -14,9 +14,14 @@ describe('eval-models constants', () => {
     vi.resetModules();
   });
 
-  it('JUDGE_MODEL_SNAPSHOT is the literal pinned snapshot ID (Pitfall 4)', async () => {
+  it('JUDGE_MODEL_SNAPSHOT is the pinned model id (alias — see Pitfall 4 GAP)', async () => {
+    // Originally pinned to 'gemini-2.5-flash-preview-09-2025' but that preview
+    // graduated and is no longer in the public catalog. Updated to the alias
+    // 'gemini-2.5-flash' on 2026-05-09 (quick task 260509-q00). The 2.5-flash
+    // family does NOT publish numbered snapshots; reproducibility gap to
+    // revisit in Plan 05-12.
     const mod = await import('@/lib/eval-models');
-    expect(mod.JUDGE_MODEL_SNAPSHOT).toBe('gemini-2.5-flash-preview-09-2025');
+    expect(mod.JUDGE_MODEL_SNAPSHOT).toBe('gemini-2.5-flash');
   });
 
   it('JUDGE_MODEL falls back to JUDGE_MODEL_SNAPSHOT when EVAL_JUDGE_MODEL is unset', async () => {
