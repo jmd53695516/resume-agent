@@ -111,7 +111,7 @@ Plans:
 - [ ] 05-02-PLAN.md — Migration 0003_phase5.sql + db push + judge-model const + workflow stub on master + 4 env vars (EVAL-13, EVAL-14)
 - [ ] 05-03-PLAN.md — Eval CLI scaffold + judge wrapper + storage + YAML loader + cost module (EVAL-01, EVAL-13, EVAL-14)
 - [ ] 05-04-PLAN.md — Cat 1 fabrication: 15 cases + name-token allowlist + det-judge hybrid + runCat1 (EVAL-02)
-- [ ] 05-05-PLAN.md — Cat 2 tools (9 cases incl. spend-cap synthetic) + Cat 3 persona (6 cases) (EVAL-03, EVAL-04, EVAL-10)
+- [x] 05-05-PLAN.md — Cat 2 tools (9 cases incl. spend-cap synthetic) + Cat 3 persona (6 cases) (EVAL-03, EVAL-04, EVAL-10)
 - [ ] 05-06-PLAN.md — Cat 4 LLM-judge: 5 voice prompts + voice.yaml rubric + runCat4Judge (EVAL-06)
 - [ ] 05-07-PLAN.md — Cat 5 abuse (6 OWASP + 1 false-positive) + Cat 6 Playwright UX smoke (EVAL-07, EVAL-08)
 - [ ] 05-08-PLAN.md — /admin/eval-ab page + ab-mapping + cat4 blind A/B runner (EVAL-05)

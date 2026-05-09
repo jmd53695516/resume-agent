@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 5 context gathered
-last_updated: "2026-05-07T01:51:05.485Z"
-last_activity: 2026-05-07
+status: executing
+stopped_at: Completed 05-05-PLAN.md
+last_updated: "2026-05-09T20:16:50.297Z"
+last_activity: 2026-05-09
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 21
-  completed_plans: 21
-  percent: 100
+  total_plans: 33
+  completed_plans: 22
+  percent: 67
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** A recruiter in under five minutes walks away with a distinctive, specific impression of Joe — grounded in real projects, free of fabrication, and delivered by an agent they can see was engineered (not just prompted) with cost, abuse, and hallucination controls.
-**Current focus:** Phase 5 — eval-gates-&-launch
+**Current focus:** Phase 05 — eval-gates-launch
 
 ## Current Position
 
-Phase: 5
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-05-07
+Phase: 05 (eval-gates-launch) — EXECUTING
+Plan: 2 of 12
+Status: Ready to execute
+Last activity: 2026-05-09
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -71,6 +71,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04-admin-observability P04 | 6min | 3 tasks | 8 files |
 | Phase 04 P06 | 6min | 4 tasks | 7 files |
 | Phase 04-admin-observability P07 | 7min | 3 tasks | 6 files |
+| Phase 05-eval-gates-launch P05-05 | 10 | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -143,6 +144,9 @@ Recent decisions affecting current work:
 - [Phase 04-admin-observability]: Plan 04-07: Heartbeat route uses literal buildSystemPrompt() (Pitfall 5 — Phase 1 D-E byte-identical determinism contract); never inline a copy. Refreshes heartbeat:anthropic Redis key with TTL=120s on success — mute mechanism for Plan 04-06 dep-down alarm during business hours
 - [Phase 04-admin-observability]: Plan 04-07: HEARTBEAT_LLM_PREWARM env var (default 'true') gates the Anthropic prompt-cache pre-warm — single env-var escape hatch when cost vs. coverage trade tightens; ~$15/business-week at default cadence and 85k cached tokens
 - [Phase 04-admin-observability]: Plan 04-07: Classifier purge in /api/cron/archive runs even when archive candidates are empty — they're independent retention policies; status='partial' (vs 'ok' / 'error') flags any per-session error in the run for cron-job.org alerting
+- [Phase 05-eval-gates-launch]: Plan 05-05: AI SDK v6 SSE tool-call format (data: {type:'tool-input-available'}) — Rule 1 deviation from plan's outdated v5 prefix-code example; parseToolCalls helper added in cat2.ts
+- [Phase 05-eval-gates-launch]: Plan 05-05: cat 3 warmth gate = (judge.verdict === 'pass') AND (judge.score >= 4); curt-but-correct refusals (verdict=pass, score=3) fail by design — warmth-under-stress is the whole-category test
+- [Phase 05-eval-gates-launch]: Plan 05-05: cat2 spend-cap synthetic uses capture-original→set-350→finally-restore-or-del pattern (T-05-05-01 mitigation); guaranteed reset on assertion fail or thrown error
 
 ### Pending Todos
 
@@ -158,6 +162,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-07T01:51:05.481Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-eval-gates-launch/05-CONTEXT.md
+Last session: 2026-05-09T20:16:50.293Z
+Stopped at: Completed 05-05-PLAN.md
+Resume file: None
