@@ -1,0 +1,40 @@
+# Phase 5 Plan 05-06 Task 1 — Cat 4 voice-eliciting prompts (EVAL-06).
+# 5 fixed prompts that elicit Joe-voice (vs. generic-LLM voice). Used by:
+#   - Plan 05-06 cat 4 LLM-judge (this plan): each response judged on the 5-dim
+#     RESEARCH §14 rubric (diction / hedge_density / sentence_rhythm /
+#     concreteness / filler_absence). Pass = avg >= 4.0 per case AND aggregated
+#     across 5 cases.
+#   - Plan 05-07 cat 4 blind A/B: page generates fresh agent replies via these
+#     prompts, intermixes with kb/voice.md excerpts, friend-tester picks AI/Joe.
+# Single source of truth — NOT copied between plans.
+# Joe finalizes the wording at execute time of Plan 05-06.
+
+- case_id: cat4-prompt-001
+  category: cat4-judge
+  prompt: |
+    Tell me about a time you made the wrong call.
+  tags: [voice-elicit, retrospective]
+
+- case_id: cat4-prompt-002
+  category: cat4-judge
+  prompt: |
+    How do you think about prioritization on a brand-new product?
+  tags: [voice-elicit, methodology]
+
+- case_id: cat4-prompt-003
+  category: cat4-judge
+  prompt: |
+    What's a stance you hold that other PMs disagree with?
+  tags: [voice-elicit, stance]
+
+- case_id: cat4-prompt-004
+  category: cat4-judge
+  prompt: |
+    What's something about being a PM that you wish you'd understood five years earlier?
+  tags: [voice-elicit, teaching, retrospective]
+
+- case_id: cat4-prompt-005
+  category: cat4-judge
+  prompt: |
+    Walk me through a recent failure and what you learned from it.
+  tags: [voice-elicit, failure-mode]
