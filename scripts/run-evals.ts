@@ -11,6 +11,9 @@
 //   EVAL_JUDGE_MODEL — Gemini model override (default: gemini-2.5-flash snapshot)
 //   GIT_SHA          — github.event.client_payload.git.sha (CI) or local
 //   EVAL_SCHEDULED   — '1' if invoked by /api/cron/run-eval (Plan 05-13); else '0'
+//   EVAL_CATS        — comma-separated category filter for smoke runs
+//                      (e.g. EVAL_CATS=cat1 or EVAL_CATS=cat1,cat3). Unset = all 6.
+//                      Valid: cat1, cat2, cat3, cat4-judge, cat5, cat6.
 //
 // Env loading: ESM hoists imports above statement-level code, so a runtime
 // `dotenvConfig()` call here would run AFTER `@/lib/env`'s zod parse already
@@ -60,16 +63,41 @@ async function main(): Promise<void> {
   );
 
   // 3. Run all categories — Plans 05-04..05-09 fill in (current stubs run instantly)
+  const allRunners: Array<[string, () => Promise<CategoryResult>]> = [
+    ['cat1', () => runCat1(targetUrl, runId)],
+    ['cat2', () => runCat2(targetUrl, runId)],
+    ['cat3', () => runCat3(targetUrl, runId)],
+    ['cat4-judge', () => runCat4Judge(targetUrl, runId)],
+    ['cat5', () => runCat5(targetUrl, runId)],
+    ['cat6', () => runCat6(targetUrl, runId)],
+  ];
+
+  const evalCatsRaw = process.env.EVAL_CATS?.trim();
+  const filter = evalCatsRaw
+    ? new Set(evalCatsRaw.split(',').map((c) => c.trim()).filter(Boolean))
+    : null;
+
+  if (filter) {
+    const known = new Set(allRunners.map(([name]) => name));
+    const unknown = [...filter].filter((c) => !known.has(c));
+    if (unknown.length > 0) {
+      runLog.error({ unknown, valid: [...known] }, 'eval_cats_invalid');
+      await updateRunStatus({
+        runId,
+        summary: { totalCases: 0, passed: 0, failed: 0, totalCostCents: 0, status: 'error' },
+      });
+      process.exit(2);
+    }
+    runLog.info({ filter: [...filter] }, 'eval_cats_filter_active');
+  }
+
+  const runners = filter
+    ? allRunners.filter(([name]) => filter.has(name))
+    : allRunners;
+
   let results: CategoryResult[];
   try {
-    results = await Promise.all([
-      runCat1(targetUrl, runId),
-      runCat2(targetUrl, runId),
-      runCat3(targetUrl, runId),
-      runCat4Judge(targetUrl, runId),
-      runCat5(targetUrl, runId),
-      runCat6(targetUrl, runId),
-    ]);
+    results = await Promise.all(runners.map(([, run]) => run()));
   } catch (e) {
     runLog.error({ err: (e as Error).message }, 'eval_run_error');
     await updateRunStatus({
