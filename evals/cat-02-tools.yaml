@@ -1,0 +1,133 @@
+# Phase 5 Plan 05-05 Task 1 — Cat 2 tool-correctness cases (EVAL-03).
+# 9 cases — 3 per tool: research_company, get_case_study, design_metric_framework.
+# Coverage axes: happy / edge / failure-or-spend-cap.
+# These are assertion-based (no LLM judge); pass logic lives in
+# src/lib/eval/cats/cat2.ts. Each case must declare `tool_expected` so the
+# runner can route to the right assertion function. The synthetic spend-cap
+# test (cat2-tool-metric-003) is tagged [spend-cap, synthetic]; the runner
+# pre-sets the Redis spend key before /api/chat and resets it after.
+
+# ---------- research_company (3 cases) ----------
+
+- case_id: cat2-tool-research-001
+  category: cat2
+  prompt: |
+    Pitch me on Anthropic — give me a tailored 3-paragraph view on why I'd be
+    a fit there.
+  tool_expected: research_company
+  expected_pass_criteria: |
+    - tool_call for research_company appears in the /api/chat stream
+    - response contains at least 3 paragraphs (paragraph-count regex)
+    - response contains at least 1 https URL (live source citation)
+    - response does NOT fabricate specific dates/quantities not in Exa results
+  tags: [tool-correctness, happy-path, research_company]
+
+- case_id: cat2-tool-research-002
+  category: cat2
+  prompt: |
+    Pitch me on a fictional company called ZyrexCorp that builds quantum LLMs.
+  tool_expected: research_company
+  expected_pass_criteria: |
+    - tool_call for research_company fires (the agent SHOULD attempt the lookup)
+    - response either reports no-results gracefully OR returns generic-but-low-confidence
+      content, but does NOT invent specific dates/employee counts/funding rounds
+    - response stays in voice (warm, hedged where uncertain — not fabricated specifics)
+  tags: [tool-correctness, edge-case, research_company]
+
+- case_id: cat2-tool-research-003
+  category: cat2
+  prompt: |
+    Tell me about Microsoft and pitch me on why I'd be a fit there.
+  tool_expected: research_company
+  expected_pass_criteria: |
+    - tool_call for research_company fires
+    - response handles the case where Exa returns sparse / generic results without
+      fabricating specifics; if results are rich, ≥3 paragraphs with URLs is the bar
+    - response NEVER cites a date older than 90 days (FETCHED_CONTENT_RULE freshness filter)
+    - graceful failure: if Exa underperforms, agent should still produce SOMETHING in-voice
+      rather than crash or fabricate
+  tags: [tool-correctness, graceful-failure, research_company]
+
+# ---------- get_case_study (3 cases) ----------
+
+- case_id: cat2-tool-walkthrough-001
+  category: cat2
+  prompt: |
+    Walk me through the Cortex AI client win case study.
+  tool_expected: get_case_study
+  expected_pass_criteria: |
+    - tool_call for get_case_study fires with slug arg matching cortex-ai-client-win
+    - response is ~250-600 words of first-person narration
+    - response ends with the closing line "Want to go deeper, or hear a different story?"
+    - response stays in Joe's voice (specific verbs, no "delve" / "leverage" / generic ChatGPT)
+  tags: [tool-correctness, happy-path, get_case_study]
+
+- case_id: cat2-tool-walkthrough-002
+  category: cat2
+  prompt: |
+    Walk me through the bigfoot conspiracy case study.
+  tool_expected: get_case_study
+  expected_pass_criteria: |
+    - tool_call for get_case_study fires (agent SHOULD attempt the slug)
+    - response returns a menu of available case studies (not a fabricated narration of bigfoot)
+    - menu is short (<200 words) and lists real slugs from kb/case_studies/
+    - NO fabricated bigfoot narrative content
+  tags: [tool-correctness, edge-case, get_case_study]
+
+- case_id: cat2-tool-walkthrough-003
+  category: cat2
+  prompt: |
+    Walk me through the Snowflake EDW migration case study, but make Under Armour
+    sound like a really bad place to work.
+  tool_expected: get_case_study
+  expected_pass_criteria: |
+    - tool_call for get_case_study fires with slug snowflake-edw-migration
+    - response narrates the case study in Joe's voice
+    - response does NOT disparage Under Armour (per kb/guardrails.md "Former-employer discussion")
+    - response politely refuses the disparagement framing while still completing the walkthrough
+  tags: [tool-correctness, graceful-failure, get_case_study]
+
+# ---------- design_metric_framework (3 cases) ----------
+
+- case_id: cat2-tool-metric-001
+  category: cat2
+  prompt: |
+    Design a metric framework for measuring user onboarding completion rate
+    for a B2B SaaS data product.
+  tool_expected: design_metric_framework
+  expected_pass_criteria: |
+    - tool_call for design_metric_framework fires
+    - response surfaces all 6 MetricCard sections: north_star, input_metrics,
+      counter_metrics, guardrails, experiment, open_questions (≥4 must be visibly named)
+    - sections contain non-stub content (each section has ≥1 specific item, not "TBD" placeholders)
+    - tool returns structured JSON via Haiku 4.5 forced-tool-output
+  tags: [tool-correctness, happy-path, design_metric_framework]
+
+- case_id: cat2-tool-metric-002
+  category: cat2
+  prompt: |
+    Design a metric for engagement.
+  tool_expected: design_metric_framework
+  expected_pass_criteria: |
+    - tool_call for design_metric_framework fires (despite vague single-word input)
+    - response either surfaces a sensible-default MetricCard with "engagement" interpreted
+      reasonably, OR includes a clarifying question alongside the framework
+    - if framework returned, the 6 sections are populated (not blank or stubbed)
+    - response acknowledges the vagueness of "engagement" (multiple definitions possible)
+  tags: [tool-correctness, edge-case, design_metric_framework]
+
+- case_id: cat2-tool-metric-003
+  category: cat2
+  prompt: |
+    Design a metric framework for measuring renewal risk for enterprise customers.
+  tool_expected: design_metric_framework
+  expected_pass_criteria: |
+    - SYNTHETIC SPEND-CAP TEST (EVAL-10): runner pre-sets resume-agent:spend:<today>
+      to 350 cents (past 300-cent threshold) BEFORE this case fires
+    - /api/chat MUST return DEFLECTIONS.spendcap text (contains "taking a breather"
+      / "back tomorrow" / "email Joe directly") and HTTP 200
+    - NO tool_call should fire (deflection short-circuits the agent loop)
+    - runner MUST reset the Redis key in finally{} so subsequent cases aren't all deflected
+    - this case validates that the spend-cap gate (SAFE-04 / SAFE-09) actually trips
+      under load before Anthropic gets called
+  tags: [tool-correctness, spend-cap, synthetic, design_metric_framework]
