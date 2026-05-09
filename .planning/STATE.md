@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 Phase: 05 (eval-gates-launch) — EXECUTING
 Plan: 4 of 12
 Status: Ready to execute
-Last activity: 2026-05-09
+Last activity: 2026-05-09 (quick task 260509-q00 — eval CLI session-mint fix)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -170,6 +170,12 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-09T22:27:22.542Z
-Stopped at: Completed 05-07-PLAN.md (code-complete; Task 4 deferred pending Gemini key)
+Last session: 2026-05-09T23:07:00.000Z
+Stopped at: Completed quick task 260509-q00 (eval CLI session-mint fix; Phase 5 Task 4 smoke runs unblocked at the session-mint layer)
 Resume file: None
+
+## Quick Tasks Completed
+
+| ID | Description | Date | Commit | Path |
+|----|-------------|------|--------|------|
+| 260509-q00 | eval CLI session-mint fix | 2026-05-09 | 4da1c66 | [260509-q00-eval-cli-session-mint-fix](./quick/260509-q00-eval-cli-session-mint-fix/) |
