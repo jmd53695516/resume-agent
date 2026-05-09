@@ -1,5 +1,12 @@
 // tests/lib/eval/judge.test.ts
-// Phase 5 Plan 05-03 Task 2 — TDD coverage for the Gemini judge wrapper.
+// Phase 5 Plan 05-03 Task 2 — TDD coverage for the judge wrapper.
+// Quick task 260509-r39 (2026-05-09): judge swapped from Gemini 2.5 Flash to
+// Claude Haiku 4.5 — mock target moved from `@ai-sdk/google` to `@/lib/anthropic`
+// (the project's pre-wired anthropicProvider factory). Mocking the project
+// module is cleaner than mocking the SDK package directly: it avoids the
+// constructor-vs-factory trap (Phase 3 Plan 03-00 STATE.md note about Exa
+// class mocks) and matches how /api/chat tests stub the chat path.
+//
 // NOTE: vitest config only includes tests/**/*.test.{ts,tsx}; plan spec said
 // src/lib/__tests__/eval/X.test.ts which would not be discovered. Path deviation
 // is intentional and consistent with tests/lib/eval/{cost,yaml-loader}.test.ts.
@@ -14,7 +21,6 @@ vi.mock('@/lib/env', () => {
   env['UPSTASH_REDIS_REST_URL'] = 'https://fake.upstash.io';
   env['UPSTASH_REDIS_REST_TOKEN'] = 'x'.repeat(40);
   env['EXA_API_' + 'KEY'] = 'x'.repeat(40);
-  env['GOOGLE_GENERATIVE_AI_API_' + 'KEY'] = 'x'.repeat(40);
   return { env };
 });
 
@@ -23,8 +29,13 @@ vi.mock('ai', () => ({
   generateObject: (args: unknown) => generateObjectMock(args),
 }));
 
-vi.mock('@ai-sdk/google', () => ({
-  google: (model: string) => ({ __mock: 'google', model }),
+// Mock the project's anthropicProvider factory (not @ai-sdk/anthropic directly).
+// MODELS export is included for symmetry with src/lib/anthropic.ts even though
+// judge.ts only imports anthropicProvider — keeps the mock module shape honest
+// for any future consumers that import the same module.
+vi.mock('@/lib/anthropic', () => ({
+  anthropicProvider: (model: string) => ({ __mock: 'anthropic', model }),
+  MODELS: { MAIN: 'claude-sonnet-4-6', CLASSIFIER: 'claude-haiku-4-5' },
 }));
 
 beforeEach(() => {
@@ -54,10 +65,39 @@ describe('judgeFactualFidelity (cat 1)', () => {
     expect(result.verdict.fabrication_detected).toBe(false);
     expect(result.verdict.rationale).toContain('No fabrication');
     expect(typeof result.cost_cents).toBe('number');
+    // Haiku 4.5 ($1/$5 per MTok): 1500 in + 200 out = $0.0025 → rounds to 0¢
+    // (sub-cent — judge calls aggregate to a non-zero total across a run).
+    expect(result.cost_cents).toBeGreaterThanOrEqual(0);
+    expect(result.cost_cents).toBeLessThanOrEqual(1);
+  });
+
+  it('computes Haiku-priced cost_cents exactly (locks extractor wiring)', async () => {
+    // 1M input + 1M output @ Haiku $1/$5 per MTok = $6.00 = 600¢. If the
+    // judge accidentally got repointed to extractAnthropicCost (Sonnet,
+    // $3/$15) this would read 1800 — quick task 260509-r39 T-r39-02 guard.
+    generateObjectMock.mockResolvedValueOnce({
+      object: {
+        score: 4,
+        verdict: 'pass' as const,
+        fabrication_detected: false,
+        rationale: 'Lock the cost-extractor wiring.',
+      },
+      usage: { inputTokens: 1_000_000, outputTokens: 1_000_000 },
+    });
+    const { judgeFactualFidelity } = await import('@/lib/eval/judge');
+    const result = await judgeFactualFidelity({
+      prompt: 'p',
+      response: 'r',
+      groundedFacts: [],
+      caseId: 'cat1-cost-lock',
+    });
+    expect(result.cost_cents).toBe(600);
   });
 
   it('wraps SDK errors with caseId context', async () => {
-    generateObjectMock.mockRejectedValueOnce(new Error('Gemini quota exceeded'));
+    // Anthropic-flavored error message (post-r39 swap); the assertion only
+    // checks the wrapper-prefix shape — inner text is illustrative.
+    generateObjectMock.mockRejectedValueOnce(new Error('Anthropic 529 overloaded'));
     const { judgeFactualFidelity } = await import('@/lib/eval/judge');
     await expect(
       judgeFactualFidelity({
