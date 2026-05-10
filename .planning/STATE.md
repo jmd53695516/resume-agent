@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 05.1 closed PARTIAL (Items #6/#7/#8 resolved; cat1=15/15 gate deferred to Plan 05-12 due to NEW Item #11 classifier-over-flagging finding)
-last_updated: "2026-05-10T18:08:00.000Z"
-last_activity: 2026-05-10 -- Phase 05.1 closed PARTIAL (Items #6/#7/#8 RESOLVED; new Item #11 promoted)
+stopped_at: "Phase 05.1 closed PARTIAL — Items #6/#7/#8 RESOLVED; cat1 D-B-01 deferred to 05-12 via new Item #11"
+last_updated: "2026-05-10T18:12:06.561Z"
+last_activity: "2026-05-10 -- Phase 05.1 closed PARTIAL (Items #6/#7/#8 RESOLVED; new Item #11 classifier-over-flagging promoted)"
 progress:
   total_phases: 6
-  completed_phases: 4
-  total_plans: 35
+  completed_phases: 5
+  total_plans: 34
   completed_plans: 33
-  percent: 94
+  percent: 97
 ---
 
 # Project State
@@ -197,9 +197,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-10T16:21:09.708Z
-Stopped at: Phase 05.1 context gathered
-Resume file: .planning/phases/05.1-eval-content-trust-restoration/05.1-CONTEXT.md
+Last session: 2026-05-10T18:12:06.556Z
+Stopped at: Phase 05.1 closed PARTIAL — Items #6/#7/#8 RESOLVED; cat1 D-B-01 deferred to 05-12 via new Item #11
+Resume file: None
 
 Resumed: 2026-05-10 — proceeding to /gsd-execute-phase 5 (Plan 05-12).
 
