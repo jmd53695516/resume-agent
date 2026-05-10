@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Completed 05-07-PLAN.md (code-complete; Task 4 deferred pending Gemini key)
-last_updated: "2026-05-09T22:27:22.547Z"
-last_activity: 2026-05-09
+last_updated: "2026-05-10T00:39:33.198Z"
+last_activity: 2026-05-10
 progress:
   total_phases: 5
   completed_phases: 4
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 Phase: 05 (eval-gates-launch) — EXECUTING
 Plan: 4 of 12
 Status: Ready to execute
-Last activity: 2026-05-10 (quick task 260509-r39 — swap eval judge to Claude Haiku 4.5; closed PARTIAL — items #1/#2 resolved, #3 schema flakiness reduced to MEDIUM)
+Last activity: 2026-05-10 (quick task 260509-sgn — judge schema flakiness fix; closed DONE — items #3 + #5 resolved at unit-test layer via native @anthropic-ai/sdk forced tool-use)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -167,12 +167,13 @@ None yet.
 - Phase 1: Voice-interview protocol and content-acquisition interview prompts not yet written — Joe-time-expensive and cannot be redone cheaply; needs a focused planning pass
 - Phase 5 deploy gate: Anthropic org-level 20-USD-per-month spend cap (SAFE-12) was deferred during Plan 02-01 Task 3. Must be set in console.anthropic.com before public deploy.
 - Phase 5 LAUNCH-*: drop joe-dollinger-resume.pdf into public/ before public deploy — PlainHtmlFallback links to /joe-dollinger-resume.pdf which currently 404s (T-03-05-08 disposition: accept; recruiter still has email + LinkedIn + GitHub paths)
-- Phase 5 deferred-item #3 (judge schema flakiness, ~47% Anthropic generateObject post-r39 swap) blocks Plan 05-04/06/07 Task 4 clean-signal smokes. Mitigation options in deferred-items.md (retry-with-fallback, native tool-use, or loosen Zod). Runs at 8/15 real verdicts producing post-swap; sufficient for item-#4 calibration inspection but not for the 15/15 cat-1 hard gate.
+- Phase 5 deferred-item #3 (judge schema flakiness): RESOLVED 2026-05-10 at unit-test layer via quick task 260509-sgn — judge.ts swapped from @ai-sdk/anthropic generateObject to @anthropic-ai/sdk native forced tool-use (`tools: [...]` + `tool_choice: { type: 'tool', name: ... }` with `strict:true` + `additionalProperties:false` + Zod post-extraction validation). Live verify is the optional follow-up; expect 0% schema-validation fail rate vs prior 47%.
+- Phase 5 deferred-item #5 (cost extraction, totalCostCents:0): RESOLVED-pending-live-verify 2026-05-10 via quick task 260509-sgn — snake_case `usage.input_tokens` / `output_tokens` from @anthropic-ai/sdk now adapted into the camelCase shape extractAnthropicJudgeCost expects, inline in each judge function. Cost-lock unit test (1M+1M → 600¢) exercises the adapter end-to-end. cost.ts + cost.test.ts byte-stable.
 
 ## Session Continuity
 
-Last session: 2026-05-09T23:07:00.000Z
-Stopped at: Completed quick task 260509-q00 (eval CLI session-mint fix; Phase 5 Task 4 smoke runs unblocked at the session-mint layer)
+Last session: 2026-05-10T00:39:33.198Z
+Stopped at: Completed quick task 260509-sgn (judge schema flakiness fix — native @anthropic-ai/sdk forced tool-use; deferred-items #3 + #5 resolved at unit-test layer)
 Resume file: None
 
 ## Quick Tasks Completed
@@ -181,3 +182,4 @@ Resume file: None
 |----|-------------|------|--------|--------|------|
 | 260509-q00 | eval CLI session-mint fix | 2026-05-09 | 4da1c66 | DONE | [260509-q00-eval-cli-session-mint-fix](./quick/260509-q00-eval-cli-session-mint-fix/) |
 | 260509-r39 | swap eval judge to Claude Haiku 4.5 | 2026-05-10 | fe612a8 | PARTIAL | [260509-r39-swap-eval-judge-to-claude-haiku-4-5](./quick/260509-r39-swap-eval-judge-to-claude-haiku-4-5/) |
+| 260509-sgn | judge schema flakiness fix — native @anthropic-ai/sdk forced tool-use | 2026-05-10 | 70bfa48 | DONE | [260509-sgn-judge-schema-flakiness-fix-swap-src-lib-](./quick/260509-sgn-judge-schema-flakiness-fix-swap-src-lib-/) |

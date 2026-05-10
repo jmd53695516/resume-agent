@@ -168,7 +168,19 @@ Eval signal noise; can't tell pass-rate from judge flakes. Does NOT block
 05-08+ plan progress; DOES block Plan 05-04/06/07 Task 4 clean-signal
 smokes (need 15/15 verdicts producing for the cat-1 hard gate).
 
-**Status:** STILL OPEN as of 2026-05-10 (quick task 260509-r39 close-out).
+**Status:** RESOLVED 2026-05-10 at unit-test layer (quick task 260509-sgn —
+judge.ts swapped from `@ai-sdk/anthropic` `generateObject` to
+`@anthropic-ai/sdk` direct `messages.create()` with native forced tool-use
+(`tools: [...]` + `tool_choice: { type: 'tool', name: ... }` with
+`strict:true` + `additionalProperties:false`). Zod schemas retained as
+post-extraction validators (defense-in-depth, mirrors
+design-metric-framework.ts). Anthropic's native strict tool-use validator
+is materially more reliable than AI-SDK-shaped `generateObject` JSON-mode
+prompting. Live verification (optional, not gating): a fresh cat1 smoke
+should show 0% schema-validation fail rate vs prior 47%. sgn commit
+`70bfa48`.
+
+**Pre-resolution status (2026-05-10 r39 close-out):** STILL OPEN.
 Severity downgraded HIGH→MEDIUM. Failure mode shifted from Gemini-specific
 JSON-mode (~33% fail) to Anthropic generateObject schema-validation
 (~47% fail in r39 cat1 smoke runId `IxmC5_FELINyClAEUyDmS`). Different
@@ -250,8 +262,19 @@ inspection then closes the calibration gap.
 **Severity:** LOW (doesn't affect signal; affects spend tracking accuracy
 and the WARN_THRESHOLD_CENTS budget alarm in `src/lib/eval/cost.ts`).
 
-**Status:** OPEN — first observed 2026-05-10 in quick task 260509-r39
-Task 3 smoke (runId `IxmC5_FELINyClAEUyDmS`).
+**Status:** RESOLVED-pending-live-verify 2026-05-10 (quick task 260509-sgn —
+each judge function in src/lib/eval/judge.ts now adapts the snake_case
+`resp.usage.input_tokens` / `output_tokens` shape returned by
+`@anthropic-ai/sdk` into the camelCase shape `extractAnthropicJudgeCost`
+expects, before calling the extractor. Cost-lock unit test
+(`tests/lib/eval/judge.test.ts` — 1M+1M → 600¢) exercises the adapter
+end-to-end. `cost.ts` and `cost.test.ts` byte-stable — proves the
+camelCase contract was correct all along; the bug was in the runtime
+adapter, not the extractor. Live verify: fresh cat1 smoke should show
+`totalCostCents > 0`. sgn commit `70bfa48`.
+
+**Pre-resolution status:** OPEN — first observed 2026-05-10 in quick task
+260509-r39 Task 3 smoke (runId `IxmC5_FELINyClAEUyDmS`).
 
 **Symptom:** `totalCostCents: 0` reported across the cat1 smoke run.
 Anthropic Haiku at 1500 input + 200 output per case × 15 cases should
