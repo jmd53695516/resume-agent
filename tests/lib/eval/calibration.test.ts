@@ -47,9 +47,13 @@ describe('pearsonR', () => {
 });
 
 describe('quadraticWeightedKappa', () => {
-  it('returns 1.0 for perfect agreement', () => {
-    // Test 4 — all judge scores match human scores
-    const k = quadraticWeightedKappa([5, 5, 5, 5, 5], [5, 5, 5, 5, 5]);
+  it('returns 1.0 for perfect agreement across a varied distribution', () => {
+    // Test 4 — all judge scores match human scores AND there is variance
+    // across the distribution. The all-same-score case (e.g., [5,5,5,5,5])
+    // is degenerate — denominator collapses to 0 — and returns 0 per the
+    // "returns 0 when both raters always give the same single score" test
+    // below; that's standard sklearn behavior.
+    const k = quadraticWeightedKappa([1, 2, 3, 4, 5], [1, 2, 3, 4, 5]);
     expect(k).toBeCloseTo(1.0, 6);
   });
 
