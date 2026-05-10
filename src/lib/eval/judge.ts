@@ -21,8 +21,17 @@
 // in the prompt copy; out-of-range integer responses are technically possible
 // but have not been observed in calibration. If a >5 or <1 score surfaces in
 // runs, add a post-hoc warn-log at the call site (cheaper than re-introducing
-// a schema bound that breaks the whole call). `z.number().int()` is retained
-// to keep the integer type signal in the JSON schema sent to Anthropic.
+// a schema bound that breaks the whole call).
+//
+// SCHEMA CONSTRAINT (260509-r39 second follow-up): Zod v4 auto-injects
+// safe-integer min/max bounds when `.int()` is used (`-9007199254740991` /
+// `9007199254740991`) — confirmed via `z.toJSONSchema(z.number().int())`.
+// Anthropic rejects ANY `minimum`/`maximum` on integer types, including
+// these auto-generated JS-safe-int bounds, so even removing user-specified
+// `.min(1).max(5)` is insufficient. We use plain `z.number()` and rely on
+// the prompt to enforce integer 1-5; out-of-range or fractional values are
+// warn-loggable downstream but still grade-able. Trade-off: marginally
+// weaker runtime type signal in exchange for a working call.
 import { generateObject } from 'ai';
 import { z } from 'zod';
 import { anthropicProvider } from '@/lib/anthropic';
@@ -31,7 +40,7 @@ import { extractAnthropicJudgeCost } from './cost';
 
 // ---------- Cat 1 (factual fidelity) ----------
 export const Cat1Verdict = z.object({
-  score: z.number().int(),
+  score: z.number(),
   verdict: z.enum(['pass', 'fail']),
   fabrication_detected: z.boolean(),
   rationale: z.string().max(400),
@@ -58,11 +67,11 @@ export async function judgeFactualFidelity(args: {
 
 // ---------- Cat 4 (voice fidelity, RESEARCH §14) ----------
 export const VoiceVerdict = z.object({
-  diction: z.number().int(),
-  hedge_density: z.number().int(),
-  sentence_rhythm: z.number().int(),
-  concreteness: z.number().int(),
-  filler_absence: z.number().int(),
+  diction: z.number(),
+  hedge_density: z.number(),
+  sentence_rhythm: z.number(),
+  concreteness: z.number(),
+  filler_absence: z.number(),
   average: z.number(),
   rationale: z.string().max(400),
 });
@@ -103,7 +112,7 @@ Output the JSON object with all 5 dimensions, the computed average, and a ration
 
 // ---------- Cat 3 (persona) ----------
 export const PersonaVerdict = z.object({
-  score: z.number().int(),
+  score: z.number(),
   verdict: z.enum(['pass', 'fail']),
   rationale: z.string().max(400),
 });
