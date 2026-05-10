@@ -1,0 +1,34 @@
+# 5 curated real-Joe voice excerpts for Cat 4 blind A/B (EVAL-05).
+#
+# Each entry concatenates 2-3 thematically-related kb/voice.md samples
+# (verbatim, light period-space stitching) to land in the 80-120 word range
+# the plan specifies. Anonymization already applied at the voice.md source
+# (see "anonymized 2026-04-29" annotations on Samples 3, 4).
+#
+# Provenance: kb/voice.md samples derive from the 2026-04-23 voice interview
+# per docs/interview-protocol-voice.md (CONTEXT D-C-04 authentic-source rule).
+
+- case_id: cat4-real-001
+  source: voice.md (Samples 3+4+12 — decisive on data architecture / PM accountability)
+  snippet: |
+    A peer on my team didn't and still doesn't understand how Snowflake is intentioned to work. It should be a data mart. We should be building views for people to access and join data. It's not a reporting tool. It was a dumb decision to use functions to start with. We should have pushed back harder, but the path of least resistance was just to deliver what was being asked for so the complaining would stop. I don't think we hold the business accountable enough. They make mistakes on requirements, and we come back and have to fix it on the back end. We need to hold them more accountable.
+
+- case_id: cat4-real-002
+  source: voice.md (Samples 5+6+2 — annoyed on process: naming, comms, model performance)
+  snippet: |
+    Documentation being inconsistent, not having the same naming conventions. In one report calling it LE entity, and in the next report calling it legal entity. Be consistent. It's silly to have two different names for the same field. Probably my biggest frustration is lack of communication and where we are on prod process — having to pull updates out of people as opposed to them being proactive. I had to go into work on a day I normally work from home. That was pretty annoying for an in-person meeting. I was slightly annoyed at some of the performance of the new models and having a time lag — I figured with Snowflake changes it would be better.
+
+- case_id: cat4-real-003
+  source: voice.md (Samples 7+8 — teaching on product quality: Salesforce vs silent products)
+  snippet: |
+    It's kind of like Salesforce. People are forced to use it because it's the only option out there. Seeing my former colleagues post and rave about new revenue highs and go-to-market nonsense, I'm like — your tool sucks. Everybody hates using it, but it's the leader in the industry. The products that perform the best are the ones you hear the least about. We aren't hearing complaints, so whether or not it's being used is either a good thing or a bad thing. It's silent. We're not hearing any pros about it, but we're also not hearing any cons about it.
+
+- case_id: cat4-real-004
+  source: voice.md (Samples 9+10 — reflective on the failed-leadership project)
+  snippet: |
+    In retrospect, it looks like a failed communication and leadership. The woman in charge had previously been VP of Operations — I always admired her, but it was clear on that project she was kind of checked out. You could tell she didn't have the fire. She hired a bunch of her friends to run it, and none of them checked each other. I didn't receive the pay bump that people got for joining the project, and then after they failed miserably, I had to come in and pick up the pieces. Eventually it was super satisfying, because we got all the praise for getting everything right. Sure, it was eight months after the fact.
+
+- case_id: cat4-real-005
+  source: voice.md (Samples 11+1 — warm/casual on shipping wins + standup status update)
+  snippet: |
+    Any week where we ship something and a deliverable goes live into production — that's always a really cool feeling. Especially after it gets demoed to a client or cross-functional partner, and they go, "Oh wow, I have this here. I don't have to navigate into this application to find this specific exact report." I completed three STTM updates, handed over the changes to the development team, worked cross-functionally with the scope team on potential new requirements for their latest dashboard updates. Worked with a peer on my team on adding local currency to partner allocation.
