@@ -112,7 +112,8 @@ export async function runCat4Judge(targetUrl: string, runId: string): Promise<Ca
         judge_verdict: passed ? 'pass' : 'fail',
         judge_rationale: JSON.stringify(judge.verdict),
         passed,
-        cost_cents: judge.cost_cents,
+        // Round at persistence boundary (deferred-items.md item #5).
+        cost_cents: Math.round(judge.cost_cents),
       };
       await writeCase({ runId, result });
       results.push(result);
@@ -156,5 +157,5 @@ export async function runCat4Judge(targetUrl: string, runId: string): Promise<Ca
     },
     'cat4_judge_complete',
   );
-  return { category: 'cat4-judge', cases: results, passed, cost_cents: totalCost };
+  return { category: 'cat4-judge', cases: results, passed, cost_cents: Math.round(totalCost) };
 }

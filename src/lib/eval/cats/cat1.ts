@@ -98,7 +98,10 @@ export async function runCat1(
         judge_verdict: judgeVerdict,
         judge_rationale: judgeRationale,
         passed,
-        cost_cents: caseCost,
+        // Round at persistence boundary; totalCost stays fractional internally
+        // so 15 × 0.25¢ aggregates to 4¢ rather than 15 × 0 = 0
+        // (deferred-items.md item #5).
+        cost_cents: Math.round(caseCost),
       };
       await writeCase({ runId, result });
       results.push(result);
@@ -133,5 +136,5 @@ export async function runCat1(
     },
     'cat1_complete',
   );
-  return { category: 'cat1', cases: results, passed, cost_cents: totalCost };
+  return { category: 'cat1', cases: results, passed, cost_cents: Math.round(totalCost) };
 }

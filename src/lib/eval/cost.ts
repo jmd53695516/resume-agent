@@ -92,6 +92,13 @@ export function extractGoogleCost(usage: {
  * which is Sonnet-priced ($3/$15) and consumed by the chat-path cost contract.
  * Repointing one to the other trips the cost.test.ts guard tests (T-r39-02).
  *
+ * Returns FRACTIONAL cents (sub-cent precision retained). A single judge call
+ * is ~0.25¢ (1500 in / 200 out @ $1/$5/MTok); rounding to int per-call would
+ * yield 0 and the aggregate of 15 zeros is 0 (deferred-items.md item #5
+ * surfaced this on smoke runId 5BX9b7koV_zC27Kjkp7z6). Callers MUST sum
+ * fractional results across cases and round ONCE at the persistence boundary
+ * (eval_cases.cost_cents / eval_runs.total_cost_cents are int columns).
+ *
  * Cache fields intentionally NOT consumed: Haiku judge calls aren't cached at
  * this scale (Haiku min cache block is 4096 tokens — > our judge prompts of
  * ~1500-1800 input tokens). If judge prompts ever grow past 4096 and we add
@@ -104,5 +111,5 @@ export function extractAnthropicJudgeCost(usage: {
   const input = (usage.inputTokens ?? 0) / 1_000_000;
   const output = (usage.outputTokens ?? 0) / 1_000_000;
   const dollars = input * PRICES.haiku_input + output * PRICES.haiku_output;
-  return Math.round(dollars * 100);
+  return dollars * 100;
 }
