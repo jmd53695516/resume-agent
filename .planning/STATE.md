@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 05.1 closed PARTIAL — Items #6/#7/#8 RESOLVED; cat1 D-B-01 deferred to 05-12 via new Item #11"
-last_updated: "2026-05-10T18:12:06.561Z"
+stopped_at: Plan 05-12 launch decisions locked (addendum + plan edits)
+last_updated: "2026-05-10T18:45:38.618Z"
 last_activity: "2026-05-10 -- Phase 05.1 closed PARTIAL (Items #6/#7/#8 RESOLVED; new Item #11 classifier-over-flagging promoted)"
 progress:
   total_phases: 6
@@ -197,9 +197,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-10T18:12:06.556Z
-Stopped at: Phase 05.1 closed PARTIAL — Items #6/#7/#8 RESOLVED; cat1 D-B-01 deferred to 05-12 via new Item #11
-Resume file: None
+Last session: 2026-05-10T18:45:38.613Z
+Stopped at: Plan 05-12 launch decisions locked (addendum + plan edits)
+Resume file: .planning/phases/05-eval-gates-launch/05-12-CONTEXT-ADDENDUM.md
 
 Resumed: 2026-05-10 — proceeding to /gsd-execute-phase 5 (Plan 05-12).
 
