@@ -11,6 +11,10 @@ jobs:
   eval:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      statuses: write
     steps:
       - uses: actions/checkout@v6
         with:
@@ -44,3 +48,10 @@ jobs:
           GIT_SHA: ${{ github.event.client_payload.git.sha || github.sha }}
           EVAL_SCHEDULED: ${{ github.event.action == 'scheduled-eval' && '1' || '0' }}
         run: npm run eval
+
+      - name: 'notify vercel'
+        if: github.event_name == 'repository_dispatch' && always()
+        uses: 'vercel/repository-dispatch/actions/status@v1'
+        with:
+          name: 'Vercel - resume-agent-eyap: eval'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
