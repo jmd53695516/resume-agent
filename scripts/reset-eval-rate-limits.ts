@@ -32,7 +32,24 @@ const PREFIX = 'resume-agent';
 // ipAddress() returning IPv6/IPv4 localhost, plus the 'dev' literal
 // fallback documented in STATE.md (Phase 02-safe-chat-core entry on
 // ipKey on Next.js dev server).
-const IP_KEYS = ['::1', '127.0.0.1', 'dev'];
+const LOCAL_IP_KEYS = ['::1', '127.0.0.1', 'dev'];
+// Plan 05-12 Task 0: when running the eval CLI against a Vercel preview
+// (NOT localhost), Vercel's ipAddress() resolves to the operator's real
+// public IP — not the local fallbacks above. Pass that IP via env var so
+// this script can clear the per-IP windowed keys + ipcost counter for
+// that IP too. Find your public IP with:
+//   PowerShell:  (Invoke-WebRequest -Uri https://api.ipify.org).Content
+//   bash:        curl -s https://api.ipify.org
+//
+// Example:  $env:EVAL_RESET_IP = "73.x.x.x"; npm run eval:reset-rl
+//
+// Comma-separated for multiple IPs (rare; both IPv4 + IPv6 if you've used
+// both in a session). Empty / unset = local-only, prior behavior preserved.
+const EXTRA_IP_KEYS = (process.env.EVAL_RESET_IP ?? '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+const IP_KEYS = [...LOCAL_IP_KEYS, ...EXTRA_IP_KEYS];
 const EMAIL = 'eval-cli@joedollinger.dev';
 
 async function expandPattern(pattern: string): Promise<string[]> {
