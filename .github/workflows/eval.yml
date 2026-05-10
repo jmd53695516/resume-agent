@@ -5,7 +5,17 @@ on:
     types:
       - 'vercel.deployment.ready'
       - 'scheduled-eval'
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: 'EVAL_TARGET_URL override (e.g. a Vercel preview URL). Required for manual runs.'
+        required: true
+        type: string
+      cats:
+        description: 'EVAL_CATS filter (comma-separated, e.g. "cat1" or "cat1,cat3"). Empty = all cats.'
+        required: false
+        type: string
+        default: ''
 
 jobs:
   eval:
@@ -31,7 +41,11 @@ jobs:
 
       - name: Run eval suite
         env:
-          EVAL_TARGET_URL: ${{ github.event.client_payload.url || github.event.client_payload.target_url }}
+          # Precedence: workflow_dispatch input > Vercel client_payload.url > client_payload.target_url
+          EVAL_TARGET_URL: ${{ inputs.target_url || github.event.client_payload.url || github.event.client_payload.target_url }}
+          # workflow_dispatch only — set EVAL_CATS so the runner filters categories.
+          # repository_dispatch keeps EVAL_CATS unset (runs all 6 cats per CI gate).
+          EVAL_CATS: ${{ inputs.cats || '' }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
