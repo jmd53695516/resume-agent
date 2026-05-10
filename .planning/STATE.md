@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Completed Plan 05-10 (CI eval gate end-to-end: GH Actions workflow, branch protection, Vercel Deployment Checks, A7 spot-test). EVAL-09 + EVAL-13 + LAUNCH-07-prerequisite satisfied. Required substantial pre-work (gh CLI install, GH repo create + push, Vercel project create + link + 13 env vars, public-flip for free branch protection). Eval contents currently fail on real signal (32/57 cases) — launch-blocking but Plan 05-12's job. Next: 05-11."
-last_updated: "2026-05-10T15:30:00.000Z"
-last_activity: 2026-05-10 -- Plan 05-10 closed (commit 9063630)
+stopped_at: "Plan 05-11 closed PARTIAL (commits 6406221, 69f63f7, 1949592). Tasks 1-3 done (route + 5th alarm); Task 4 split: A+B (GH PAT + Vercel envs) done per Joe; C+D (cron-job.org schedule) deferred to Plan 05-12 awaiting LAUNCH-01 prod domain. Next: Plan 05-12 (final launch checklist)."
+last_updated: "2026-05-10T16:00:00.000Z"
+last_activity: 2026-05-10 -- Plan 05-11 closed (commit 1949592, partial — C+D handed to 05-12)
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 33
-  completed_plans: 31
-  percent: 94
+  completed_plans: 32
+  percent: 97
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 ## Current Position
 
 Phase: 05 (eval-gates-launch) — EXECUTING
-Plan: 10 of 12 complete
-Status: Plan 05-10 closed; ready for Plan 05-11 (cron weekly drift run)
-Last activity: 2026-05-10 -- Plan 05-10 closed (commit 9063630)
+Plan: 11 of 12 complete (05-11 closed PARTIAL — Tasks 1-3 + Task 4 A+B done; C+D deferred to 05-12)
+Status: Ready for Plan 05-12 (final launch checklist)
+Last activity: 2026-05-10 -- Plan 05-11 closed (commit 1949592)
 
-Progress: [████████░░] 83% within Phase 05
+Progress: [█████████░] 92% within Phase 05
 
 ## Performance Metrics
 
@@ -187,12 +187,15 @@ None yet.
 - Phase 5 NEW deferred-item #6 (ipLimiter10m sliding-window accumulation across local eval runs): LOW. Local-testing friction only; CI ephemeral envs unaffected. Mitigations in deferred-items.md.
 - Phase 5 NEW deferred-item #7 (eval CLI doesn't distinguish deflections from real responses): LOW. Surfaces only when rate/spend/turn caps trip mid-run. ~30-60 min quick task to add an SSE meta event from /api/chat.
 - Phase 5 NEW deferred-item #8 (Sonnet quantitative-claim hallucination caught by cat1-fab-005): MEDIUM. Real signal — agent invented a "200+ users" number under prompt pressure. Needed for Plan 05-04 Task 4 hard-gate sign-off. Recommended: tighten Sonnet system prompt + add KB counter-facts.
+- Phase 5 Plan 05-11 deferred-item (cron-job.org schedule): LOW. /api/cron/run-eval route + 5th alarm code shipped 2026-05-10 (commits 6406221, 69f63f7, 1949592). GH PAT + Vercel envs (GH_DISPATCH_TOKEN, GH_REPO_SLUG) confirmed set. cron-job.org weekly Mon 03:00 ET schedule deferred into Plan 05-12 because it needs a stable prod URL — pointing it at preview alias would require re-pointing after the LAUNCH-01 CNAME flip. Estimate 10-15 min once chat.joedollinger.com is live. Handoff doc: 05-11-SUMMARY.md `deferred:` block.
 
 ## Session Continuity
 
-Last session: 2026-05-10T15:30:00.000Z
-Stopped at: Completed Plan 05-10 (CI eval gate end-to-end at commit 9063630). EVAL-09 / EVAL-13 / LAUNCH-07-prerequisite satisfied. Pre-work-heavy session: gh CLI install + GH repo create + push + Vercel project create + link + 13 env vars + public-flip + 8 iterative commits to working pipeline. Eval contents fail on real signal (32/57 cases) — defers to Plan 05-12 LAUNCH-05. Next planned plan: 05-11 (cron weekly drift run).
+Last session: 2026-05-10T16:00:00.000Z
+Stopped at: Plan 05-11 closed PARTIAL (commits 6406221, 69f63f7, 1949592). /api/cron/run-eval route live + 5th alarm (weekly-eval-failure, 24h NX) wired; tests 7/7 + 29/29 ✓; tsc + build clean. Task 4 A+B (GH PAT + Vercel envs GH_DISPATCH_TOKEN + GH_REPO_SLUG) done per Joe; Task 4 C+D (cron-job.org weekly schedule + smoke test) deferred to Plan 05-12 because it needs the LAUNCH-01 prod domain. Next: Plan 05-12 (final launch checklist — LAUNCH-01..07 + SAFE-12 + LAUNCH-04 friend-test).
 Resume file: None
+
+Resumed: 2026-05-10 — proceeding to /gsd-execute-phase 5 (Plan 05-12).
 
 ## Quick Tasks Completed
 
