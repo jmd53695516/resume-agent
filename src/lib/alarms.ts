@@ -2,16 +2,22 @@
 // Phase 4 D-C-06..07 — alarm condition checks + per-condition Redis NX
 // suppression + sendAlarm dispatch + alarms_fired INSERT.
 //
-// The 4 conditions (D-C-06):
-//   1. spend-cap        — Redis spend counter >= 300 cents (mirrors SAFE-04 threshold)
-//   2. error-rate       — assistant turns in last 10min with stop_reason='error' or empty
-//                         non-deflection content; tripped iff sample >= 10 AND ratio > 2%
-//   3. dep-down         — any /api/health dep returns degraded or down
-//   4. rate-limit-abuse — >= 5 unique sessions.ip_hash hitting deflection:ratelimit in last 1h
+// The 5 conditions:
+//   1. spend-cap            — Redis spend counter >= 300 cents (mirrors SAFE-04 threshold)
+//   2. error-rate           — assistant turns in last 10min with stop_reason='error' or empty
+//                             non-deflection content; tripped iff sample >= 10 AND ratio > 2%
+//   3. dep-down             — any /api/health dep returns degraded or down
+//   4. rate-limit-abuse     — >= 5 unique sessions.ip_hash hitting deflection:ratelimit in last 1h
+//   5. weekly-eval-failure  — Phase 5 (Plan 05-11). eval_runs row with scheduled=true AND
+//                             status='failed' AND finished_at within last hour. Uses 24h NX
+//                             (instead of default 1h) so a single failed Monday run produces
+//                             one email; the next Monday's recovery is silent (RESEARCH §7
+//                             Open Question 2; orchestrator-locked decision).
 //
-// Per-condition Redis NX suppression with TTL=3600s makes alarms idempotent:
-// firing 'spend-cap' does NOT suppress 'dep-down', and re-firing the same
-// condition within 1h is a no-op (returns false from claimAlarmSuppression).
+// Per-condition Redis NX suppression makes alarms idempotent: firing 'spend-cap' does NOT
+// suppress 'dep-down', and re-firing the same condition within its TTL window is a no-op
+// (returns false from claimAlarmSuppression). Default TTL=3600s; weekly-eval-failure
+// overrides to 86400s.
 import { redis, getSpendToday } from './redis';
 import {
   pingAnthropic,
@@ -29,11 +35,28 @@ export type AlarmCondition =
   | 'spend-cap'
   | 'error-rate'
   | 'dep-down'
-  | 'rate-limit-abuse';
+  | 'rate-limit-abuse'
+  | 'weekly-eval-failure';
+
+/**
+ * Per-condition Redis NX suppression TTL (seconds). Default = 3600 (1h);
+ * 'weekly-eval-failure' overrides to 86400 (24h) per RESEARCH §7 Open Q 2 +
+ * orchestrator-locked decision (Plan 05-11): a single Monday failure → one
+ * email; the following Monday's recovery is silent.
+ */
+const DEFAULT_SUPPRESSION_TTL_S = 3600;
+const SUPPRESSION_TTL_OVERRIDES: Partial<Record<AlarmCondition, number>> = {
+  'weekly-eval-failure': 86400,
+};
+
+export function getSuppressionTtlSeconds(condition: AlarmCondition): number {
+  return SUPPRESSION_TTL_OVERRIDES[condition] ?? DEFAULT_SUPPRESSION_TTL_S;
+}
 
 /**
  * Returns true iff the alarm should fire (NX claim succeeded — key was absent).
- * Returns false when blocked by an existing key (already fired within the last hour).
+ * Returns false when blocked by an existing key (already fired within the
+ * suppression window for this condition).
  *
  * Fail-open on Redis error: better to over-fire under partial outage than to
  * silently drop alarms (T-04-06-07 disposition: accept).
@@ -42,8 +65,9 @@ export async function claimAlarmSuppression(
   condition: AlarmCondition,
 ): Promise<boolean> {
   const key = `resume-agent:alarms:fired:${condition}`;
+  const ttl = getSuppressionTtlSeconds(condition);
   try {
-    const result = await redis.set(key, '1', { ex: 3600, nx: true });
+    const result = await redis.set(key, '1', { ex: ttl, nx: true });
     // RESEARCH §6 / Pitfall 6: 'OK' === claim succeeded (key was absent);
     // null === blocked (key existed — NX prevented write).
     return result === 'OK';
@@ -176,6 +200,37 @@ export async function checkRateLimitAbuse(
   };
 }
 
+/**
+ * 5th condition (Plan 05-11). Queries eval_runs for any scheduled run that
+ * failed in the last hour (matches the weekly cron-job.org cadence). The
+ * actual eval body runs in GH Actions (Plan 05-10 workflow); rows are written
+ * by the eval CLI via supabaseAdmin. Tripped iff at least one such row exists.
+ *
+ * 24h NX suppression (getSuppressionTtlSeconds) ensures one email per failed
+ * Monday — see header comment.
+ */
+export async function checkWeeklyEvalFailure(): Promise<CheckResult> {
+  const since = new Date(Date.now() - 60 * 60_000).toISOString();
+  const { data, error } = await supabaseAdmin
+    .from('eval_runs')
+    .select('id, finished_at, status')
+    .eq('scheduled', true)
+    .eq('status', 'failed')
+    .gte('finished_at', since);
+
+  if (error || !data) {
+    return {
+      tripped: false,
+      summary: `Weekly-eval-failure check: query failed (${error?.message ?? 'no data'}).`,
+    };
+  }
+  const recentFailures = data.length;
+  return {
+    tripped: recentFailures > 0,
+    summary: `Scheduled eval failures in last 1h = ${recentFailures}.`,
+  };
+}
+
 export type AlarmDispatchResult = {
   condition: AlarmCondition;
   tripped: boolean;
@@ -184,19 +239,20 @@ export type AlarmDispatchResult = {
 };
 
 /**
- * Run all 4 alarm checks; for each tripped condition, attempt the
+ * Run all 5 alarm checks; for each tripped condition, attempt the
  * per-condition Redis NX claim; on successful claim, send the alarm email
  * and INSERT a row into public.alarms_fired (audit log for /admin/health
  * "Recent alarms" widget — Plan 04-04).
  */
 export async function runAllAlarms(): Promise<AlarmDispatchResult[]> {
-  // Run the 4 checks in parallel — they share no state, and serialising would
+  // Run the 5 checks in parallel — they share no state, and serialising would
   // add ~5x latency for no benefit.
-  const [spend, errorRate, deps, rateLimit] = await Promise.all([
+  const [spend, errorRate, deps, rateLimit, weeklyEvalFailure] = await Promise.all([
     checkSpendCap(),
     checkErrorRate(),
     checkDependencies(),
     checkRateLimitAbuse(),
+    checkWeeklyEvalFailure(),
   ]);
 
   const checks: Array<[AlarmCondition, CheckResult]> = [
@@ -204,6 +260,7 @@ export async function runAllAlarms(): Promise<AlarmDispatchResult[]> {
     ['error-rate', errorRate],
     ['dep-down', deps],
     ['rate-limit-abuse', rateLimit],
+    ['weekly-eval-failure', weeklyEvalFailure],
   ];
 
   const results: AlarmDispatchResult[] = [];
@@ -256,7 +313,9 @@ export async function runAllAlarms(): Promise<AlarmDispatchResult[]> {
       event: 'alarm_fired',
       condition,
       resend_send_id,
-      suppression_until_ts: new Date(Date.now() + 3600_000).toISOString(),
+      suppression_until_ts: new Date(
+        Date.now() + getSuppressionTtlSeconds(condition) * 1000,
+      ).toISOString(),
     });
     results.push({ condition, tripped: true, fired: true, resend_send_id });
   }
