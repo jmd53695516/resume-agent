@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Completed Plan 05-09 (admin evals dashboard + monthly calibration). EVAL-12 + EVAL-14 satisfied. Next planned plan: 05-10."
-last_updated: "2026-05-10T02:32:53.498Z"
-last_activity: 2026-05-10
+stopped_at: "Completed Plan 05-10 (CI eval gate end-to-end: GH Actions workflow, branch protection, Vercel Deployment Checks, A7 spot-test). EVAL-09 + EVAL-13 + LAUNCH-07-prerequisite satisfied. Required substantial pre-work (gh CLI install, GH repo create + push, Vercel project create + link + 13 env vars, public-flip for free branch protection). Eval contents currently fail on real signal (32/57 cases) — launch-blocking but Plan 05-12's job. Next: 05-11."
+last_updated: "2026-05-10T15:30:00.000Z"
+last_activity: 2026-05-10 -- Plan 05-10 closed (commit 9063630)
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 33
-  completed_plans: 30
-  percent: 91
+  completed_plans: 31
+  percent: 94
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 ## Current Position
 
 Phase: 05 (eval-gates-launch) — EXECUTING
-Plan: 3 of 12
-Status: Ready to execute
-Last activity: 2026-05-10
+Plan: 10 of 12 complete
+Status: Plan 05-10 closed; ready for Plan 05-11 (cron weekly drift run)
+Last activity: 2026-05-10 -- Plan 05-10 closed (commit 9063630)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [████████░░] 83% within Phase 05
 
 ## Performance Metrics
 
@@ -161,6 +161,14 @@ Recent decisions affecting current work:
 - [Phase 05-eval-gates-launch]: Plan 05-09: Quadratic-weighted Cohen's kappa implemented per RESEARCH §11 — degenerate-distribution returns 0 (sklearn behavior); recalibrationTriggered = kappa < 0.5; perfect-agreement test fixture must use varied distribution (e.g., [1,2,3,4,5]) NOT same-score (e.g., [5,5,5,5,5]) which is the same edge case
 - [Phase 05-eval-gates-launch]: Plan 05-09: Calibrate API route uses server-side judge_score lookup (NOT request-body trust) — caller cannot lie about what the judge gave; closes T-05-09-01 + T-05-09-02 in one move; pattern carries to future eval-metric APIs
 - [Phase 05-eval-gates-launch]: Plan 05-09: AdminNav 'Evals' single entry; /admin/evals/calibrate reachable via top-right link from evals index, NOT separate nav entry — keeps nav lean while ensuring discoverability where Joe will already be; /admin/eval-ab still intentionally not nav-linked (carryover from 05-08)
+- [Phase 05-eval-gates-launch]: Plan 05-10: GH repo lives at jmd53695516/resume-agent (PUBLIC for free branch protection + portfolio amplification); Vercel project is joey-d-resume-agent/resume-agent-eyap (auto-generated -eyap suffix; cleanup tracked Item #9); branch is main (renamed from master); 13 GH Actions secrets configured (plan said 4)
+- [Phase 05-eval-gates-launch]: Plan 05-10: Branch protection check name is `Vercel - resume-agent-eyap: eval` NOT `eval` — Vercel concatenates project name into the GH commit-status context; bridge action's `name:` field must match this exactly. Renaming the Vercel project breaks the binding (caught by next CI failure)
+- [Phase 05-eval-gates-launch]: Plan 05-10: Two-layer gate is live: Layer 1 = GH branch protection (blocks merge to main); Layer 2 = Vercel Deployment Checks (blocks prod alias even if main has bad code). enforce_admins=true on the GH rule (Joe also subject); 0 PR reviews required (solo dev). For solo-dev emergency push when CI can't pass yet, toggle enforce_admins off via API → push → toggle back on (~10 sec)
+- [Phase 05-eval-gates-launch]: Plan 05-10: Vercel Deployment Checks does NOT retroactively apply to deploys created before the integration was configured. Validate new gate config with `git commit --allow-empty` to trigger a fresh deploy through the new pipeline
+- [Phase 05-eval-gates-launch]: Plan 05-10: vercel/repository-dispatch/actions/status@v1 dropped its `state:` input (auto-determined from job.status now) and requires `permissions: { actions: read, contents: read, statuses: write }` block on the job. RESEARCH §code-examples 1091-1118 was out of date; corrected per the snippet Vercel's UI provides during Deployment Checks setup
+- [Phase 05-eval-gates-launch]: Plan 05-10: Vercel preview Deployment Protection blocks the eval CLI by default (returns 401 + login HTML for any anonymous request to preview URLs). For this project, disabled preview Auth entirely (production is already public-by-design); Protection Bypass for Automation token is the more secure alternative if preview privacy ever becomes a requirement
+- [Phase 05-eval-gates-launch]: Plan 05-10: `npm run eval` requires --env-file-if-exists (NOT --env-file) — CI runner has no .env.local; secrets come from process.env via GH Actions env block. Also requires preeval npm hook to run scripts/generate-fallback.ts so cat6's spawned local Next.js webServer compiles (the fallback file is .gitignored)
+- [Phase 05-eval-gates-launch]: Plan 05-10: AI SDK v6's onFinish callback type requires the destructure to NOT default to `{}` — `next build` strict tsc catches this; `npm run dev` + vitest do not. Run `npx tsc --noEmit` + `npm run build` locally before declaring TS work done (feedback memory captured)
 
 ### Pending Todos
 
@@ -182,8 +190,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-10T02:32:37.112Z
-Stopped at: Completed Plan 05-09 (admin evals dashboard + monthly calibration). EVAL-12 + EVAL-14 satisfied. Next planned plan: 05-10.
+Last session: 2026-05-10T15:30:00.000Z
+Stopped at: Completed Plan 05-10 (CI eval gate end-to-end at commit 9063630). EVAL-09 / EVAL-13 / LAUNCH-07-prerequisite satisfied. Pre-work-heavy session: gh CLI install + GH repo create + push + Vercel project create + link + 13 env vars + public-flip + 8 iterative commits to working pipeline. Eval contents fail on real signal (32/57 cases) — defers to Plan 05-12 LAUNCH-05. Next planned plan: 05-11 (cron weekly drift run).
 Resume file: None
 
 ## Quick Tasks Completed
