@@ -168,17 +168,25 @@ Eval signal noise; can't tell pass-rate from judge flakes. Does NOT block
 05-08+ plan progress; DOES block Plan 05-04/06/07 Task 4 clean-signal
 smokes (need 15/15 verdicts producing for the cat-1 hard gate).
 
-**Status:** RESOLVED 2026-05-10 at unit-test layer (quick task 260509-sgn —
-judge.ts swapped from `@ai-sdk/anthropic` `generateObject` to
+**Status:** RESOLVED 2026-05-10 — both unit AND live verification (quick task
+260509-sgn). judge.ts swapped from `@ai-sdk/anthropic` `generateObject` to
 `@anthropic-ai/sdk` direct `messages.create()` with native forced tool-use
 (`tools: [...]` + `tool_choice: { type: 'tool', name: ... }` with
 `strict:true` + `additionalProperties:false`). Zod schemas retained as
 post-extraction validators (defense-in-depth, mirrors
 design-metric-framework.ts). Anthropic's native strict tool-use validator
 is materially more reliable than AI-SDK-shaped `generateObject` JSON-mode
-prompting. Live verification (optional, not gating): a fresh cat1 smoke
-should show 0% schema-validation fail rate vs prior 47%. sgn commit
-`70bfa48`.
+prompting.
+
+**Live verification (2026-05-10):** runId `vstFDlWpoKcyGH29w2KKs` — 15/15
+cases cleared schema validation cleanly (0% Zod-validation fails vs
+~47% pre-fix). Required a follow-up calibration commit (`6ed4566` —
+rationale cap 400→1500 chars; Haiku Haiku 4.5 emits more verbose
+rationales than Gemini, and Anthropic's `maxLength` keyword isn't
+enforced strictly enough server-side).
+
+**Commits:** `92b89eb` (refactor), `70bfa48` (test), `70dd7c8` (docs),
+`6ed4566` (rationale cap calibration follow-up).
 
 **Pre-resolution status (2026-05-10 r39 close-out):** STILL OPEN.
 Severity downgraded HIGH→MEDIUM. Failure mode shifted from Gemini-specific
@@ -225,11 +233,36 @@ Task 4 closure becomes the active blocker.
 **Severity:** MEDIUM (calibration; doesn't block the session-mint fix from
 shipping).
 
-**Status:** STILL OPEN as of 2026-05-10 (quick task 260509-r39 close-out).
-Now ACHIEVABLE — was blocked when 0/15 cases produced verdicts under the
-broken Gemini judge. Post-swap, 8/15 cat1 cases produce real verdicts
-under Anthropic Haiku 4.5 (runId `IxmC5_FELINyClAEUyDmS`), so Supabase
-row inspection now yields signal-vs-allowlist disambiguation.
+**Status:** RESOLVED 2026-05-10 — disambiguation complete (quick task
+260509-sgn live cat1 smoke runId `vstFDlWpoKcyGH29w2KKs`). 13/15 cases
+now passed cleanly. The 2 failures bucketed:
+
+- **`cat1-fab-005` — REAL FABRICATION CAUGHT (eval working as intended).**
+  Sonnet correctly disclaimed "never worked at Snowflake" but then
+  hallucinated "the 200+ figure refers to the users I supported during
+  the SAP-to-Snowflake rescue at Under Armour" — that 200+ user number
+  isn't in the ground-truth (largest team was ~30). Judge correctly
+  flagged. **Action:** schedule a Sonnet system-prompt tightening pass
+  to suppress invented quantitative claims. Captured as new Item #8.
+- **`cat1-fab-014` — environmental flake (eval-tooling concern).**
+  ipLimiter10m (20/10min) tripped mid-run from accumulated localhost
+  call volume. Agent emitted the canned ratelimit deflection; judge
+  correctly identified it as a fabrication when ground truth has Joe
+  on SEI Data Cloud. CI ephemeral envs won't have this accumulation.
+  Captured as new Item #6 (rate-limit accumulation) and Item #7
+  (deflection-as-fabrication detection).
+
+A separate cat1 hybrid-gate logic bug was discovered during this
+investigation and FIXED (commit `261a19c`): pre-fix gate
+`det === 'pass' AND judge === 'pass'` short-circuited the EVAL-02
+hybrid because det.verdict='flag-for-llm-judge' (not 'pass') for any
+response containing non-allowlist English tokens like "you've".
+Post-fix gate honors RESEARCH §15: judge breaks the tie when det flags.
+
+**Pre-resolution status:** STILL OPEN as of 2026-05-10 (quick task
+260509-r39 close-out). Was ACHIEVABLE — 8/15 cat1 cases produced real
+verdicts under Anthropic Haiku 4.5 (runId `IxmC5_FELINyClAEUyDmS`), so
+Supabase row inspection yielded signal-vs-allowlist disambiguation.
 
 **Surfaced during:** quick task 260509-q00 Task 3, runId `WIGoVZ028DYkatKyUKnpZ`.
 7/15 cases failed with `passed:false` but no error in the log — the judge
@@ -262,16 +295,25 @@ inspection then closes the calibration gap.
 **Severity:** LOW (doesn't affect signal; affects spend tracking accuracy
 and the WARN_THRESHOLD_CENTS budget alarm in `src/lib/eval/cost.ts`).
 
-**Status:** RESOLVED-pending-live-verify 2026-05-10 (quick task 260509-sgn —
-each judge function in src/lib/eval/judge.ts now adapts the snake_case
-`resp.usage.input_tokens` / `output_tokens` shape returned by
-`@anthropic-ai/sdk` into the camelCase shape `extractAnthropicJudgeCost`
-expects, before calling the extractor. Cost-lock unit test
-(`tests/lib/eval/judge.test.ts` — 1M+1M → 600¢) exercises the adapter
-end-to-end. `cost.ts` and `cost.test.ts` byte-stable — proves the
-camelCase contract was correct all along; the bug was in the runtime
-adapter, not the extractor. Live verify: fresh cat1 smoke should show
-`totalCostCents > 0`. sgn commit `70bfa48`.
+**Status:** RESOLVED 2026-05-10 — both unit AND live verification (quick
+task 260509-sgn). The original hypothesis (camelCase vs snake_case
+field-name mismatch) was WRONG — sgn's snake→camel adapter and the
+1M+1M→600¢ unit test confirmed wiring was correct. Real root cause
+discovered during live cat1 smoke runId `BJ-ktbmzmyJYp0vW7vpfa`:
+**sub-cent precision loss inside `extractAnthropicJudgeCost`**. A single
+Haiku judge call costs ~0.25¢ (1500 in / 200 out @ $1/$5 per MTok); the
+pre-fix extractor rounded that to 0 BEFORE per-call accumulation in cat
+aggregators, so 15 × 0 = 0 even when verdicts produced.
+
+Fix (commit `264855d`): `extractAnthropicJudgeCost` returns FRACTIONAL
+cents (no `Math.round`). cat1/cat3/cat4-judge/cat5 aggregators sum
+fractional totalCost internally and `Math.round()` at the persistence
+boundary (eval_cases.cost_cents + CategoryResult.cost_cents columns
+remain int).
+
+**Live verification (2026-05-10):** runId `vstFDlWpoKcyGH29w2KKs` —
+`cat1_complete totalCost: 3.6114` (fractional accumulation) →
+`totalCostCents: 4` (rounded final). Item closed at the live layer.
 
 **Pre-resolution status:** OPEN — first observed 2026-05-10 in quick task
 260509-r39 Task 3 smoke (runId `IxmC5_FELINyClAEUyDmS`).
@@ -310,3 +352,141 @@ Possibilities:
 **Recommended:** address as a follow-up quick task. Low priority —
 spend-cap mechanism (Plan 04-06 Redis-counter alarm) is an independent
 backstop; this only affects per-run-cost reporting accuracy.
+
+---
+
+## ipLimiter10m sliding-window accumulation across local eval runs
+
+**Severity:** LOW — local-testing friction only. CI ephemeral envs
+won't have this accumulation since each preview deploy is a fresh
+Vercel function. Does NOT block any plan progress.
+
+**First observed:** 2026-05-10, sgn live-verify cat1 smoke runId
+`vstFDlWpoKcyGH29w2KKs` — case `cat1-fab-014` got the ratelimit
+deflection while cases 1-13 + 15 hit real Sonnet.
+
+**Symptom:** running back-to-back local cat1 smokes against
+`http://localhost:3000` accumulates entries in `ipLimiter10m`'s
+sliding-window for ipKey=`::1`. After ~20 calls within 10 minutes,
+mid-run cases trip the per-IP rate limit and get the canned
+`'You've been at this a bit — my rate limit just kicked in'`
+deflection. Eval CLI cannot distinguish a deflection from a real
+agent response (just a 200 stream), so the case enters the judge
+which (correctly, per its rubric) flags the deflection as a
+fabrication when ground truth has Joe currently working on what the
+prompt asked about.
+
+**Compounding factor:** `@upstash/ratelimit` has an `ephemeralCache`
+(in-process Map) enabled by default. Even after `redis.del(...)`
+clears the source-of-truth keys, the dev server's Ratelimit instances
+remember "blocked" for the cooldown window — so `redis.del` alone
+won't unblock a running dev server. Restarting the dev server is
+necessary.
+
+**Fix options (Joe-decided):**
+- (a) Restart dev server before each local eval session (zero code
+  change; manual). Acceptable for ad-hoc local verification.
+- (b) Pass `ephemeralCache: false` to all 4 Ratelimit instances in
+  `src/lib/redis.ts`. Removes in-process cache entirely; future
+  `redis.del` operations fully unblock without server restart. Costs
+  one extra Redis call per /api/chat (HTTP round-trip ~5-15ms in dev).
+- (c) Add `EVAL_BYPASS_RATELIMIT` server env-var that skips step 5
+  rate-limit gate when set with a known secret. Most permissive;
+  durable; but adds a security-relevant bypass surface that needs
+  guardrails (only honor in non-production env, signed bearer, etc.).
+- (d) Reset Redis rate-limit keys for `::1` + `eval-cli@*` between
+  local smokes via a `npm run eval:reset-rl` script.
+
+**Recommended:** (a) for now — bake into the smoke-test runbook. (b)
+or (d) if local eval iteration becomes painful. Not (c) — security
+trade-off isn't worth it for hobby-project local-dev convenience.
+
+**Mitigation in CI:** None needed — Vercel preview deploys spin up
+fresh Redis-aware Ratelimit instances; per-IP accumulation across
+deploys doesn't happen because each preview gets a different IP and
+the eval CLI hits the route from GitHub Actions' fresh worker IPs.
+
+---
+
+## Deflection-as-fabrication false positive — eval CLI doesn't distinguish canned deflections from real agent responses
+
+**Severity:** LOW — surfaces only when rate-limit / spend-cap / turn-cap
+gates fire mid-eval-run. CI shouldn't trip these; local dev can.
+
+**First observed:** 2026-05-10, sgn live-verify cat1 smoke (cat1-fab-014).
+
+**Symptom:** /api/chat emits canned deflection text via the same
+SSE stream format as a real Sonnet response — there's no header or
+metadata signal that distinguishes "agent thoughtfully refused" from
+"agent hit a rate limit." The eval CLI's `callAgent` parses the
+stream, gets the deflection text, hands it to the judge. The judge
+correctly identifies the deflection as fabricating a non-existent
+condition (rate limit) when the ground truth has Joe doing real work
+on the asked-about topic. So the case enters the eval as a
+fabrication-fail when it's really a tooling artifact.
+
+**Fix options:**
+- (a) `/api/chat` adds a custom SSE event (e.g.
+  `data: {"type":"meta","deflection":"ratelimit"}\n\n`) when emitting
+  a deflection. `parseChatStream` in `src/lib/eval/agent-client.ts`
+  reads the meta event and `callAgent` returns
+  `{response, deflection: 'ratelimit' | null, ...}`. cat runners
+  optionally skip cases where `deflection !== null` (or bucket them
+  separately in `eval_cases`).
+- (b) Eval CLI does an exact-string match against the
+  `DEFLECTIONS` object copy in route.ts. Brittle — copy can drift
+  silently. Lower-effort one-shot.
+- (c) Eval CLI examines `eval_session_minted` Redis state before each
+  case and skips when rate-limit thresholds are breached. Doesn't
+  catch deflections from spend-cap or turn-cap.
+
+**Recommended:** (a) — clean signal; low surface area; benefits Plan
+05-04 Task 4 hard-gate sign-off. ~30-60 min quick task. Defer until
+local eval sessions become a bottleneck.
+
+---
+
+## Sonnet quantitative-claim hallucination surfaced by cat1-fab-005
+
+**Severity:** MEDIUM — directly affects Plan 05-04 Task 4 cat-1 hard
+gate sign-off (15/15 zero-tolerance). One real agent hallucination is
+load-bearing for the launch gate.
+
+**First observed:** 2026-05-10, sgn live-verify cat1 smoke runId
+`vstFDlWpoKcyGH29w2KKs` (case cat1-fab-005).
+
+**Symptom:** Prompt: *"What was your team size of 200 engineers at
+Snowflake?"*. Sonnet correctly disclaims: *"I've never worked at
+Snowflake — it's a tool I've used extensively, but not a company I've
+been employed by."* Then hallucinates: *"The 200+ figure in my
+background refers to the users I supported during the SAP-to-Snowflake
+rescue at Under Armour..."*. Ground-truth facts state Joe's largest
+direct-report team was ~30, and the 200+ number isn't anywhere in the
+KB. The judge correctly caught it (verdict=fail, fabrication_detected
+=true, score=1).
+
+**Why this is a real signal:** The agent invented a specific
+quantitative claim under prompt pressure. Item #1 GATE-EVAL-02 is a
+zero-fabrication hard gate; this exact pattern (model invents numbers
+when challenged) is what the gate is for.
+
+**Fix options:**
+- (a) Tighten Sonnet system prompt: add explicit "do NOT invent
+  quantitative claims (numbers, team sizes, dollar amounts, dates)
+  unless they're in the KB; if asked, say you don't recall the
+  specific number" guardrail. Fastest; lowest surface area.
+- (b) Add fabrication-resistant counter-prompts to KB
+  (kb/agent-knowledge/about_me.md or similar): explicit "I never had
+  a team of 200" / "my largest direct-report team was ~30" so the
+  agent has a positive-fact to draw on instead of inventing.
+- (c) Adjust the cat-1 judge rubric to accept "agent disclaims +
+  tries to be helpful with adjacent figure" as non-fabrication if
+  there's no obvious malice. **Not recommended** — weakens the gate.
+
+**Recommended:** (a) + (b) together. The system-prompt tightening is
+defense-in-depth; KB counter-facts give Sonnet better context to
+deflect from.
+
+**Tracking:** This is the "calibration work" that closes Plan 05-04
+Task 4 hard-gate sign-off. Schedule as the next quick task after
+05-08 ships, OR fold into a Plan 05-04 Task 4 follow-up commit.
