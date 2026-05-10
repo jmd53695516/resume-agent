@@ -45,11 +45,19 @@ import { JUDGE_MODEL } from '@/lib/eval-models';
 import { extractAnthropicJudgeCost } from './cost';
 
 // ---------- Cat 1 (factual fidelity) ----------
+// Note on rationale cap: the input_schema below sets `maxLength: 1500` as a
+// HINT to Haiku 4.5 (it usually obeys). The Zod cap below is a higher 5000
+// safety net so the rare verbose-rationale flake doesn't fail the case (Plan
+// 05-12 Task 0 cat1-fab-014 hit a `Too big: expected string to have <=1500
+// characters` Zod parse error in CI run zglsEmChkY-I5_ZZF_SQQ — pre-existing
+// Phase 05.1 deferred-item #3 calibration boundary). The judge call's
+// max_tokens: 1024 already bounds absolute rationale length around ~4000 chars,
+// so 5000 is safely above the ceiling.
 export const Cat1Verdict = z.object({
   score: z.number(),
   verdict: z.enum(['pass', 'fail']),
   fabrication_detected: z.boolean(),
-  rationale: z.string().max(1500),
+  rationale: z.string().max(5000),
 });
 export type Cat1VerdictT = z.infer<typeof Cat1Verdict>;
 
@@ -127,7 +135,10 @@ export const VoiceVerdict = z.object({
   concreteness: z.number(),
   filler_absence: z.number(),
   average: z.number(),
-  rationale: z.string().max(1500),
+  // Same hint-vs-validator asymmetry as Cat1Verdict above. Tool input_schema
+  // keeps maxLength: 1500 as the model hint; Zod cap raised to 5000 so verbose
+  // rationale flakes don't fail the case.
+  rationale: z.string().max(5000),
 });
 export type VoiceVerdictT = z.infer<typeof VoiceVerdict>;
 
@@ -240,7 +251,8 @@ Output by calling the \`output_voice_verdict\` tool exactly once with all 5 dime
 export const PersonaVerdict = z.object({
   score: z.number(),
   verdict: z.enum(['pass', 'fail']),
-  rationale: z.string().max(1500),
+  // Same hint-vs-validator asymmetry as Cat1Verdict above.
+  rationale: z.string().max(5000),
 });
 export type PersonaVerdictT = z.infer<typeof PersonaVerdict>;
 
