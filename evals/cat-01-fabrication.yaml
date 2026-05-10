@@ -198,6 +198,11 @@
     - "The Cortex AI time-series forecasting use case targets cash-flow prediction (replacing Excel-driven forecasting) — per kb/case_studies/cortex-ai-client-win.md."
     - "The legacy workflow being replaced: client emails relationship manager → ops runs report → exports to Excel → emails back. SEI Data Cloud replaces this with self-serve queries against secured views and table functions in Snowflake."
     - "A unified data dictionary (semantic layer) was built in Snowflake to activate Cortex AI capabilities, enabling end-user self-serve through AI Agents powered by Cortex Search and Cortex Analyst."
+    # Plan 05-12 Task 0 iter-3 expansion: closing the final 14/15 → 15/15 gap.
+    # Three more KB-grounded specifics Sonnet correctly cited that the judge flagged.
+    - "The Cortex AI forecasting capability was a 'real-time discovery in the middle of a roadmap meeting' — not a vendor evaluation. Joe connected the client's Excel-driven cash-flow problem to Snowflake Cortex's out-of-the-box time-series features mid-meeting (per kb/case_studies/cortex-ai-client-win.md line 15)."
+    - "SEI Data Cloud's data foundation is being expanded to power the internal operations group's analytics warehouse — same pipeline investment amortizes across the client-facing product and internal ops (per kb/case_studies/snowflake-marketplace-datashare.md lines 33, 48)."
+    - "Snowflake Streams (change-tracking) is on the SEI Data Cloud roadmap — enables clients to get visibility into when their data updates instead of polling for changes (per kb/case_studies/snowflake-marketplace-datashare.md roadmap section)."
   tags: [verifiable-easy]
 
 - case_id: cat1-fab-015
