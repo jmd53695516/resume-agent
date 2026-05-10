@@ -134,7 +134,11 @@ Phase 4 follow-ups (tracked in 04-HUMAN-UAT.md, not blocking closure):
 - 5 Info-severity code-review items left as documented follow-ups (TracePanel click-lock, OAuth diagnostic log, magic threshold constants, streamText error reason hack, direct `process.env` reads in supabase-browser).
 - End-of-session feedback prompt ("was this useful?") was originally listed for Phase 4 in the early roadmap but did not land — moved back to Active with no phase assignment until prioritized.
 
-Next up: Phase 5 (Eval Gates & Launch) — ~40-case eval suite across 6 categories (factual fidelity zero-tolerance, tool correctness, persona, voice fidelity blind A/B, abuse resilience, UX smoke), three friend-tester sessions including one non-PM, and the final QR-code-on-resume launch.
+**Phase 5 (Eval Gates & Launch) — in flight (10/12 plans done):** eval harness across 6 categories shipped (Plans 05-01..05-09); two-layer prod gate live (Plan 05-10 — GH branch protection + Vercel Deployment Checks); cron eval scaffolding partial (Plan 05-11 PARTIAL, cron-job.org schedule deferred to 05-12 pending stable prod URL post-CNAME flip). Plan 05-12 LAUNCH-* (CNAME, prod-URL eval, friend-tester sessions, QR-code launch) is the final remaining work.
+
+**Phase 5.1 (Eval Content Trust Restoration) closed PARTIAL 2026-05-10.** Three sequential commits closed deferred-items #6 (ipLimiter local-reset script + sliding-window key expansion), #7 (eval CLI deflection-vs-real disambiguation via AI SDK v6 transient `data-deflection` chunk), and #8 (Sonnet quantitative-claim hallucination — `HALLUCINATION_RULES` premise-smuggling rule + `kb/profile.yml` `counter_facts:` 10-entry block). cat1-fab-005 passes every post-Item-#8 run. The cat1=15/15 D-B-01 stretch goal was NOT met because Item #7's now-honest deflection signal exposed a previously-hidden classifier (Haiku 4.5) over-flagging behavior — promoted as new deferred-item #11 for Plan 05-12 / Phase 05.2 disposition. Production /api/chat byte-identical to pre-phase SHA `8be227b` (Phase 2 D-G-01..05 contract preserved). 541/541 tests pass; 0 Critical / 3 Warning / 4 Info on code review.
+
+Next up: Plan 05-12 (LAUNCH-*) — re-baseline cat1/cat3 against prod URL where classifier behavior may differ, run friend-tester sessions, configure cron-job.org weekly schedule, flip CNAME, ship the QR-code launch.
 
 ---
-*Last updated: 2026-05-07 after Phase 4 (Admin & Observability) closure*
+*Last updated: 2026-05-10 after Phase 05.1 (Eval Content Trust Restoration) PARTIAL closure*
