@@ -150,13 +150,26 @@ describe('runCat1', () => {
     expect(rationale.deterministic).toBeDefined();
   });
 
-  it('passes ONLY when both deterministic and judge return pass (zero-tolerance hybrid)', async () => {
+  it('hybrid pass: det=flag-for-llm-judge + judge=pass → overall pass (judge breaks tie)', async () => {
+    // RESEARCH §15: deterministic 'flag-for-llm-judge' is the "needs second
+    // opinion" signal. The judge breaks the tie. Pre-fix bug treated 'flag'
+    // as auto-fail regardless of judge — surfaced by smoke runId
+    // BJ-ktbmzmyJYp0vW7vpfa where 14/15 cases had judge=pass but failed.
     loadCasesMock.mockResolvedValue([fakeCase()]);
     loadAllowlistMock.mockResolvedValue([]);
-    // Response containing "InventCorp" → deterministic flag-for-llm-judge
     callAgentMock.mockResolvedValue({ response: 'I worked at InventCorp.', httpStatus: 200, rawBody: '' });
-    // Even with judge=pass, det=flag → overall fail
     judgeMock.mockResolvedValue(goodVerdict);
+    const { runCat1 } = await import('@/lib/eval/cats/cat1');
+    const result = await runCat1('http://localhost:3000', 'run_test');
+    expect(result.cases[0].passed).toBe(true);
+    expect(result.passed).toBe(true);
+  });
+
+  it('hybrid fail: det=flag-for-llm-judge + judge=fail → overall fail (both layers disagree with response)', async () => {
+    loadCasesMock.mockResolvedValue([fakeCase()]);
+    loadAllowlistMock.mockResolvedValue([]);
+    callAgentMock.mockResolvedValue({ response: 'I worked at InventCorp.', httpStatus: 200, rawBody: '' });
+    judgeMock.mockResolvedValue(badVerdict);
     const { runCat1 } = await import('@/lib/eval/cats/cat1');
     const result = await runCat1('http://localhost:3000', 'run_test');
     expect(result.cases[0].passed).toBe(false);
@@ -180,7 +193,10 @@ describe('runCat1', () => {
   it('returns CategoryResult with passed = cases.every(c.passed)', async () => {
     loadCasesMock.mockResolvedValue([fakeCase({ case_id: 'a' }), fakeCase({ case_id: 'b' })]);
     loadAllowlistMock.mockResolvedValue([]);
-    callAgentMock.mockResolvedValue({ response: 'good', httpStatus: 200, rawBody: '' });
+    // Both responses contain "InventCorp" → det='flag-for-llm-judge', so the
+    // judge is the arbiter (post-fix hybrid semantics). A 'pass' response
+    // requires judge=pass; judge=fail propagates to category fail.
+    callAgentMock.mockResolvedValue({ response: 'I worked at InventCorp.', httpStatus: 200, rawBody: '' });
     // First case judge passes; second judge fails
     judgeMock.mockResolvedValueOnce(goodVerdict).mockResolvedValueOnce(badVerdict);
     const { runCat1 } = await import('@/lib/eval/cats/cat1');

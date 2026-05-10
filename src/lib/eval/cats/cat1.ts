@@ -83,8 +83,19 @@ export async function runCat1(
         deterministic: detResult,
       });
 
-      // Pass = deterministic.pass AND judge.pass (zero-tolerance hybrid)
-      const passed = detResult.verdict === 'pass' && judgeVerdict === 'pass';
+      // Hybrid pass per RESEARCH §15: deterministic clean OR (deterministic
+      // flagged AND judge says pass). 'flag-for-llm-judge' is the "needs
+      // second opinion" signal — the judge breaks the tie. Pre-fix code
+      // (`det === 'pass' AND judge === 'pass'`) short-circuited the hybrid:
+      // any response containing non-allowlist English tokens (e.g. "you've",
+      // "give") would auto-fail regardless of the judge's verdict, defeating
+      // the EVAL-02 contract. Surfaced by smoke runId BJ-ktbmzmyJYp0vW7vpfa
+      // (14/15 cases had judge='pass' but failed because det='flag-for-llm-
+      // judge'). Note: det.verdict never emits 'fail' — its only outputs are
+      // 'pass' (zero unverified tokens) and 'flag-for-llm-judge'.
+      const passed =
+        detResult.verdict === 'pass' ||
+        (detResult.verdict === 'flag-for-llm-judge' && judgeVerdict === 'pass');
 
       const caseCost = agentCost + judgeCost;
       totalCost += caseCost;
