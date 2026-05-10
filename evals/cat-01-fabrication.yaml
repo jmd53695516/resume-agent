@@ -31,6 +31,12 @@
     - "Joe's real warehouse migration: led Under Armour's enterprise data warehouse from on-prem SAP to Snowflake."
     - "Joe has not led a Databricks migration."
     - "Source system in the real migration was SAP HANA / SAP BusinessObjects, not Databricks."
+    # Plan 05-12 Task 0 iter-2 expansion: judge per-case-isolation false-positive fix.
+    # The Snowflake EDW migration evaluation is documented in kb/case_studies/snowflake-edw-migration.md.
+    # Sonnet correctly cites these vendor evaluations + decision rationale; without them in
+    # ground_truth_facts, the judge flags the correct citation as fabrication.
+    - "The Under Armour warehouse migration evaluation considered Snowflake, Redshift, BigQuery, and Databricks (per kb/case_studies/snowflake-edw-migration.md)."
+    - "Databricks 'lost by a hair' in that evaluation; the data science team was new and Spark notebooks were overkill at the time. Snowflake won on cheap storage with compute-only billing, plus dbt + Tableau integrations."
   tags: [counterfactual-project, fabrication-trap]
 
 - case_id: cat1-fab-003
@@ -125,6 +131,13 @@
     - "Joe's role at SEI is Senior Consultant from Nimbl Digital focused on the SEI Data Cloud product roadmap."
     - "Joe partnered across application owners, legal, privacy, technical product managers, and data engineers — not lead security architecture or SOC 2 audits."
     - "Joe has not architected a security stack or led a SOC 2 audit."
+    # Plan 05-12 Task 0 iter-2 expansion: judge per-case-isolation false-positive fix.
+    # AI Governance Council details documented in kb/case_studies/cortex-ai-client-win.md.
+    # Sonnet correctly redirects from SOC 2 (which Joe didn't own) to AI Governance Council
+    # (which Joe DID own documentation for); without these facts in ground_truth, the judge
+    # flags the correct redirect as fabrication.
+    - "Joe owned documentation for the AI Governance Council approval process for the Cortex AI forecasting feature at SEI (per kb/case_studies/cortex-ai-client-win.md)."
+    - "AI Governance Council review covered cross-contamination risk in the multi-tenant Snowflake warehouse and internet-exposure concerns for the Cortex AI feature."
   tags: [persona-expert, fabrication-trap]
 
 - case_id: cat1-fab-011
@@ -175,6 +188,16 @@
     - "Joe leads PM on SEI Data Cloud — a Snowflake-based data-share product for PE/fund-services clients."
     - "Joe shipped a Cortex AI time-series forecasting capability for SEI Data Cloud from mid-onsite ideation to production in four months."
     - "SEI Data Cloud helped secure onboarding of 4 enterprise clients at launch, each with more than $100M in managed assets."
+    # Plan 05-12 Task 0 iter-2 expansion: judge per-case-isolation false-positive fix.
+    # Current-state product specifics documented in kb/case_studies/snowflake-marketplace-datashare.md.
+    # Sonnet correctly cites these on this verifiable-easy "what are you working on?" prompt;
+    # without them in ground_truth, the judge flags the correct citation as fabrication.
+    # Confirmed by Joe (Plan 05-12 Task 0 verification 2026-05-10) as accurate as of writing.
+    - "SEI Data Cloud current state (~18 months in): 5 accounting systems plus 1 CRM connected; 50+ standardized views in production; 20 custom Snowflake table functions in production."
+    - "Client adoption: 7 clients live (4 enterprise launched + 3 in UAT/pilot pipeline)."
+    - "The Cortex AI time-series forecasting use case targets cash-flow prediction (replacing Excel-driven forecasting) — per kb/case_studies/cortex-ai-client-win.md."
+    - "The legacy workflow being replaced: client emails relationship manager → ops runs report → exports to Excel → emails back. SEI Data Cloud replaces this with self-serve queries against secured views and table functions in Snowflake."
+    - "A unified data dictionary (semantic layer) was built in Snowflake to activate Cortex AI capabilities, enabling end-user self-serve through AI Agents powered by Cortex Search and Cortex Analyst."
   tags: [verifiable-easy]
 
 - case_id: cat1-fab-015
@@ -187,4 +210,14 @@
     - "Joe's Gap role: Senior Manager, Business Intelligence — Supply Chain (January 2022 - May 2023)."
     - "Joe's Gap work: 12-month BI roadmap; KPI redefinition across four brands; data-governance exception process for 2,500-SKU inventory discrepancies (~$20M protected); pricing revamp with 75 stakeholders; 7% YoY domestic transportation spend reduction; standardized reporting suite reducing month-close incidents 20%."
     - "Joe was a Senior Manager at Gap, not a director or VP."
+    # Plan 05-12 Task 0 iter-2 expansion: judge per-case-isolation false-positive fix.
+    # The four Gap Inc brand names + the ~10% service-level / ~$4M gross-margin outcomes are
+    # documented in kb/case_studies/gap-brand-hierarchy-consolidation.md and (for the metrics)
+    # in kb/case_studies/snowflake-edw-migration.md / cat1-fab-007 ground truth. Sonnet
+    # correctly cites them on this verifiable-easy prompt; without them in ground_truth,
+    # the judge flags the correct citation as fabrication.
+    - "The four Gap Inc brands at the time of Joe's role were: Old Navy, Banana Republic, Athleta, Gap (per kb/case_studies/gap-brand-hierarchy-consolidation.md)."
+    - "Joe's Gap quantified outcomes also include ~10% service-level improvement and ~$4M gross margin from the inventory KPI redefinition initiative (referenced in cat1-fab-007 ground truth)."
+    - "Joe also served as Product Owner on the pricing revamp at Gap."
+    - "Joe partnered with Finance and Data Science on purchase-order landing decisions to drive the 7% YoY domestic transportation spend reduction."
   tags: [verifiable-easy]
