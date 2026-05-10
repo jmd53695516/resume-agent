@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 Phase: 05 (eval-gates-launch) — EXECUTING
 Plan: 4 of 12
 Status: Ready to execute
-Last activity: 2026-05-09 (quick task 260509-q00 — eval CLI session-mint fix)
+Last activity: 2026-05-10 (quick task 260509-r39 — swap eval judge to Claude Haiku 4.5; closed PARTIAL — items #1/#2 resolved, #3 schema flakiness reduced to MEDIUM)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -167,6 +167,7 @@ None yet.
 - Phase 1: Voice-interview protocol and content-acquisition interview prompts not yet written — Joe-time-expensive and cannot be redone cheaply; needs a focused planning pass
 - Phase 5 deploy gate: Anthropic org-level 20-USD-per-month spend cap (SAFE-12) was deferred during Plan 02-01 Task 3. Must be set in console.anthropic.com before public deploy.
 - Phase 5 LAUNCH-*: drop joe-dollinger-resume.pdf into public/ before public deploy — PlainHtmlFallback links to /joe-dollinger-resume.pdf which currently 404s (T-03-05-08 disposition: accept; recruiter still has email + LinkedIn + GitHub paths)
+- Phase 5 deferred-item #3 (judge schema flakiness, ~47% Anthropic generateObject post-r39 swap) blocks Plan 05-04/06/07 Task 4 clean-signal smokes. Mitigation options in deferred-items.md (retry-with-fallback, native tool-use, or loosen Zod). Runs at 8/15 real verdicts producing post-swap; sufficient for item-#4 calibration inspection but not for the 15/15 cat-1 hard gate.
 
 ## Session Continuity
 
@@ -176,6 +177,7 @@ Resume file: None
 
 ## Quick Tasks Completed
 
-| ID | Description | Date | Commit | Path |
-|----|-------------|------|--------|------|
-| 260509-q00 | eval CLI session-mint fix | 2026-05-09 | 4da1c66 | [260509-q00-eval-cli-session-mint-fix](./quick/260509-q00-eval-cli-session-mint-fix/) |
+| ID | Description | Date | Commit | Status | Path |
+|----|-------------|------|--------|--------|------|
+| 260509-q00 | eval CLI session-mint fix | 2026-05-09 | 4da1c66 | DONE | [260509-q00-eval-cli-session-mint-fix](./quick/260509-q00-eval-cli-session-mint-fix/) |
+| 260509-r39 | swap eval judge to Claude Haiku 4.5 | 2026-05-10 | fe612a8 | PARTIAL | [260509-r39-swap-eval-judge-to-claude-haiku-4-5](./quick/260509-r39-swap-eval-judge-to-claude-haiku-4-5/) |
