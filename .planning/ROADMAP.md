@@ -115,7 +115,7 @@ Plans:
 - [x] 05-06-PLAN.md — Cat 4 LLM-judge: 5 voice prompts + voice.yaml rubric + runCat4Judge (EVAL-06)
 - [x] 05-07-PLAN.md — Cat 5 abuse (6 OWASP + 1 false-positive) + Cat 6 Playwright UX smoke (EVAL-07, EVAL-08)
 - [x] 05-08-PLAN.md — /admin/eval-ab page + ab-mapping + cat4 blind A/B runner (EVAL-05)
-- [ ] 05-09-PLAN.md — /admin/evals index + detail + calibrate + Cohen's kappa + AdminNav (EVAL-12, EVAL-14)
+- [x] 05-09-PLAN.md — /admin/evals index + detail + calibrate + Cohen's kappa + AdminNav (EVAL-12, EVAL-14)
 - [ ] 05-10-PLAN.md — Real eval workflow body + branch protection + Vercel Deployment Checks + A7 spot-test (EVAL-09, EVAL-13)
 - [ ] 05-11-PLAN.md — /api/cron/run-eval + 5th alarm condition (weekly_eval_failure 24h NX) + cron-job.org schedule (EVAL-11)
 - [ ] 05-12-PLAN.md — Launch: domain CNAME + PDF + QR + LinkedIn/PDF/site URL + SAFE-12 evidence + friend-test + LAUNCH-CHECKLIST signed (LAUNCH-01..07, SAFE-12)

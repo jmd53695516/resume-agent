@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Completed Plan 05-08 (Cat 4 blind A/B page); Task 4 live smoke auto-approved/deferred. Next planned plan: 05-09 (admin evals dashboard)."
-last_updated: "2026-05-10T02:13:48.162Z"
+stopped_at: "Completed Plan 05-09 (admin evals dashboard + monthly calibration). EVAL-12 + EVAL-14 satisfied. Next planned plan: 05-10."
+last_updated: "2026-05-10T02:32:53.498Z"
 last_activity: 2026-05-10
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 33
-  completed_plans: 29
-  percent: 88
+  completed_plans: 30
+  percent: 91
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 ## Current Position
 
 Phase: 05 (eval-gates-launch) — EXECUTING
-Plan: 2 of 12
+Plan: 3 of 12
 Status: Ready to execute
 Last activity: 2026-05-10
 
@@ -75,6 +75,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05-eval-gates-launch P05-06 | 12min | 3 tasks | 6 files |
 | Phase 05-eval-gates-launch P05-07 | 18min | 3 tasks | 11 files |
 | Phase 05-eval-gates-launch P05-08 | 22min | 4 tasks | 6 files |
+| Phase 05-eval-gates-launch P05-09 | 12min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -157,6 +158,9 @@ Recent decisions affecting current work:
 - [Phase 05-eval-gates-launch]: Plan 05-07: Pitfall 7 mitigation places cat6_spawn_start_BASE_URL Pino log BEFORE spawn() — if EVAL_TARGET_URL → BASE_URL forwarding silently breaks, Playwright falls back to localhost:3000 default and connection-refused failures are diagnosable from one CI log line; combined with CI=1 spawn env (T-05-07-03 mitigation) which disables Playwright auto-webServer, opaque hangs become fail-fast
 - [Phase 05-eval-gates-launch]: Plan 05-07: All six category runners now real implementations — final Plan 05-03 stubs replaced. Tasks 1-3 code-complete at 475/475 tests; Task 4 (live full-suite smoke) deferred per orchestrator approval pending GOOGLE_GENERATIVE_AI_API_KEY; convergence point with Plan 05-04 + 05-05 + 05-06 Task 4 — all four close together when Joe sets the env var
 - [Phase 05-eval-gates-launch]: Plan 05-08: Cat 4 blind A/B page wired with server-side mapping pattern (kind stripped at construction); ra_eval_session HTTP-only cookie (Pitfall 6 prefix); defense-in-depth cookie/body sessionId cross-check on submit; pre-warm via mintEvalSession + Promise.all over callAgent (reuses post-BL-17 helpers, NOT plan's outdated v5 stream regex). 16 ab-mapping tests; 503/503 passing. Live smoke (Task 4 checkpoint:human-verify) auto-approved per workflow.auto_advance=true; deferred to separate session.
+- [Phase 05-eval-gates-launch]: Plan 05-09: Quadratic-weighted Cohen's kappa implemented per RESEARCH §11 — degenerate-distribution returns 0 (sklearn behavior); recalibrationTriggered = kappa < 0.5; perfect-agreement test fixture must use varied distribution (e.g., [1,2,3,4,5]) NOT same-score (e.g., [5,5,5,5,5]) which is the same edge case
+- [Phase 05-eval-gates-launch]: Plan 05-09: Calibrate API route uses server-side judge_score lookup (NOT request-body trust) — caller cannot lie about what the judge gave; closes T-05-09-01 + T-05-09-02 in one move; pattern carries to future eval-metric APIs
+- [Phase 05-eval-gates-launch]: Plan 05-09: AdminNav 'Evals' single entry; /admin/evals/calibrate reachable via top-right link from evals index, NOT separate nav entry — keeps nav lean while ensuring discoverability where Joe will already be; /admin/eval-ab still intentionally not nav-linked (carryover from 05-08)
 
 ### Pending Todos
 
@@ -178,8 +182,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-10T02:13:48.158Z
-Stopped at: Completed Plan 05-08 (Cat 4 blind A/B page); Task 4 live smoke auto-approved/deferred. Next planned plan: 05-09 (admin evals dashboard).
+Last session: 2026-05-10T02:32:37.112Z
+Stopped at: Completed Plan 05-09 (admin evals dashboard + monthly calibration). EVAL-12 + EVAL-14 satisfied. Next planned plan: 05-10.
 Resume file: None
 
 ## Quick Tasks Completed

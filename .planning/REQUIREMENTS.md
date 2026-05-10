@@ -113,9 +113,9 @@
 - [ ] **EVAL-09** — CI blocks promote-preview-to-prod if any eval regresses
 - [x] **EVAL-10** — Synthetic spend-cap test (mock Redis past threshold) included in eval suite
 - [ ] **EVAL-11** — Weekly scheduled eval run to catch drift from KB edits, LLM version shifts, or Exa data drift
-- [ ] **EVAL-12** — Human baseline calibration monthly against LLM-judge results (detect judge drift/self-preference)
+- [x] **EVAL-12** — Human baseline calibration monthly against LLM-judge results (detect judge drift/self-preference)
 - [ ] **EVAL-13** — Judge model pinned to specific version ID; changes require explicit calibration re-run
-- [ ] **EVAL-14** — Eval results stored in Supabase with run-id, pass/fail per case, and surface in `/admin/evals/<run-id>`
+- [x] **EVAL-14** — Eval results stored in Supabase with run-id, pass/fail per case, and surface in `/admin/evals/<run-id>`
 
 ### Launch (LAUNCH)
 
@@ -254,9 +254,9 @@ Each v1 requirement is mapped to exactly one phase. Coverage: 94/94.
 | EVAL-09 | Phase 5 | Pending |
 | EVAL-10 | Phase 5 | Complete |
 | EVAL-11 | Phase 5 | Pending |
-| EVAL-12 | Phase 5 | Pending |
+| EVAL-12 | Phase 5 | Complete |
 | EVAL-13 | Phase 5 | Pending |
-| EVAL-14 | Phase 5 | Pending |
+| EVAL-14 | Phase 5 | Complete |
 | LAUNCH-01 | Phase 5 | Pending |
 | LAUNCH-02 | Phase 5 | Pending |
 | LAUNCH-03 | Phase 5 | Pending |
