@@ -132,3 +132,13 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 3. Tools & Resilience | 0/TBD | Not started | - |
 | 4. Admin & Observability | 0/7 | Not started | - |
 | 5. Eval Gates & Launch | 0/12 | Not started | - |
+
+### Phase 05.1: Eval Content Trust Restoration (INSERTED)
+
+**Goal:** Restore eval signal trustworthiness — close Phase 5 deferred-items #6/#7/#8 (Sonnet premise-smuggling hallucination + ipLimiter local-reset friction + eval-CLI deflection disambiguation). Phase closes when `npm run eval -- --cat 1` hits 15/15 locally AND cat3 does not regress vs local baseline. Prod-URL eval is owned by Plan 05-12 LAUNCH-05 (out of scope here).
+**Requirements**: None (decimal phase addressing Phase 5 deferred-items.md entries #6, #7, #8 — `phase_req_ids: null`)
+**Depends on:** Phase 5
+**Plans:** 1 plan
+
+Plans:
+- [ ] 05.1-01-PLAN.md — Item #8 system-prompt premise-smuggling rule + KB counter_facts; Item #6 scripts/reset-eval-rate-limits.ts; Item #7 transient data-deflection chunk + eval-CLI consumer (closes deferred-items #6/#7/#8)
