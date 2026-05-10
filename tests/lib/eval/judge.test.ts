@@ -1,11 +1,17 @@
 // tests/lib/eval/judge.test.ts
 // Phase 5 Plan 05-03 Task 2 — TDD coverage for the judge wrapper.
 // Quick task 260509-r39 (2026-05-09): judge swapped from Gemini 2.5 Flash to
-// Claude Haiku 4.5 — mock target moved from `@ai-sdk/google` to `@/lib/anthropic`
-// (the project's pre-wired anthropicProvider factory). Mocking the project
-// module is cleaner than mocking the SDK package directly: it avoids the
-// constructor-vs-factory trap (Phase 3 Plan 03-00 STATE.md note about Exa
-// class mocks) and matches how /api/chat tests stub the chat path.
+// Claude Haiku 4.5 (@ai-sdk/anthropic generateObject path).
+// Quick task 260509-sgn (2026-05-10): swapped again from @ai-sdk/anthropic
+// generateObject → @anthropic-ai/sdk direct messages.create() with native
+// forced tool-use. Mock target therefore moves to `@anthropic-ai/sdk` as a
+// constructable class (Plan 03-00 STATE.md learning: arrow `vi.fn()` is not
+// constructible; required because anthropicClient() does `new Anthropic({...})`).
+//
+// Resolved-shape change: returns `{ content: [{ type: 'tool_use', input: {...} }],
+// usage: { input_tokens, output_tokens } }` (snake_case — native Anthropic shape;
+// judge.ts adapts to camelCase before extractAnthropicJudgeCost). The cost-lock
+// test stages 1M+1M tokens and asserts 600 cents — proves item #5 wiring.
 //
 // NOTE: vitest config only includes tests/**/*.test.{ts,tsx}; plan spec said
 // src/lib/__tests__/eval/X.test.ts which would not be discovered. Path deviation
@@ -24,34 +30,40 @@ vi.mock('@/lib/env', () => {
   return { env };
 });
 
-const generateObjectMock = vi.fn();
-vi.mock('ai', () => ({
-  generateObject: (args: unknown) => generateObjectMock(args),
-}));
-
-// Mock the project's anthropicProvider factory (not @ai-sdk/anthropic directly).
-// MODELS export is included for symmetry with src/lib/anthropic.ts even though
-// judge.ts only imports anthropicProvider — keeps the mock module shape honest
-// for any future consumers that import the same module.
-vi.mock('@/lib/anthropic', () => ({
-  anthropicProvider: (model: string) => ({ __mock: 'anthropic', model }),
-  MODELS: { MAIN: 'claude-sonnet-4-6', CLASSIFIER: 'claude-haiku-4-5' },
+// Mock @anthropic-ai/sdk as a constructable class. anthropicClient() in
+// src/lib/anthropic.ts does `new Anthropic({ apiKey })` — arrow vi.fn() is not
+// constructible (Plan 03-00 STATE.md note). Shared messagesCreateMock instance
+// lives outside the class so each test can stage its own resolved/rejected
+// value via `messagesCreateMock.mockResolvedValueOnce` / `mockRejectedValueOnce`.
+const messagesCreateMock = vi.fn();
+vi.mock('@anthropic-ai/sdk', () => ({
+  default: class MockAnthropic {
+    public messages = { create: messagesCreateMock };
+    constructor(_opts: { apiKey: string }) {
+      // accept and ignore apiKey
+    }
+  },
 }));
 
 beforeEach(() => {
-  generateObjectMock.mockReset();
+  messagesCreateMock.mockReset();
 });
 
 describe('judgeFactualFidelity (cat 1)', () => {
   it('returns Cat1Verdict shape with score, verdict, fabrication_detected, rationale + cost_cents', async () => {
-    generateObjectMock.mockResolvedValueOnce({
-      object: {
-        score: 5,
-        verdict: 'pass' as const,
-        fabrication_detected: false,
-        rationale: 'No fabrication; all claims grounded.',
-      },
-      usage: { inputTokens: 1500, outputTokens: 200 },
+    messagesCreateMock.mockResolvedValueOnce({
+      content: [
+        {
+          type: 'tool_use',
+          input: {
+            score: 5,
+            verdict: 'pass' as const,
+            fabrication_detected: false,
+            rationale: 'No fabrication; all claims grounded.',
+          },
+        },
+      ],
+      usage: { input_tokens: 1500, output_tokens: 200 },
     });
     const { judgeFactualFidelity } = await import('@/lib/eval/judge');
     const result = await judgeFactualFidelity({
@@ -75,14 +87,21 @@ describe('judgeFactualFidelity (cat 1)', () => {
     // 1M input + 1M output @ Haiku $1/$5 per MTok = $6.00 = 600¢. If the
     // judge accidentally got repointed to extractAnthropicCost (Sonnet,
     // $3/$15) this would read 1800 — quick task 260509-r39 T-r39-02 guard.
-    generateObjectMock.mockResolvedValueOnce({
-      object: {
-        score: 4,
-        verdict: 'pass' as const,
-        fabrication_detected: false,
-        rationale: 'Lock the cost-extractor wiring.',
-      },
-      usage: { inputTokens: 1_000_000, outputTokens: 1_000_000 },
+    // Also locks the 260509-sgn item #5 fix: snake_case `input_tokens` /
+    // `output_tokens` adapter into the camelCase extractor must wire through.
+    messagesCreateMock.mockResolvedValueOnce({
+      content: [
+        {
+          type: 'tool_use',
+          input: {
+            score: 4,
+            verdict: 'pass' as const,
+            fabrication_detected: false,
+            rationale: 'Lock the cost-extractor wiring.',
+          },
+        },
+      ],
+      usage: { input_tokens: 1_000_000, output_tokens: 1_000_000 },
     });
     const { judgeFactualFidelity } = await import('@/lib/eval/judge');
     const result = await judgeFactualFidelity({
@@ -95,9 +114,11 @@ describe('judgeFactualFidelity (cat 1)', () => {
   });
 
   it('wraps SDK errors with caseId context', async () => {
-    // Anthropic-flavored error message (post-r39 swap); the assertion only
-    // checks the wrapper-prefix shape — inner text is illustrative.
-    generateObjectMock.mockRejectedValueOnce(new Error('Anthropic 529 overloaded'));
+    // Anthropic-flavored error message; the assertion only checks the
+    // wrapper-prefix shape — inner text is illustrative.
+    messagesCreateMock.mockRejectedValueOnce(
+      new Error('Anthropic 529 overloaded'),
+    );
     const { judgeFactualFidelity } = await import('@/lib/eval/judge');
     await expect(
       judgeFactualFidelity({
@@ -108,21 +129,48 @@ describe('judgeFactualFidelity (cat 1)', () => {
       }),
     ).rejects.toThrow(/judgeFactualFidelity failed for case=cat1-case-fail/);
   });
+
+  it('rejects with caseId when response contains no tool_use block', async () => {
+    // Defensive path added by quick task 260509-sgn Task 1: if Anthropic
+    // returns a content array without a tool_use block (degenerate case under
+    // forced tool-use), throw a wrapped error rather than silently parsing
+    // undefined input through Zod.
+    messagesCreateMock.mockResolvedValueOnce({
+      content: [], // no tool_use block
+      usage: { input_tokens: 100, output_tokens: 0 },
+    });
+    const { judgeFactualFidelity } = await import('@/lib/eval/judge');
+    await expect(
+      judgeFactualFidelity({
+        prompt: 'p',
+        response: 'r',
+        groundedFacts: [],
+        caseId: 'cat1-no-toolblock',
+      }),
+    ).rejects.toThrow(
+      /judgeFactualFidelity failed for case=cat1-no-toolblock.*no tool_use block/,
+    );
+  });
 });
 
 describe('judgeVoiceFidelity (cat 4)', () => {
   it('returns 5-dimension VoiceVerdict + average + cost_cents', async () => {
-    generateObjectMock.mockResolvedValueOnce({
-      object: {
-        diction: 4,
-        hedge_density: 5,
-        sentence_rhythm: 4,
-        concreteness: 4,
-        filler_absence: 5,
-        average: 4.4,
-        rationale: 'Specific verbs, no filler, mixed rhythm.',
-      },
-      usage: { inputTokens: 1800, outputTokens: 250 },
+    messagesCreateMock.mockResolvedValueOnce({
+      content: [
+        {
+          type: 'tool_use',
+          input: {
+            diction: 4,
+            hedge_density: 5,
+            sentence_rhythm: 4,
+            concreteness: 4,
+            filler_absence: 5,
+            average: 4.4,
+            rationale: 'Specific verbs, no filler, mixed rhythm.',
+          },
+        },
+      ],
+      usage: { input_tokens: 1800, output_tokens: 250 },
     });
     const { judgeVoiceFidelity } = await import('@/lib/eval/judge');
     const result = await judgeVoiceFidelity({
@@ -142,13 +190,18 @@ describe('judgeVoiceFidelity (cat 4)', () => {
 
 describe('judgePersona (cat 3)', () => {
   it('returns simple verdict (pass/fail) + score 1-5 + rationale', async () => {
-    generateObjectMock.mockResolvedValueOnce({
-      object: {
-        score: 4,
-        verdict: 'pass' as const,
-        rationale: 'Stayed in character; warm refusal.',
-      },
-      usage: { inputTokens: 1200, outputTokens: 150 },
+    messagesCreateMock.mockResolvedValueOnce({
+      content: [
+        {
+          type: 'tool_use',
+          input: {
+            score: 4,
+            verdict: 'pass' as const,
+            rationale: 'Stayed in character; warm refusal.',
+          },
+        },
+      ],
+      usage: { input_tokens: 1200, output_tokens: 150 },
     });
     const { judgePersona } = await import('@/lib/eval/judge');
     const result = await judgePersona({
@@ -164,7 +217,9 @@ describe('judgePersona (cat 3)', () => {
   });
 
   it('wraps persona-judge SDK errors with caseId context', async () => {
-    generateObjectMock.mockRejectedValueOnce(new Error('schema validation failed'));
+    messagesCreateMock.mockRejectedValueOnce(
+      new Error('schema validation failed'),
+    );
     const { judgePersona } = await import('@/lib/eval/judge');
     await expect(
       judgePersona({
