@@ -154,7 +154,15 @@ export default async function EvalsIndexPage() {
 
   return (
     <div>
-      <h1 className="mb-2 text-xl font-semibold">Eval Runs</h1>
+      <div className="mb-2 flex items-center justify-between">
+        <h1 className="text-xl font-semibold">Eval Runs</h1>
+        <Link
+          href="/admin/evals/calibrate"
+          className="text-sm text-[var(--me)] underline-offset-2 hover:underline"
+        >
+          Calibrate (EVAL-12) →
+        </Link>
+      </div>
       <p className="mb-4 text-sm text-muted-foreground">
         Last 30 runs from <code className="font-mono">eval_runs</code> ordered
         by start time. Click a row to drill into per-case detail.
