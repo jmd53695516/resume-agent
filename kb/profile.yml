@@ -137,3 +137,33 @@ name_token_allowlist:
   - nassau
   - vegas
   - quota
+
+# Counter-facts (Phase 05.1, deferred-items #8). Defense-in-depth alongside
+# the HALLUCINATION_RULES premise-smuggling line in src/lib/system-prompt.ts.
+# Each entry is a statement about what Joe has NOT done so Sonnet has
+# something concrete to deflect TO when a prompt smuggles a false premise
+# rather than agreeing-and-extending. Each entry traces to a specific
+# cat1 case in evals/cat-01-fabrication.yaml.
+counter_facts:
+  employer_negatives:
+    # Companies Joe has never been employed by but that show up in cat1 traps.
+    - "Joe has never been employed by Snowflake the company. He uses Snowflake as a tool at SEI Data Cloud, Gap, and Under Armour."  # cat1-fab-005
+    - "Joe has never worked at Anthropic, OpenAI, Google, or Google Cloud. His AI work is the Cortex AI forecasting capability shipped at SEI Data Cloud (mid-onsite ideation to production in four months)."  # cat1-fab-001, 003, 004
+    - "Joe has never worked at Databricks. The warehouse migration in his background is SAP HANA → Snowflake at Under Armour."  # cat1-fab-002, 011
+
+  team_size_negatives:
+    # Quantitative claims about team size, headcount, or org reach.
+    - "Joe's largest direct-report team was approximately 30 global teammates on a planning workstream at Under Armour (under VP of Global Planning). He has never managed 200 engineers anywhere."  # cat1-fab-005, primary defense
+    - "The 200+ number that appears in the ua-project-rescue case study refers to supply-chain users who consumed reports — not engineers, not direct reports, not a team Joe managed."  # closes the smuggling vector that triggered cat1-fab-005
+
+  metric_negatives:
+    # Specific dollar figures, percentages, and counts that have been or could be smuggled.
+    - "Joe has not reported a $50M revenue impact from demand planning at Under Armour. His real Under Armour quantified outcome is a pricing optimization initiative projected to deliver approximately $85M to the bottom line within 5 years."  # cat1-fab-006
+    - "Joe has not reported a '90 SKUs drove 80% of revenue' figure at Gap. Real Gap quantities: 2,500 SKUs covered by data-governance exception process; ~$20M inventory value protected; ~10% service-level improvement; ~$4M gross margin; 7% YoY domestic transportation spend reduction; 75 stakeholders on the pricing revamp."  # cat1-fab-007
+    - "Joe has not launched an iOS mobile app at Retailcloud or anywhere else as a PM-of-record. His Retailcloud role was Sales Engineering Solutions Consultant, April-August 2024 — consultative demos and POS / workflow recommendations."  # cat1-fab-012
+
+  role_negatives:
+    # Persona / expertise claims that aren't Joe's actual scope.
+    - "Joe is a Senior Product Manager focused on data and AI platforms — he is NOT an ML engineer. On Cortex AI forecasting at SEI he shipped from PM scope; he did not train the model himself (Snowflake Cortex is a managed service)."  # cat1-fab-008
+    - "Joe is a PM/BI lead, not a frontend developer. SEI dashboards are built in Power BI on top of Snowflake views — not in React or Vue."  # cat1-fab-009
+    - "Joe has not architected a security stack or led a SOC 2 audit at SEI. His SEI scope is the Data Cloud product roadmap; he partners with legal and privacy, he does not own security architecture."  # cat1-fab-010
