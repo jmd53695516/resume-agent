@@ -24,11 +24,11 @@ Plan 05-12 ships the public launch: domain live, QR + PDF in repo, LinkedIn/PDF/
 
 ### Domain + DNS
 
-- **D-12-A-01:** **Apex domain target = `joedollinger.com`** (preferred); fallback `joedollinger.io` if `.com` is unavailable. Joe checks availability at registrar at execute time. *Rationale: `.com` is the safest professional default for paper-resume scanning; `.io` aligns with builder/PM-of-AI positioning if `.com` is taken.*
-- **D-12-A-02:** **Subdomain = `chat`.** Final URL: `https://chat.joedollinger.com` (or `.io`). *Rationale: instantly self-describing on a paper resume — "Chat with my agent."*
-- **D-12-A-03:** **Registrar = Cloudflare Registrar.** *Rationale: at-cost pricing (~$10.46/yr .com, ~$50/yr .io), no renewal markup forever, fastest DNS propagation in industry, free WHOIS. Domain auto-registers with Cloudflare DNS — no separate nameserver setup.*
-- **D-12-A-04:** **Domain not yet purchased.** Plan 05-12 must include a pre-Task-1 step (domain registration + Cloudflare DNS configured) before the existing Task 1 Step A (subdomain CNAME). See plan-edit proposal below.
-- **D-12-A-05:** **CNAME chain unchanged from parent context:** `chat.joedollinger.{com|io}` → `cname.vercel-dns.com`. Vercel auto-issues Let's Encrypt cert.
+- **D-12-A-01:** **Apex domain purchased: `joe-dollinger-chat.com`** at Cloudflare Registrar on 2026-05-10. Both `joedollinger.com` and `joedollinger.io` were unavailable; this hyphenated apex with "chat" already in the name was Joe's pick. Auto-uses Cloudflare DNS — no separate nameserver setup.
+- **D-12-A-02:** **Final URL = apex only: `https://joe-dollinger-chat.com`** (NO subdomain). *Rationale: "chat" is already in the apex; adding `chat.` would be redundant. Apex is one fewer label to scan/type from a paper resume.*
+- **D-12-A-03:** **Registrar = Cloudflare Registrar** (locked at purchase). DNS console at dash.cloudflare.com → joe-dollinger-chat.com → DNS → Records.
+- **D-12-A-04:** **Domain DONE — pre-purchase step removed from Task 1 Step A.** Task 1 Step A starts at "Add domain in Vercel" since registration is already complete.
+- **D-12-A-05:** **DNS at apex via Cloudflare CNAME flattening:** Add a CNAME record at the apex (`@` / root) → `cname.vercel-dns.com`. Cloudflare flattens CNAMEs at apex into A records at the edge — Vercel's recommended pattern when registrar is Cloudflare. **Critical: Proxy status MUST be `DNS only` (gray cloud, NOT orange-cloud-proxy)** so Vercel's Let's Encrypt cert chain is unblocked. Alternative (only if CNAME flattening fails): A record at `@` → `76.76.21.21` (Vercel anycast). Also need: `www` → CNAME → `cname.vercel-dns.com` so `www.joe-dollinger-chat.com` 301-redirects to apex via Vercel.
 
 ### LAUNCH-05 EVAL-Pass Scope
 
