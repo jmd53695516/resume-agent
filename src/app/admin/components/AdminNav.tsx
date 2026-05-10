@@ -17,6 +17,11 @@ const NAV_ITEMS = [
   { href: '/admin/cost', label: 'Cost' },
   { href: '/admin/abuse', label: 'Abuse' },
   { href: '/admin/health', label: 'Health' },
+  // Plan 05-09 (EVAL-14): eval-runs index + detail at /admin/evals;
+  // /admin/evals/calibrate is a sub-page reachable from the index.
+  // /admin/eval-ab (Plan 05-08, EVAL-05) intentionally not nav-linked —
+  // it's a tester-driven URL, not part of Joe's regular admin workflow.
+  { href: '/admin/evals', label: 'Evals' },
 ] as const;
 
 export function AdminNav() {
