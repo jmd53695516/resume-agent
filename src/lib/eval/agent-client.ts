@@ -62,14 +62,45 @@ function isTextDelta(v: unknown): v is TextDeltaEvent {
 }
 
 /**
- * Extract the assistant text channel from a raw AI SDK streaming response body.
- * Concatenates all `text-delta` events; ignores text-start/text-end, tool-call
- * events, and the `[DONE]` terminator. Defensive: malformed lines are silently
- * skipped; never throws.
+ * Phase 05.1 Item #7: deflection signaling. /api/chat's deflectionResponse()
+ * (route.ts:87-99) emits a transient `data-deflection` chunk BEFORE the
+ * text-start chunk when any of the 7 deflection paths fire. This parser
+ * surfaces it so cat runners can mark a case as "skipped: <reason>
+ * deflection" rather than feed environmental noise to the judge.
+ *
+ * Verified shape: node_modules/ai/dist/index.d.ts:2151-2158 — DataUIMessageChunk
+ * with `type: 'data-${NAME}'`, `data: T`, `transient?: boolean`.
  */
-export function parseChatStream(rawBody: string): string {
-  if (!rawBody) return '';
+interface DeflectionEvent {
+  type: 'data-deflection';
+  data: { reason: string };
+}
+
+function isDeflection(v: unknown): v is DeflectionEvent {
+  return (
+    typeof v === 'object' &&
+    v !== null &&
+    (v as { type?: unknown }).type === 'data-deflection' &&
+    typeof (v as { data?: { reason?: unknown } }).data?.reason === 'string'
+  );
+}
+
+export interface ParsedStream {
+  text: string;
+  deflection: { reason: string } | null;
+}
+
+/**
+ * Extract the assistant text channel + deflection signal from a raw AI SDK
+ * streaming response body. Concatenates all `text-delta` events; surfaces
+ * the first `data-deflection` chunk's reason if present; ignores
+ * text-start/text-end, tool-call events, and `[DONE]`. Defensive: malformed
+ * lines are silently skipped; never throws.
+ */
+export function parseChatStream(rawBody: string): ParsedStream {
+  if (!rawBody) return { text: '', deflection: null };
   const parts: string[] = [];
+  let deflection: { reason: string } | null = null;
   // Each event is a `data: <payload>` line. SSE spec: events separated by
   // blank lines. We split on newlines and process line-by-line.
   for (const line of rawBody.split(/\r?\n/)) {
@@ -81,25 +112,35 @@ export function parseChatStream(rawBody: string): string {
       const parsed: unknown = JSON.parse(payload);
       if (isTextDelta(parsed)) {
         parts.push(parsed.delta);
+      } else if (isDeflection(parsed) && deflection === null) {
+        // First deflection chunk wins — there's only one per response anyway
+        // (deflectionResponse() emits exactly one data-deflection chunk).
+        deflection = { reason: parsed.data.reason };
       }
     } catch {
       // Malformed JSON — skip the line, keep accumulating.
     }
   }
-  return parts.join('');
+  return { text: parts.join(''), deflection };
 }
 
 /**
- * Call /api/chat and return the parsed assistant text reply + HTTP status.
- * Used by every cat runner. session_id MUST be a real session minted via
- * /api/session (the chat route validates it against Supabase and returns 404
- * for unknown sessions; see BL-17 in 05-01-HUMAN-UAT-RESULTS.md).
+ * Call /api/chat and return the parsed assistant text reply + HTTP status
+ * + deflection signal. Used by every cat runner. session_id MUST be a real
+ * session minted via /api/session (BL-17). Phase 05.1 Item #7: when the
+ * route emits a transient `data-deflection` chunk, callAgent surfaces it so
+ * the cat runner can skip the case rather than feed it to the judge.
  */
 export async function callAgent(args: {
   targetUrl: string;
   prompt: string;
   sessionId: string;
-}): Promise<{ response: string; httpStatus: number; rawBody: string }> {
+}): Promise<{
+  response: string;
+  httpStatus: number;
+  rawBody: string;
+  deflection: { reason: string } | null;
+}> {
   let res: Response;
   try {
     res = await fetch(`${args.targetUrl}/api/chat`, {
@@ -128,11 +169,17 @@ export async function callAgent(args: {
       `callAgent failed: ${res.status} ${res.statusText} body=${rawBody.slice(0, 200)}`,
     );
   }
+  const parsed = parseChatStream(rawBody);
   // If the stream contained no text-deltas (rare; tool-only response or empty),
   // fall back to the raw body trimmed so the judge has something to grade
   // rather than an empty string.
-  const response = parseChatStream(rawBody) || rawBody.slice(0, 2000);
-  return { response, httpStatus: res.status, rawBody };
+  const response = parsed.text || rawBody.slice(0, 2000);
+  return {
+    response,
+    httpStatus: res.status,
+    rawBody,
+    deflection: parsed.deflection,
+  };
 }
 
 /**

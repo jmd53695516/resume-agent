@@ -54,11 +54,42 @@ export async function runCat1(
 
   for (const c of cases) {
     try {
-      const { response } = await callAgent({
+      const { response, deflection } = await callAgent({
         targetUrl,
         prompt: c.prompt,
         sessionId,
       });
+
+      // Phase 05.1 Item #7: skip deflected cases (rate-limit / spend-cap /
+      // turn-cap / borderline / classifier deflections). These are
+      // environmental signals, not real model responses — feeding them to
+      // the judge produces false-positive fabrication detections (e.g.
+      // cat1-fab-014 in runId vstFDlWpoKcyGH29w2KKs hit ipLimiter10m mid-run
+      // and the judge flagged the canned ratelimit deflection as a
+      // fabrication). passed: false with a recognizable rationale prefix
+      // so admin queries can filter deflection-noise out of pass-rate
+      // calculations (RESEARCH Open Question 1: rationale-prefix convention
+      // chosen over schema widening; defer schema decision to Plan 05-12).
+      if (deflection !== null) {
+        const result: EvalCaseResult = {
+          case_id: c.case_id,
+          category: 'cat1',
+          prompt: c.prompt,
+          response,
+          judge_score: null,
+          judge_verdict: null,
+          judge_rationale: `skipped: ${deflection.reason} deflection`,
+          passed: false,
+          cost_cents: 0,
+        };
+        await writeCase({ runId, result });
+        results.push(result);
+        log.warn(
+          { runId, caseId: c.case_id, deflectionReason: deflection.reason },
+          'cat1_case_skipped_deflection',
+        );
+        continue;
+      }
       // Sonnet usage isn't surfaced via the streaming body; /api/chat persists
       // it server-side. Cat 1 cost is dominated by the judge call.
       const agentCost = 0;

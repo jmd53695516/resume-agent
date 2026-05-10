@@ -26,20 +26,26 @@ vi.mock('@/lib/logger', () => ({
 import { parseChatStream, callAgent, mintEvalSession } from '@/lib/eval/agent-client';
 
 describe('parseChatStream — synthetic fixtures', () => {
+  // Phase 05.1 Item #7: parseChatStream returns ParsedStream { text, deflection }
+  // (was: string). Tests assert on `.text` for the assistant text channel and
+  // `.deflection` for the optional sideband signal. See agent-client.ts JSDoc
+  // and 05.1-CONTEXT.md D-E-02.
   it('returns concatenated text from a single text-delta event', () => {
     const body =
       'data: {"type":"text-start","id":"a"}\n\n' +
       'data: {"type":"text-delta","id":"a","delta":"hello"}\n\n' +
       'data: {"type":"text-end","id":"a"}\n\n' +
       'data: [DONE]\n';
-    expect(parseChatStream(body)).toBe('hello');
+    const parsed = parseChatStream(body);
+    expect(parsed.text).toBe('hello');
+    expect(parsed.deflection).toBeNull();
   });
 
   it('concatenates multiple text-delta events in order', () => {
     const body =
       'data: {"type":"text-delta","id":"a","delta":"foo"}\n\n' +
       'data: {"type":"text-delta","id":"a","delta":" bar"}\n\n';
-    expect(parseChatStream(body)).toBe('foo bar');
+    expect(parseChatStream(body).text).toBe('foo bar');
   });
 
   it('ignores tool-call / text-start / text-end / [DONE] events', () => {
@@ -50,11 +56,13 @@ describe('parseChatStream — synthetic fixtures', () => {
       'data: {"type":"tool-result","id":"t1","output":{"x":1}}\n\n' +
       'data: {"type":"text-end","id":"a"}\n\n' +
       'data: [DONE]\n';
-    expect(parseChatStream(body)).toBe('hi');
+    expect(parseChatStream(body).text).toBe('hi');
   });
 
   it('returns empty string on empty body without throwing', () => {
-    expect(parseChatStream('')).toBe('');
+    const parsed = parseChatStream('');
+    expect(parsed.text).toBe('');
+    expect(parsed.deflection).toBeNull();
   });
 
   it('silently skips malformed JSON lines and returns the rest', () => {
@@ -62,20 +70,41 @@ describe('parseChatStream — synthetic fixtures', () => {
       'data: {bad json here\n\n' +
       'data: {"type":"text-delta","id":"a","delta":"good"}\n\n' +
       'data: not-json-at-all\n\n';
-    expect(parseChatStream(body)).toBe('good');
+    expect(parseChatStream(body).text).toBe('good');
   });
 
   it('handles preserved whitespace and embedded JSON-escaped quotes in deltas', () => {
     const body =
       'data: {"type":"text-delta","id":"a","delta":"He said \\"yes\\"."}\n\n';
-    expect(parseChatStream(body)).toBe('He said "yes".');
+    expect(parseChatStream(body).text).toBe('He said "yes".');
   });
 
   it('handles \\r\\n line endings (Windows / Vercel)', () => {
     const body =
       'data: {"type":"text-delta","id":"a","delta":"win"}\r\n\r\n' +
       'data: [DONE]\r\n';
-    expect(parseChatStream(body)).toBe('win');
+    expect(parseChatStream(body).text).toBe('win');
+  });
+
+  // Phase 05.1 Item #7: data-deflection sideband chunk is parsed and surfaced
+  // as { reason } on the deflection field. The text-delta path is unaffected.
+  it('surfaces a data-deflection chunk as deflection: { reason }', () => {
+    const body =
+      'data: {"type":"data-deflection","data":{"reason":"ratelimit"},"transient":true}\n\n' +
+      'data: {"type":"text-start","id":"a"}\n\n' +
+      'data: {"type":"text-delta","id":"a","delta":"You\'ve been at this a bit"}\n\n' +
+      'data: {"type":"text-end","id":"a"}\n\n' +
+      'data: [DONE]\n';
+    const parsed = parseChatStream(body);
+    expect(parsed.deflection).toEqual({ reason: 'ratelimit' });
+    expect(parsed.text).toBe("You've been at this a bit");
+  });
+
+  it('keeps deflection null when no data-deflection chunk is present', () => {
+    const body =
+      'data: {"type":"text-delta","id":"a","delta":"normal"}\n\n' +
+      'data: [DONE]\n';
+    expect(parseChatStream(body).deflection).toBeNull();
   });
 });
 
@@ -83,12 +112,12 @@ describe('parseChatStream — real captured fixture', () => {
   it('extracts the deflection text from .eval-tmp/sample-stream.txt', () => {
     const path = resolve(process.cwd(), '.eval-tmp', 'sample-stream.txt');
     const body = readFileSync(path, 'utf8');
-    const text = parseChatStream(body);
+    const parsed = parseChatStream(body);
     // Deflection text from src/app/api/chat/route.ts DEFLECTIONS.borderline
     // (classifier flagged "hi" as borderline; the exact assertion is the
     // recognizable opener of the deflection so we don't pin to whitespace).
-    expect(text.length).toBeGreaterThan(20);
-    expect(text).toMatch(/Not sure|caught|background|tools/);
+    expect(parsed.text.length).toBeGreaterThan(20);
+    expect(parsed.text).toMatch(/Not sure|caught|background|tools/);
   });
 });
 
