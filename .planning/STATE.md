@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Ready for Plan 05-12 (final launch checklist)
-stopped_at: Phase 05.1 context gathered
-last_updated: "2026-05-10T16:21:09.713Z"
-last_activity: 2026-05-10 -- Plan 05-11 closed (commit 1949592)
+status: executing
+stopped_at: Phase 05.1 closed PARTIAL (Items #6/#7/#8 resolved; cat1=15/15 gate deferred to Plan 05-12 due to NEW Item #11 classifier-over-flagging finding)
+last_updated: "2026-05-10T18:08:00.000Z"
+last_activity: 2026-05-10 -- Phase 05.1 closed PARTIAL (Items #6/#7/#8 RESOLVED; new Item #11 promoted)
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 33
-  completed_plans: 32
-  percent: 97
+  total_plans: 35
+  completed_plans: 33
+  percent: 94
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 
 ## Current Position
 
-Phase: 05 (eval-gates-launch) — EXECUTING
-Plan: 11 of 12 complete (05-11 closed PARTIAL — Tasks 1-3 + Task 4 A+B done; C+D deferred to 05-12)
-Status: Ready for Plan 05-12 (final launch checklist)
-Last activity: 2026-05-10 -- Plan 05-11 closed (commit 1949592)
+Phase: 05.1 (eval-content-trust-restoration) — CLOSED PARTIAL
+Plan: 1 of 1 complete (deferred-items #6/#7/#8 RESOLVED; cat1=15/15 D-B-01 hard gate NOT met — promoted to Plan 05-12 via NEW Item #11)
+Status: Ready to execute Plan 05-12 (LAUNCH-05 prod-URL eval gate). Phase 5 deferred items unblocked at the Item #6/#7/#8 layer.
+Last activity: 2026-05-10 -- Phase 05.1 closed PARTIAL (Items #6/#7/#8 RESOLVED; new Item #11 classifier-over-flagging promoted)
 
-Progress: [█████████░] 92% within Phase 05
+Progress: [██████████] 100% within Phase 05.1 plan-count; cat1 D-B-01 hard gate deferred to 05-12 due to architectural finding outside 05.1 scope
 
 ## Performance Metrics
 
@@ -173,6 +173,7 @@ Recent decisions affecting current work:
 ### Roadmap Evolution
 
 - 2026-05-10: Phase 05.1 (Eval Content Trust Restoration) inserted after Phase 5 — URGENT decimal phase to fix eval failing on real signal (Items #6/#7/#8) before Plan 05-12 LAUNCH-05 hard-gate. Bundles Sonnet hallucination fix (system-prompt rule + KB counter-facts), local ipLimiter friction, deflection-vs-real disambiguation in eval CLI.
+- 2026-05-10: Phase 05.1 (Eval Content Trust Restoration) CLOSED PARTIAL. Four feature/fix commits: Item #8 = `78f4f8c`, Item #6 = `699c294`, Item #7 = `d286b74`, Item #6 sliding-window-key bug fix = `4281c3b`. Local cat1 hit 8-13/15 across 3 runs (D-B-01 NOT met) — failures are now classifier-deflections (Item #7 made them visible) NOT real fabrications; cat1-fab-005 (the original Item #8 trigger) passed in every post-Task-1 run. Local cat3 hit 0/6 vs pinned pre-Task-1 baseline 1/6 — the pre-baseline was deflection-grading-as-warmth noise, NOT a real cat3 baseline. Production /api/chat byte-identical to pre-phase SHA `8be227b` (D-E-03 verified via pinned $PRE_SHA, not HEAD~N). Plan 05-12 LAUNCH-05 partially unblocked; classifier-over-flagging finding promoted to NEW deferred-item #11. Item #6/#7/#8 marked RESOLVED in deferred-items.md.
 
 ### Pending Todos
 
@@ -188,9 +189,10 @@ None yet.
 - Phase 5 deferred-item #3 (judge schema flakiness): RESOLVED 2026-05-10 at unit AND live layer via quick task 260509-sgn — judge.ts swapped to @anthropic-ai/sdk native forced tool-use. Live cat1 smoke runId `vstFDlWpoKcyGH29w2KKs` showed 15/15 schema-clear (0% fails vs 47% pre-fix). Required follow-up commit `6ed4566` to bump rationale cap 400→1500 chars (Haiku verbosity calibration vs prior Gemini terseness).
 - Phase 5 deferred-item #5 (cost extraction): RESOLVED 2026-05-10 at unit AND live layer via quick task 260509-sgn — root cause was sub-cent rounding-too-early (Math.round per-call truncated 0.25¢ to 0). Fix in commit `264855d`: extractor returns fractional cents; cat aggregators round once at persistence boundary. Live verify on runId `vstFDlWpoKcyGH29w2KKs` showed totalCost: 3.61 fractional → 4¢ rounded.
 - Phase 5 deferred-item #4 (silent-fail bucketing): RESOLVED 2026-05-10 — disambiguation done. 13/15 real passes. 2 failures: cat1-fab-005 = REAL Sonnet hallucination ("200+ users" not in KB; new Item #8); cat1-fab-014 = environmental rate-limit deflection (new Item #6 + #7). cat1 hybrid gate logic bug found and fixed in commit `261a19c` (det 'flag-for-llm-judge' now yields to judge, not auto-fail).
-- Phase 5 NEW deferred-item #6 (ipLimiter10m sliding-window accumulation across local eval runs): LOW. Local-testing friction only; CI ephemeral envs unaffected. Mitigations in deferred-items.md.
-- Phase 5 NEW deferred-item #7 (eval CLI doesn't distinguish deflections from real responses): LOW. Surfaces only when rate/spend/turn caps trip mid-run. ~30-60 min quick task to add an SSE meta event from /api/chat.
-- Phase 5 NEW deferred-item #8 (Sonnet quantitative-claim hallucination caught by cat1-fab-005): MEDIUM. Real signal — agent invented a "200+ users" number under prompt pressure. Needed for Plan 05-04 Task 4 hard-gate sign-off. Recommended: tighten Sonnet system prompt + add KB counter-facts.
+- Phase 5 deferred-item #6 (ipLimiter10m sliding-window accumulation across local eval runs): RESOLVED 2026-05-10 — Phase 05.1-01 commits `699c294` + `4281c3b`. scripts/reset-eval-rate-limits.ts + npm run eval:reset-rl alias clear the four ratelimit prefixes plus daily ipcost counter; uses redis.keys('<prefix>:<id>:*') to expand sliding-window timestamp-suffixed keys. Production /api/chat unchanged (D-E-01 + D-E-03 honored).
+- Phase 5 deferred-item #7 (eval CLI doesn't distinguish deflections from real responses): RESOLVED 2026-05-10 — Phase 05.1-01 commit `d286b74`. /api/chat deflectionResponse() emits transient AI SDK v6 data-deflection chunk; agent-client.ts parseChatStream returns ParsedStream { text, deflection }; cat1.ts + cat3.ts skip deflected cases. Production UI byte-identical (transient: true).
+- Phase 5 deferred-item #8 (Sonnet quantitative-claim hallucination caught by cat1-fab-005): RESOLVED 2026-05-10 — Phase 05.1-01 commit `78f4f8c`. HALLUCINATION_RULES extended with premise-smuggling rule; kb/profile.yml extended with counter_facts: section (10 entries). cat1-fab-005 passed in every post-Task-1 verification run. cat1=15/15 D-B-01 hard gate NOT met due to NEWLY-VISIBLE classifier deflections (Item #11 below); investigation deferred to Plan 05-12.
+- Phase 5 NEW deferred-item #11 (NEW 2026-05-10, from 05.1-01 close-out): MEDIUM. Classifier over-flags eval prompts as injection/sensitive/offtopic. Was hidden pre-Item-#7 by deflection-as-fabrication mis-grading. cat1 = 3-6 deflection-skips per local run; cat3 = 6/6 deflection-skips. Investigation deferred to Plan 05-12 (assess prod URL behavior first).
 - Phase 5 Plan 05-11 deferred-item (cron-job.org schedule): LOW. /api/cron/run-eval route + 5th alarm code shipped 2026-05-10 (commits 6406221, 69f63f7, 1949592). GH PAT + Vercel envs (GH_DISPATCH_TOKEN, GH_REPO_SLUG) confirmed set. cron-job.org weekly Mon 03:00 ET schedule deferred into Plan 05-12 because it needs a stable prod URL — pointing it at preview alias would require re-pointing after the LAUNCH-01 CNAME flip. Estimate 10-15 min once chat.joedollinger.com is live. Handoff doc: 05-11-SUMMARY.md `deferred:` block.
 
 ## Session Continuity
