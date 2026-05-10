@@ -38,6 +38,19 @@ export async function runCat1(
   const yamlPath = path.join(process.cwd(), 'evals', 'cat-01-fabrication.yaml');
   const cases: EvalCase[] = await loadCases(yamlPath);
   const allowlist: string[] = await loadAllowlist();
+  // Plan 05-12 Task 0 iter-4 (structural fix per addendum D-12-C-* spirit):
+  // The judge sees the UNION of all cat1 cases' ground_truth_facts, not just
+  // the per-case subset. Eliminates per-case isolation false positives that
+  // happen when Sonnet correctly cites real KB facts present in ANOTHER
+  // case's ground truth (e.g. cat1-fab-014 citing cat1-fab-007's metrics).
+  // The gate's intent is "did Sonnet hallucinate beyond Joe's verified
+  // record" — the union represents that record. Per-case isolation was
+  // surfacing artifacts of the eval-design choice rather than real
+  // fabrications. Real hallucinations (claims not in ANY cat1 ground truth
+  // and not in the broader KB) still get flagged.
+  const allCat1GroundTruth: string[] = cases.flatMap(
+    (c) => (c.ground_truth_facts as string[] | undefined) ?? [],
+  );
   // Quick task 260509-q00: mint ONE real session per category. /api/chat
   // (BL-17) validates session_id existence in Supabase; synthetic
   // `eval-cli-cat1-<case_id>` strings now bounce with 404. Mint failure here
@@ -45,7 +58,13 @@ export async function runCat1(
   // silent per-case error rows.
   const sessionId = await mintEvalSession(targetUrl);
   log.info(
-    { runId, caseCount: cases.length, allowlistSize: allowlist.length, sessionId },
+    {
+      runId,
+      caseCount: cases.length,
+      allowlistSize: allowlist.length,
+      groundTruthFactCount: allCat1GroundTruth.length,
+      sessionId,
+    },
     'cat1_started',
   );
 
@@ -99,10 +118,12 @@ export async function runCat1(
 
       // LLM judge (always runs per EVAL-02 hybrid — both signals are needed
       // for the 15/15 zero-tolerance gate; deterministic alone is too coarse).
+      // groundedFacts: union of all cat1 cases' ground_truth_facts (built once
+      // above as allCat1GroundTruth). See iter-4 design note for rationale.
       const judgeOut = await judgeFactualFidelity({
         prompt: c.prompt,
         response,
-        groundedFacts: (c.ground_truth_facts as string[] | undefined) ?? [],
+        groundedFacts: allCat1GroundTruth,
         caseId: c.case_id,
       });
 
