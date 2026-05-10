@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: "Plan 05-11 closed PARTIAL (commits 6406221, 69f63f7, 1949592). Tasks 1-3 done (route + 5th alarm); Task 4 split: A+B (GH PAT + Vercel envs) done per Joe; C+D (cron-job.org schedule) deferred to Plan 05-12 awaiting LAUNCH-01 prod domain. Next: Plan 05-12 (final launch checklist)."
-last_updated: "2026-05-10T16:00:00.000Z"
-last_activity: 2026-05-10 -- Plan 05-11 closed (commit 1949592, partial — C+D handed to 05-12)
+status: Ready for Plan 05-12 (final launch checklist)
+stopped_at: Phase 05.1 context gathered
+last_updated: "2026-05-10T16:21:09.713Z"
+last_activity: 2026-05-10 -- Plan 05-11 closed (commit 1949592)
 progress:
-  total_phases: 5
+  total_phases: 6
   completed_phases: 4
   total_plans: 33
   completed_plans: 32
@@ -170,6 +170,10 @@ Recent decisions affecting current work:
 - [Phase 05-eval-gates-launch]: Plan 05-10: `npm run eval` requires --env-file-if-exists (NOT --env-file) — CI runner has no .env.local; secrets come from process.env via GH Actions env block. Also requires preeval npm hook to run scripts/generate-fallback.ts so cat6's spawned local Next.js webServer compiles (the fallback file is .gitignored)
 - [Phase 05-eval-gates-launch]: Plan 05-10: AI SDK v6's onFinish callback type requires the destructure to NOT default to `{}` — `next build` strict tsc catches this; `npm run dev` + vitest do not. Run `npx tsc --noEmit` + `npm run build` locally before declaring TS work done (feedback memory captured)
 
+### Roadmap Evolution
+
+- 2026-05-10: Phase 05.1 (Eval Content Trust Restoration) inserted after Phase 5 — URGENT decimal phase to fix eval failing on real signal (Items #6/#7/#8) before Plan 05-12 LAUNCH-05 hard-gate. Bundles Sonnet hallucination fix (system-prompt rule + KB counter-facts), local ipLimiter friction, deflection-vs-real disambiguation in eval CLI.
+
 ### Pending Todos
 
 None yet.
@@ -191,9 +195,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-10T16:00:00.000Z
-Stopped at: Plan 05-11 closed PARTIAL (commits 6406221, 69f63f7, 1949592). /api/cron/run-eval route live + 5th alarm (weekly-eval-failure, 24h NX) wired; tests 7/7 + 29/29 ✓; tsc + build clean. Task 4 A+B (GH PAT + Vercel envs GH_DISPATCH_TOKEN + GH_REPO_SLUG) done per Joe; Task 4 C+D (cron-job.org weekly schedule + smoke test) deferred to Plan 05-12 because it needs the LAUNCH-01 prod domain. Next: Plan 05-12 (final launch checklist — LAUNCH-01..07 + SAFE-12 + LAUNCH-04 friend-test).
-Resume file: None
+Last session: 2026-05-10T16:21:09.708Z
+Stopped at: Phase 05.1 context gathered
+Resume file: .planning/phases/05.1-eval-content-trust-restoration/05.1-CONTEXT.md
 
 Resumed: 2026-05-10 — proceeding to /gsd-execute-phase 5 (Plan 05-12).
 
