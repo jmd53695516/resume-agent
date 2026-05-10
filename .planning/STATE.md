@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-07-PLAN.md (code-complete; Task 4 deferred pending Gemini key)
-last_updated: "2026-05-10T01:25:00.000Z"
+stopped_at: "Completed Plan 05-08 (Cat 4 blind A/B page); Task 4 live smoke auto-approved/deferred. Next planned plan: 05-09 (admin evals dashboard)."
+last_updated: "2026-05-10T02:13:48.162Z"
 last_activity: 2026-05-10
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 33
-  completed_plans: 24
-  percent: 73
+  completed_plans: 29
+  percent: 88
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 ## Current Position
 
 Phase: 05 (eval-gates-launch) — EXECUTING
-Plan: 4 of 12
+Plan: 2 of 12
 Status: Ready to execute
-Last activity: 2026-05-10 (quick task 260509-sgn close-out + 4 follow-up commits: rationale cap, cost rounding, cat1 hybrid gate; live cat1 smoke runId `vstFDlWpoKcyGH29w2KKs` confirmed 13/15 real passes — items #3, #4, #5 closed; new items #6/#7/#8 logged)
+Last activity: 2026-05-10
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -74,6 +74,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05-eval-gates-launch P05-05 | 10 | 3 tasks | 6 files |
 | Phase 05-eval-gates-launch P05-06 | 12min | 3 tasks | 6 files |
 | Phase 05-eval-gates-launch P05-07 | 18min | 3 tasks | 11 files |
+| Phase 05-eval-gates-launch P05-08 | 22min | 4 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -155,6 +156,7 @@ Recent decisions affecting current work:
 - [Phase 05-eval-gates-launch]: Plan 05-07: Cat 5 hybrid pass logic for expected_refusal=true requires (refused AND !leaked) AND warmth gate (judgePersona verdict pass + score >= 4); for expected_refusal=false (cat5-fp-001 'are you available?') judge skipped, assertion-only — voice quality is cat3/cat4's job, FP case is purely classifier-over-flagging guard per Phase 2 STATE.md
 - [Phase 05-eval-gates-launch]: Plan 05-07: Pitfall 7 mitigation places cat6_spawn_start_BASE_URL Pino log BEFORE spawn() — if EVAL_TARGET_URL → BASE_URL forwarding silently breaks, Playwright falls back to localhost:3000 default and connection-refused failures are diagnosable from one CI log line; combined with CI=1 spawn env (T-05-07-03 mitigation) which disables Playwright auto-webServer, opaque hangs become fail-fast
 - [Phase 05-eval-gates-launch]: Plan 05-07: All six category runners now real implementations — final Plan 05-03 stubs replaced. Tasks 1-3 code-complete at 475/475 tests; Task 4 (live full-suite smoke) deferred per orchestrator approval pending GOOGLE_GENERATIVE_AI_API_KEY; convergence point with Plan 05-04 + 05-05 + 05-06 Task 4 — all four close together when Joe sets the env var
+- [Phase 05-eval-gates-launch]: Plan 05-08: Cat 4 blind A/B page wired with server-side mapping pattern (kind stripped at construction); ra_eval_session HTTP-only cookie (Pitfall 6 prefix); defense-in-depth cookie/body sessionId cross-check on submit; pre-warm via mintEvalSession + Promise.all over callAgent (reuses post-BL-17 helpers, NOT plan's outdated v5 stream regex). 16 ab-mapping tests; 503/503 passing. Live smoke (Task 4 checkpoint:human-verify) auto-approved per workflow.auto_advance=true; deferred to separate session.
 
 ### Pending Todos
 
@@ -176,8 +178,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-10T01:25:00.000Z
-Stopped at: Completed quick task 260509-sgn (full live close-out — items #3 + #4 + #5 RESOLVED at the live verification layer; new items #6 (rate-limit accumulation, LOW), #7 (deflection-as-fabrication, LOW), #8 (Sonnet "200+" hallucination, MEDIUM — load-bearing for Plan 05-04 Task 4) logged in deferred-items.md). Next planned plan: 05-08 (cat 4 blind A/B page).
+Last session: 2026-05-10T02:13:48.158Z
+Stopped at: Completed Plan 05-08 (Cat 4 blind A/B page); Task 4 live smoke auto-approved/deferred. Next planned plan: 05-09 (admin evals dashboard).
 Resume file: None
 
 ## Quick Tasks Completed
