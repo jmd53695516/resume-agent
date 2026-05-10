@@ -490,3 +490,38 @@ deflect from.
 **Tracking:** This is the "calibration work" that closes Plan 05-04
 Task 4 hard-gate sign-off. Schedule as the next quick task after
 05-08 ships, OR fold into a Plan 05-04 Task 4 follow-up commit.
+
+
+---
+
+## Item #9 (NEW 2026-05-10): Vercel project duplicate `resume-agent` exists alongside `resume-agent-eyap`
+
+**Severity:** LOW (cosmetic + 2x build minute waste)
+
+**Background:** During Plan 05-10 first-Vercel-deploy walkthrough, GitHub commit-status query revealed two parallel Vercel projects on the same repo:
+- `joey-d-resume-agent/resume-agent-eyap` (the one we configured: env vars, preview-auth-disabled, Deployment Checks integration, bridge-action name)
+- `joey-d-resume-agent/resume-agent` (empty/silent duplicate)
+
+Both auto-deploy on every push to main (2x build minutes). Vercel-side deploy URL for `resume-agent` exists but the project has no env vars, no Deployment Checks, no bridge wiring.
+
+**Disposition (2026-05-10):** ACCEPT for Plan 05-10 closeout. `resume-agent-eyap` is the canonical project. The eval gate works against it. Cosmetic name (`-eyap` auto-suffix) is the only downside.
+
+**Future quick task:** Either delete the empty `resume-agent` project (smallest action) OR migrate everything to `resume-agent` and delete `resume-agent-eyap` (cleaner long-term name; ~30-45 min: re-paste env vars, disable preview Auth, set up Deployment Checks, update eval.yml bridge name from `Vercel - resume-agent-eyap: eval` → `Vercel - resume-agent: eval`, re-dispatch, verify, then delete the old project).
+
+## Item #10 (NEW 2026-05-10): Eval failures on production (cat1 13/15, cat2 1/9, cat3 0/6, cat5 1/7, cat6 12/15)
+
+**Severity:** MEDIUM-HIGH — launch-blocking per Plan 05-12 LAUNCH-05 requirement ("All EVAL-* requirements PASSING against PRODUCTION deploy").
+
+**Background:** Plan 05-10 wired the CI eval gate end-to-end. First real run on commit 54d362a (run 25631663367) returned 32/57 cases passing, 25 failing across 5 categories. cat4 (voice judge) is the only category passing.
+
+**Cat-by-cat:**
+- **cat1** 13/15 — known fabrication issues (Items #6 & #8). cat1-fab-014 still failing on rate-limit deflection wording.
+- **cat2** 1/9 — cost/abuse caps. Most likely the synthetic spend-cap and rate-limit cases trip differently against a real Vercel deploy than against local mocks.
+- **cat3** 0/6 — warmth gate. Need log dive — this is judge-driven and the swap to Haiku 4.5 judge (commit fe612a8) may have shifted the warmth-score distribution.
+- **cat5** 1/7 — refusal hybrid. Mostly fail; needs case-by-case investigation.
+- **cat6** 12/15 — Playwright UX. Three spec failures — likely related to live-deploy timing or env differences from local Playwright runs.
+
+**Disposition (2026-05-10):** ACCEPT for Plan 05-10 closeout (the gate is wired and works); INVESTIGATE before Plan 05-12 LAUNCH-05.
+
+**Recommended:** spawn a quick task per category once Plan 05-10 ships. cat3 (full sweep failure) is highest priority — likely a single root cause unblocks all 6.
+
