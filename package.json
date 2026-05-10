@@ -10,6 +10,7 @@
     "preeval": "tsx scripts/generate-fallback.ts",
     "eval": "node --env-file-if-exists=.env.local --import tsx scripts/run-evals.ts",
     "eval:reset-rl": "node --env-file-if-exists=.env.local --import tsx scripts/reset-eval-rate-limits.ts",
+    "eval:reset-spend": "node --env-file-if-exists=.env.local --import tsx scripts/reset-eval-spend-cap.ts",
     "prebuild": "tsx scripts/generate-fallback.ts",
     "build": "next build",
     "start": "next start",
