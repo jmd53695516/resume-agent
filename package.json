@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "eval": "node --env-file=.env.local --import tsx scripts/run-evals.ts",
+    "eval": "node --env-file-if-exists=.env.local --import tsx scripts/run-evals.ts",
     "prebuild": "tsx scripts/generate-fallback.ts",
     "build": "next build",
     "start": "next start",
