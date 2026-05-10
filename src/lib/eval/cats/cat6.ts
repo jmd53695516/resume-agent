@@ -92,6 +92,11 @@ export async function runCat6(targetUrl: string, runId: string): Promise<Categor
           // BASE_URL forwarding silently broke.
           CI: '1',
         },
+        // On Windows, `npx` is `npx.cmd` (a batch file). Node's spawn() does
+        // not search PATHEXT for .cmd/.bat by default and fails with ENOENT.
+        // Scope shell:true to Windows only — all args are literal so there's
+        // no injection surface. CI (Ubuntu) keeps shell:false (zero overhead).
+        shell: process.platform === 'win32',
         stdio: 'inherit', // forward Playwright stdout/stderr to CI logs
       },
     );
