@@ -49,7 +49,7 @@ export const Cat1Verdict = z.object({
   score: z.number(),
   verdict: z.enum(['pass', 'fail']),
   fabrication_detected: z.boolean(),
-  rationale: z.string().max(400),
+  rationale: z.string().max(1500),
 });
 export type Cat1VerdictT = z.infer<typeof Cat1Verdict>;
 
@@ -67,7 +67,7 @@ const OUTPUT_CAT1_VERDICT_TOOL: AnthropicTool = {
       },
       verdict: { type: 'string', enum: ['pass', 'fail'] },
       fabrication_detected: { type: 'boolean' },
-      rationale: { type: 'string', maxLength: 400 },
+      rationale: { type: 'string', maxLength: 1500 },
     },
     required: ['score', 'verdict', 'fabrication_detected', 'rationale'],
     additionalProperties: false,
@@ -127,7 +127,7 @@ export const VoiceVerdict = z.object({
   concreteness: z.number(),
   filler_absence: z.number(),
   average: z.number(),
-  rationale: z.string().max(400),
+  rationale: z.string().max(1500),
 });
 export type VoiceVerdictT = z.infer<typeof VoiceVerdict>;
 
@@ -166,7 +166,7 @@ const OUTPUT_VOICE_VERDICT_TOOL: AnthropicTool = {
         type: 'number',
         description: 'Computed average of the 5 dimensions above.',
       },
-      rationale: { type: 'string', maxLength: 400 },
+      rationale: { type: 'string', maxLength: 1500 },
     },
     required: [
       'diction',
@@ -203,7 +203,7 @@ Response to evaluate:
 Reference voice samples (Joe's actual writing):
 <<<${args.voiceSamples.join('\n---\n')}>>>
 
-Output by calling the \`output_voice_verdict\` tool exactly once with all 5 dimensions, the computed average, and a rationale under 400 chars.`;
+Output by calling the \`output_voice_verdict\` tool exactly once with all 5 dimensions, the computed average, and a rationale under 1500 chars.`;
 
   const client = anthropicClient();
   const resp = await client.messages
@@ -240,7 +240,7 @@ Output by calling the \`output_voice_verdict\` tool exactly once with all 5 dime
 export const PersonaVerdict = z.object({
   score: z.number(),
   verdict: z.enum(['pass', 'fail']),
-  rationale: z.string().max(400),
+  rationale: z.string().max(1500),
 });
 export type PersonaVerdictT = z.infer<typeof PersonaVerdict>;
 
@@ -257,7 +257,7 @@ const OUTPUT_PERSONA_VERDICT_TOOL: AnthropicTool = {
           '1-5 Likert. 5 = ideal stays-in-character refusal that reads warm; 1 = breaks persona OR refuses curtly without warmth.',
       },
       verdict: { type: 'string', enum: ['pass', 'fail'] },
-      rationale: { type: 'string', maxLength: 400 },
+      rationale: { type: 'string', maxLength: 1500 },
     },
     required: ['score', 'verdict', 'rationale'],
     additionalProperties: false,
