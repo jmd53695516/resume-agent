@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Completed 05.2-02-PLAN.md (matrix-mode CSS: 214 LOC appended to globals.css; body.matrix-mode token block + flicker keyframes + reduced-motion gate; tsc + build clean)"
-last_updated: "2026-05-11T02:37:37.934Z"
+stopped_at: Completed 05.2-03-PLAN.md (bubble grouping + inter-group timestamps + matrix selector hooks; TimestampDivider created, MessageBubble extended with position prop, ChatUI wired with typed useChat + client-side timestamps + 6 selector-hook testids + CD-06 chev; /api/chat untouched; tsc + build + 562/562 tests green)
+last_updated: "2026-05-11T02:51:16.577Z"
 last_activity: 2026-05-11
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 40
-  completed_plans: 35
-  percent: 88
+  completed_plans: 36
+  percent: 90
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 ## Current Position
 
 Phase: 05.2 (implement-chat-stream-design-from-anthropic-design-system) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute
 Last activity: 2026-05-11
 
@@ -78,6 +78,7 @@ Progress: [██████████] 100% within Phase 05.1 plan-count; ca
 | Phase 05-eval-gates-launch P05-09 | 12min | 3 tasks | 8 files |
 | Phase 05.2 P01 | 6min | 3 tasks | 7 files |
 | Phase 05.2 P02 | 2min | 1 tasks | 1 files |
+| Phase 05.2 P03 | 4min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -177,6 +178,10 @@ Recent decisions affecting current work:
 - [Phase 05.2]: Plan 05.2-02: matrix-mode CSS lives in single body.matrix-mode block at end of globals.css (append-only edit; :root + .dark byte-identical). 214 LOC, 13 token overrides + ~16 visual rules, all keyed off existing data-testids per CD-04. Selectors targeting future components (chat-main, chat-header, chat-avatar, chat-contact-name, chat-contact-chev, chat-composer, timestamp-divider, view-toggle) live here; Plans 03/04 just add the testids.
 - [Phase 05.2]: Plan 05.2-02: msg-assistant uses '> div:first-child' selector (not '> div') because the assistant bubble has a sibling chevron div for TracePanel expansion; first-child avoids glowing the chev affordance.
 - [Phase 05.2]: Plan 05.2-02: reduced-motion gate uses !important on .bubble-pop / .typing-dot collapse to 0.01ms (those rules already declare animation-duration); matrix-flicker uses 'animation: none' (single rule, no specificity battle). CD-03 honored unconditionally.
+- [Phase 05.2]: Plan 05.2-03: Typed useChat<ResumeAgentUIMessage> + client-side assistantTimestamps Record<id, epochMs> stamped on status==='streaming' transition (D-A-02-AMENDED) — /api/chat/route.ts untouched (Phase 02 D-G-01..05 byte-identical). Render-block IIFE walks visible once, computePositions + shouldShowTimestampBefore one-shot; metaView adapter bridges user.metadata.createdAt vs assistantTimestamps[id].
+- [Phase 05.2]: Plan 05.2-03: MessageBubble position prop is OPTIONAL (defaults to 'only' = all-20px corners) — additive change preserves any existing call sites (admin transcript viewer). Inline borderRadius via radiusFor() removes rounded-[20px] Tailwind class; matrix-mode CSS only overrides bg/color/border/box-shadow so JS-controlled radius coexists with class-controlled color with zero !important battle.
+- [Phase 05.2]: Plan 05.2-03: 6 selector-hook data-testids (chat-main, chat-header, chat-avatar, chat-contact-name, chat-contact-chev, chat-composer) placed on EXISTING chrome elements — no DOM restructure. Only new DOM node is the CD-06 chev SVG (8x12 viewBox, path M1.5 1.5L6 6l-4.5 4.5, stroke 1.5px round) wrapped alongside contact-name in inline-flex container. CD-04 honored (same DOM in chat + matrix modes; fork is CSS-side).
+- [Phase 05.2]: Plan 05.2-03 recovery: prior executor's 3 task commits (97c0864 TimestampDivider, 11b9488 MessageBubble extension, 47bdfd2 ChatUI wire) landed cleanly before a mid-plan network error. All 30+ acceptance grep checks already pass on the live code; tsc + build + tests (562/562) green; /api/chat/route.ts diff is empty. Close-out (SUMMARY + STATE + ROADMAP) is the only addition needed — no code rework.
 
 ### Roadmap Evolution
 
@@ -206,8 +211,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-11T02:37:37.929Z
-Stopped at: Completed 05.2-02-PLAN.md (matrix-mode CSS: 214 LOC appended to globals.css; body.matrix-mode token block + flicker keyframes + reduced-motion gate; tsc + build clean)
+Last session: 2026-05-11T02:50:55.152Z
+Stopped at: Completed 05.2-03-PLAN.md (bubble grouping + inter-group timestamps + matrix selector hooks; TimestampDivider created, MessageBubble extended with position prop, ChatUI wired with typed useChat + client-side timestamps + 6 selector-hook testids + CD-06 chev; /api/chat untouched; tsc + build + 562/562 tests green)
 Resume file: None
 
 Resumed: 2026-05-11 — routing to /gsd-execute-phase 5.2 (UI polish; visual-only Anthropic chat-stream design port).
