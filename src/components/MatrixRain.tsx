@@ -103,6 +103,16 @@ export function MatrixRain({ visible }: Props) {
     // Cap DPR at 2 to avoid excess fillrate on retina (UI-SPEC line 850).
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
+    // WR-02 fix: Canvas 2D's `font` setter does not resolve CSS custom
+    // properties — `var(--font-matrix)` inside ctx.font is silently
+    // ignored. Resolve the family from the actual computed style once at
+    // setup so swapping --font-matrix in CSS propagates to the canvas.
+    // Fall back to literal 'Share Tech Mono' if the variable is unset.
+    const resolvedFontFamily =
+      getComputedStyle(document.body).getPropertyValue('--font-matrix').trim() ||
+      "'Share Tech Mono'";
+    const fontShorthand = `${RAIN.fontSize}px ${resolvedFontFamily}, 'Share Tech Mono', monospace`;
+
     let width = 0;
     let height = 0;
     let cols: Column[] = [];
@@ -137,7 +147,7 @@ export function MatrixRain({ visible }: Props) {
       ctx.fillStyle = `rgba(0, 0, 0, ${RAIN.trailFade})`;
       ctx.fillRect(0, 0, width, height);
 
-      ctx.font = `${RAIN.fontSize}px var(--font-matrix), 'Share Tech Mono', monospace`;
+      ctx.font = fontShorthand;
       ctx.textBaseline = 'top';
 
       for (let i = 0; i < cols.length; i++) {
