@@ -15,6 +15,9 @@ const mocks = vi.hoisted(() => ({
   redisSet: vi.fn(),
   buildSystemPrompt: vi.fn(() => 'CACHED-SYSTEM-PROMPT'),
   log: vi.fn(),
+  // Plan 05-12 launch fix: heartbeat route now makes a real classifier call
+  // (replaces the chicken-and-egg pingClassifier-reads-stale-key check).
+  classifyUserMessage: vi.fn(async () => ({ verdict: 'allow', confidence: 0.9 })),
 }));
 
 vi.mock('@/lib/env', () => ({
@@ -55,6 +58,12 @@ vi.mock('@/lib/anthropic', () => ({
 
 vi.mock('@/lib/logger', () => ({ log: mocks.log }));
 
+// Plan 05-12 launch fix: heartbeat route now calls classifyUserMessage directly
+// to verify classifier health (replaces chicken-and-egg pingClassifier read).
+vi.mock('@/lib/classifier', () => ({
+  classifyUserMessage: mocks.classifyUserMessage,
+}));
+
 import { POST } from '@/app/api/cron/heartbeat/route';
 
 function makeReq(opts: { auth?: string; method?: string }) {
@@ -70,6 +79,7 @@ beforeEach(() => {
   mocks.messagesCreate.mockReset();
   mocks.redisSet.mockReset();
   mocks.log.mockReset();
+  mocks.classifyUserMessage.mockReset();
   mocks.HEARTBEAT_LLM_PREWARM = 'true';
   // Reset ping defaults to 'ok'
   mocks.pingAnthropic.mockResolvedValue('ok');
@@ -77,6 +87,8 @@ beforeEach(() => {
   mocks.pingSupabase.mockResolvedValue('ok');
   mocks.pingUpstash.mockResolvedValue('ok');
   mocks.pingExa.mockResolvedValue('ok');
+  // Default: live classifier call succeeds (Plan 05-12 launch fix).
+  mocks.classifyUserMessage.mockResolvedValue({ verdict: 'allow', confidence: 0.9 });
 });
 
 describe('POST /api/cron/heartbeat', () => {
@@ -218,12 +230,15 @@ describe('POST /api/cron/heartbeat', () => {
     );
   });
 
-  it('does not write heartbeat:classifier when classifier ping fails (WR-04)', async () => {
+  it('does not write heartbeat:classifier when live classifier call throws (Plan 05-12 launch fix)', async () => {
     mocks.messagesCreate.mockResolvedValue({
       usage: { cache_read_input_tokens: 0, cache_creation_input_tokens: 0, input_tokens: 1, output_tokens: 1 },
     });
     mocks.redisSet.mockResolvedValue('OK');
-    mocks.pingClassifier.mockResolvedValue('down');
+    // The classifier-call replaces the chicken-and-egg pingClassifier check
+    // (which previously read a stale heartbeat:classifier and could never
+    // recover). When the actual call throws, the heartbeat key is not refreshed.
+    mocks.classifyUserMessage.mockRejectedValue(new Error('classifier down'));
 
     await POST(makeReq({ auth: `Bearer ${mocks.CRON_SECRET}` }));
 
@@ -232,6 +247,57 @@ describe('POST /api/cron/heartbeat', () => {
       expect.any(Number),
       expect.anything(),
     );
+    expect(mocks.log).toHaveBeenCalledWith(
+      expect.objectContaining({ event: 'heartbeat_classifier_failed' }),
+      'warn',
+    );
+  });
+
+  it('writes heartbeat:exa unconditionally on every successful run (Plan 05-12 launch fix)', async () => {
+    mocks.messagesCreate.mockResolvedValue({
+      usage: { cache_read_input_tokens: 0, cache_creation_input_tokens: 0, input_tokens: 1, output_tokens: 1 },
+    });
+    mocks.redisSet.mockResolvedValue('OK');
+    // pingExa was previously HEAD-pinging api.exa.ai (which always returned
+    // 404 → permanent 'degraded'). Now switched to heartbeat-trust; the
+    // cron-side write is the authoritative refresh (no live ping precondition).
+    mocks.pingExa.mockResolvedValue('degraded');
+
+    await POST(makeReq({ auth: `Bearer ${mocks.CRON_SECRET}` }));
+
+    expect(mocks.redisSet).toHaveBeenCalledWith(
+      'heartbeat:exa',
+      expect.any(Number),
+      { ex: 120 },
+    );
+    // statuses.exa in heartbeat log reflects the post-write state ('ok'),
+    // not the pre-write ping read ('degraded').
+    expect(mocks.log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: 'heartbeat',
+        statuses: expect.objectContaining({ exa: 'ok' }),
+      }),
+    );
+  });
+
+  it('logs classifier=ok in heartbeat statuses on successful live call (Plan 05-12 launch fix)', async () => {
+    mocks.messagesCreate.mockResolvedValue({
+      usage: { cache_read_input_tokens: 0, cache_creation_input_tokens: 0, input_tokens: 1, output_tokens: 1 },
+    });
+    mocks.redisSet.mockResolvedValue('OK');
+    // pingClassifier read returned 'degraded' (stale pre-write state) but the
+    // live call succeeded — log should reflect the live result, not the stale read.
+    mocks.pingClassifier.mockResolvedValue('degraded');
+
+    await POST(makeReq({ auth: `Bearer ${mocks.CRON_SECRET}` }));
+
+    expect(mocks.classifyUserMessage).toHaveBeenCalledWith('health check ping');
+    expect(mocks.log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: 'heartbeat',
+        statuses: expect.objectContaining({ classifier: 'ok' }),
+      }),
+    );
   });
 
   it('pings all 5 deps and records latencies in heartbeat log', async () => {
@@ -239,6 +305,10 @@ describe('POST /api/cron/heartbeat', () => {
       usage: { cache_read_input_tokens: 0, cache_creation_input_tokens: 0, input_tokens: 1, output_tokens: 1 },
     });
     mocks.redisSet.mockResolvedValue('OK');
+    // Plan 05-12 launch fix: pingExa pre-write state is irrelevant for the
+    // logged status — the cron-side write happens unconditionally and the
+    // log reflects the post-write state ('ok'). Pre-write ping is still
+    // recorded in latencies_ms for ops visibility.
     mocks.pingExa.mockResolvedValue('degraded');
 
     await POST(makeReq({ auth: `Bearer ${mocks.CRON_SECRET}` }));
@@ -253,7 +323,13 @@ describe('POST /api/cron/heartbeat', () => {
       expect.objectContaining({
         event: 'heartbeat',
         deps_pinged: ['supabase', 'upstash', 'exa', 'anthropic', 'classifier'],
-        statuses: expect.objectContaining({ exa: 'degraded' }),
+        // exa is now 'ok' post-write (heartbeat-trust pattern); supabase + upstash
+        // pass through their live ping result.
+        statuses: expect.objectContaining({
+          exa: 'ok',
+          supabase: 'ok',
+          upstash: 'ok',
+        }),
       }),
     );
   });

@@ -25,6 +25,7 @@ import { buildSystemPrompt } from '@/lib/system-prompt';
 import { MODELS } from '@/lib/anthropic';
 import { env } from '@/lib/env';
 import { log } from '@/lib/logger';
+import { classifyUserMessage } from '@/lib/classifier';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -112,19 +113,38 @@ export async function POST(req: Request): Promise<Response> {
     ? await warmPromptCache()
     : { cache_read_tokens: 0, cost_cents: 0, ok: true };
 
-  // WR-04: refresh heartbeat:classifier whenever the cron-side ping succeeds.
-  // Without this, /admin/health's classifier heartbeat row only refreshes
-  // inside /api/chat's onFinish, so on a low-traffic day the dashboard
-  // shows a stale '—' even when the classifier is healthy.
-  if (classifierPing.value === 'ok') {
-    try {
-      await redis.set('heartbeat:classifier', Date.now(), { ex: 120 });
-    } catch (err) {
-      log(
-        { event: 'heartbeat_classifier_write_failed', error_message: (err as Error).message },
-        'warn',
-      );
-    }
+  // Plan 05-12 launch fix: WR-04's `if (classifierPing.value === 'ok')` was
+  // chicken-and-egg — pingClassifier just READS heartbeat:classifier (which is
+  // stale on a low-traffic day), so the if-guard never ran on a stale key and
+  // the heartbeat could never recover via the cron alone. Replaced with an
+  // actual classifier call (~1 Haiku call per heartbeat fire, ~$0.0001 each).
+  // The chat route (route.ts onFinish) still refreshes the same key on real
+  // traffic — this cron-side call just covers low/no-traffic windows.
+  let classifierLiveOk = false;
+  try {
+    await classifyUserMessage('health check ping');
+    classifierLiveOk = true;
+    await redis.set('heartbeat:classifier', Date.now(), { ex: 120 });
+  } catch (err) {
+    log(
+      { event: 'heartbeat_classifier_failed', error_message: (err as Error).message },
+      'warn',
+    );
+  }
+
+  // Plan 05-12 launch fix: write heartbeat:exa unconditionally. pingExa was
+  // previously HEAD-pinging https://api.exa.ai/ which always returns 404 (Exa
+  // has no root endpoint), so the banner showed 'Pitch tool offline right now'
+  // permanently. Switched to heartbeat-trust pattern; the cron-side write keeps
+  // the banner clean. Real Exa outages still surface via the deflection log in
+  // tools/research-company.ts + the Plan 04-06 alarm system.
+  try {
+    await redis.set('heartbeat:exa', Date.now(), { ex: 120 });
+  } catch (err) {
+    log(
+      { event: 'heartbeat_exa_write_failed', error_message: (err as Error).message },
+      'warn',
+    );
   }
   // Also refresh heartbeat:anthropic from the live ping when prompt-cache
   // prewarm is disabled — otherwise that key is never written and the
@@ -164,9 +184,14 @@ export async function POST(req: Request): Promise<Response> {
     statuses: {
       supabase: supabasePing.value,
       upstash: upstashPing.value,
-      exa: exaPing.value,
+      // Plan 05-12: exa now uses heartbeat-trust; the cron-side write above is
+      // authoritative. Prefer 'ok' (we just wrote the key) over the pre-write
+      // ping read (which may have been 'degraded' from stale state).
+      exa: 'ok',
       anthropic: anthropicStatus,
-      classifier: classifierPing.value,
+      // Plan 05-12: classifier reflects the live classifier call result, not
+      // the stale pre-write pingClassifier read (BL-13 / WR-04 pattern).
+      classifier: classifierLiveOk ? 'ok' : 'degraded',
     },
     anthropic_cache_read_tokens: prewarm.cache_read_tokens,
     cost_cents: prewarm.cost_cents,

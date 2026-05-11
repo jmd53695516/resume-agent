@@ -178,35 +178,45 @@ describe('pingUpstash', () => {
   });
 });
 
-describe('pingExa (live HEAD)', () => {
+describe('pingExa (heartbeat-trust)', () => {
+  // Plan 05-12 launch fix: was live HEAD against https://api.exa.ai/ (which
+  // always returned 404 → permanent 'degraded' on banner). Switched to
+  // heartbeat-trust like pingAnthropic + pingClassifier — reads the
+  // 'heartbeat:exa' key written by /api/cron/heartbeat (unconditional bump)
+  // and tools/research-company.ts (on successful Exa call).
   beforeEach(() => {
-    vi.stubGlobal('fetch', vi.fn());
+    redisGet.mockReset();
+    redisPing.mockReset();
   });
 
-  it('returns ok on 200', async () => {
-    (global.fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: true });
+  it('reads heartbeat:exa key name', async () => {
+    redisGet.mockResolvedValue(Date.now());
+    const { pingExa } = await import('../../src/lib/health');
+    await pingExa();
+    expect(redisGet).toHaveBeenCalledWith('heartbeat:exa');
+  });
+
+  it('returns ok when last_ok is fresh (<60s)', async () => {
+    redisGet.mockResolvedValue(Date.now() - 30_000);
     const { pingExa } = await import('../../src/lib/health');
     expect(await pingExa()).toBe('ok');
   });
 
-  it('returns degraded on non-2xx', async () => {
-    (global.fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: false });
+  it('returns degraded when last_ok is 60-120s old', async () => {
+    redisGet.mockResolvedValue(Date.now() - 90_000);
     const { pingExa } = await import('../../src/lib/health');
     expect(await pingExa()).toBe('degraded');
   });
 
-  it('returns down on throw', async () => {
-    (global.fetch as unknown as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('network'));
+  it('returns degraded when key absent (TTL expired)', async () => {
+    redisGet.mockResolvedValue(null);
     const { pingExa } = await import('../../src/lib/health');
-    expect(await pingExa()).toBe('down');
+    expect(await pingExa()).toBe('degraded');
   });
 
-  it('uses HEAD method against api.exa.ai', async () => {
-    (global.fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: true });
+  it('returns down when redis.get throws (Upstash network failure)', async () => {
+    redisGet.mockRejectedValue(new Error('network'));
     const { pingExa } = await import('../../src/lib/health');
-    await pingExa();
-    const call = (global.fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(call[0]).toBe('https://api.exa.ai/');
-    expect(call[1]).toMatchObject({ method: 'HEAD' });
+    expect(await pingExa()).toBe('down');
   });
 });

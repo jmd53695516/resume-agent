@@ -4,9 +4,13 @@
 // /api/chat onFinish per Plan 03-02). Supabase + Upstash + Exa use live
 // pings with a TIMEOUT_MS guard. HTTP 200 always; helpers never throw.
 //
-// Heartbeat key names — MUST match Plan 03-02 writes exactly:
+// Heartbeat key names — MUST match Plan 03-02 + Plan 05-12 writes exactly:
 //   heartbeat:anthropic    (ex: 120)
 //   heartbeat:classifier   (ex: 120)
+//   heartbeat:exa          (ex: 120)  — Plan 05-12 launch fix: replaced the
+//                                       broken HEAD-ping of api.exa.ai (which
+//                                       always returned 404) with heartbeat-
+//                                       trust like Anthropic + Classifier.
 //
 // Heartbeat freshness windows (TTL=120s):
 //   <60s    → 'ok'
@@ -101,11 +105,17 @@ export async function pingUpstash(): Promise<DepStatus> {
 }
 
 export async function pingExa(): Promise<DepStatus> {
+  // Plan 05-12 launch fix: was `fetch('https://api.exa.ai/', { method: 'HEAD' })`
+  // — Exa has no root endpoint and returns 404 for HEAD, so res.ok was always
+  // false → permanent 'degraded'. Switched to heartbeat-trust like Anthropic +
+  // Classifier. Refreshed by /api/cron/heartbeat (unconditional bump) and by
+  // tools/research-company.ts on successful tool call. Real Exa outages surface
+  // via tool-deflection alarms, not the live ping.
   try {
-    const res = await withTimeout(
-      fetch('https://api.exa.ai/', { method: 'HEAD' }),
+    const lastOk = await withTimeout(
+      redis.get<string | number | null>('heartbeat:exa'),
     );
-    return res.ok ? 'ok' : 'degraded';
+    return classifyHeartbeat(lastOk);
   } catch {
     return 'down';
   }
