@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Completed 05.2-01-PLAN.md (foundation: date-fns + Share Tech Mono + chat-types/chat-format pure helpers, 18/18 tests, 562/562 full suite, tsc + build clean)"
-last_updated: "2026-05-11T02:32:17.755Z"
+stopped_at: "Completed 05.2-02-PLAN.md (matrix-mode CSS: 214 LOC appended to globals.css; body.matrix-mode token block + flicker keyframes + reduced-motion gate; tsc + build clean)"
+last_updated: "2026-05-11T02:37:37.934Z"
 last_activity: 2026-05-11
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 40
-  completed_plans: 34
-  percent: 85
+  completed_plans: 35
+  percent: 88
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 ## Current Position
 
 Phase: 05.2 (implement-chat-stream-design-from-anthropic-design-system) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Status: Ready to execute
 Last activity: 2026-05-11
 
@@ -77,6 +77,7 @@ Progress: [██████████] 100% within Phase 05.1 plan-count; ca
 | Phase 05-eval-gates-launch P05-08 | 22min | 4 tasks | 6 files |
 | Phase 05-eval-gates-launch P05-09 | 12min | 3 tasks | 8 files |
 | Phase 05.2 P01 | 6min | 3 tasks | 7 files |
+| Phase 05.2 P02 | 2min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -173,6 +174,9 @@ Recent decisions affecting current work:
 - [Phase 05.2]: Plan 05.2-01: Test file placed at tests/lib/chat-format.test.ts (mirror-pattern convention) NOT src/lib/chat-format.test.ts (plan's stated co-located path) — vitest.config.ts include glob is tests/**/*.test.{ts,tsx}; src/-co-located tests are invisible to npm test + CI. Uses @/lib/* alias imports per tests/lib/cost.test.ts pattern.
 - [Phase 05.2]: Plan 05.2-01: chat-format.ts helpers are pure + un-memoized (no useMemo) per plan instruction — CHAT-10 caps at 30 turns; computePositions is O(n) over <=30 elements; shouldShowTimestampBefore is O(1) per call.
 - [Phase 05.2]: Plan 05.2-01: Share Tech Mono via next/font/google with display:'swap' (matches Inter pattern; RESEARCH Pitfall 7 — prevents FOUT-driven reflow during Plan 02 matrix-mode toggle). Tailwind v4 utility generation via --font-matrix: var(--font-matrix) line inside @theme inline — no tailwind.config.js introduced.
+- [Phase 05.2]: Plan 05.2-02: matrix-mode CSS lives in single body.matrix-mode block at end of globals.css (append-only edit; :root + .dark byte-identical). 214 LOC, 13 token overrides + ~16 visual rules, all keyed off existing data-testids per CD-04. Selectors targeting future components (chat-main, chat-header, chat-avatar, chat-contact-name, chat-contact-chev, chat-composer, timestamp-divider, view-toggle) live here; Plans 03/04 just add the testids.
+- [Phase 05.2]: Plan 05.2-02: msg-assistant uses '> div:first-child' selector (not '> div') because the assistant bubble has a sibling chevron div for TracePanel expansion; first-child avoids glowing the chev affordance.
+- [Phase 05.2]: Plan 05.2-02: reduced-motion gate uses !important on .bubble-pop / .typing-dot collapse to 0.01ms (those rules already declare animation-duration); matrix-flicker uses 'animation: none' (single rule, no specificity battle). CD-03 honored unconditionally.
 
 ### Roadmap Evolution
 
@@ -202,8 +206,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-11T02:32:17.751Z
-Stopped at: Completed 05.2-01-PLAN.md (foundation: date-fns + Share Tech Mono + chat-types/chat-format pure helpers, 18/18 tests, 562/562 full suite, tsc + build clean)
+Last session: 2026-05-11T02:37:37.929Z
+Stopped at: Completed 05.2-02-PLAN.md (matrix-mode CSS: 214 LOC appended to globals.css; body.matrix-mode token block + flicker keyframes + reduced-motion gate; tsc + build clean)
 Resume file: None
 
 Resumed: 2026-05-11 — routing to /gsd-execute-phase 5.2 (UI polish; visual-only Anthropic chat-stream design port).
