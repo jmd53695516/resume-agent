@@ -54,9 +54,9 @@ status: friend-test-pending
 
 | Tester | Role | Q1 (substantive Y/N) | Q2 (awkward) | Q3 (favorite) | Q4 (cringe) | Q5 (open) |
 |--------|------|----------------------|--------------|---------------|-------------|-----------|
-| 1      | non-PM, non-technical, non-HR | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
-| 2      | PM with some technical ability | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
-| 3      | recruiter | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
+| 1      | non-PM, non-technical, non-HR | _DM sent 2026-05-11; pending response_ | _pending_ | _pending_ | _pending_ | _pending_ |
+| 2      | PM with some technical ability | _DM sent 2026-05-11; pending response_ | _pending_ | _pending_ | _pending_ | _pending_ |
+| 3      | recruiter | _DM sent 2026-05-11; pending response_ | _pending_ | _pending_ | _pending_ | _pending_ |
 
 **Role-constraint check (LAUNCH-04 per CONTEXT D-D-03):**
 - ≥1 PM: ✓ Tester 2

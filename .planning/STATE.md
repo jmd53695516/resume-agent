@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: ready
-stopped_at: "Phase 05.2 fully closed — VERIFICATION green (14/14 must-haves); HUMAN-UAT items 1-6 approved by user (2026-05-11); item 7 (npm run eval cat6) deferred to Plan 05-12 LAUNCH-05 pre-flight. Stale Phase 01 .continue-here.md removed; chat-stream-design todo moved to completed/. Only Plan 05-12 (LAUNCH, autonomous:false) remains."
-last_updated: "2026-05-11T18:00:00.000Z"
-last_activity: 2026-05-11
+status: paused
+stopped_at: "Plan 05-12 LAUNCH — v1.0 LIVE on prod at https://joe-dollinger-chat.com. All code/data work done (Tasks 0-3 + banner fix + LAUNCH-06 transcript verify on prod). Both LAUNCH-05 hard gates green: cat1=15/15 (runId sWLys5bpVsiHAfwvoln04), cat4=5/5 avg 4.40 (runId OPoI0ljuwE4GlbT_LFh4u). cat3=2/6 baseline (D-12-C-05 informational MET). Banner: all 5 deps green; cron-job.org schedule live. Code review: 1 warning (WR-01 classifier banner false-green) + 4 info, all deferred to follow-ups. Schema drift + regression gates green. Phase 05 PAUSED awaiting friend-test (Task 4): Google Form https://forms.gle/yovqkpe3QVnNpVTP7 sent to 3 testers (non-PM-non-tech, PM-with-some-tech, recruiter); responses 1-3 days async. Resume on response arrival for sign-off + paper print + verifier + phase mark-complete."
+last_updated: "2026-05-12T01:30:00.000Z"
+last_activity: 2026-05-11 -- v1.0 launched on prod; Plan 05-12 paused awaiting friend-test responses
 progress:
   total_phases: 7
   completed_phases: 6
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** A recruiter in under five minutes walks away with a distinctive, specific impression of Joe — grounded in real projects, free of fabrication, and delivered by an agent they can see was engineered (not just prompted) with cost, abuse, and hallucination controls.
-**Current focus:** Phase 05.2 — implement-chat-stream-design-from-anthropic-design-system
+**Current focus:** Phase 05 — eval-gates-launch
 
 ## Current Position
 
-Phase: 05 (Eval Gates & Launch)
-Plan: 05-12 (LAUNCH) — last remaining plan in the milestone
-Status: Ready to execute Plan 05-12 (autonomous:false; Joe-time-heavy)
-Last activity: 2026-05-11
+Phase: 05 (eval-gates-launch) — PAUSED awaiting friend-test responses
+Plan: 12 of 12 (LAUNCH; functionally complete on prod)
+Status: Paused — v1.0 LIVE; awaiting Task 4 friend-test responses (1-3 days async) for sign-off
+Last activity: 2026-05-11 -- v1.0 launched on prod at https://joe-dollinger-chat.com
 
-Progress: [█████████░] 39/40 plans (98%). Phase 05.2 fully closed — VERIFICATION 14/14 must-haves; HUMAN-UAT items 1-6 approved by user; item 7 (npm run eval cat6 end-to-end) deferred to Plan 05-12 LAUNCH-05 pre-flight. cat-06-admin-403 (3 tests) + chat-six-gate-order parallel flake remain documented in 05.2 deferred-items.md as pre-existing, NOT caused by Phase 05.2.
+Progress: [█████████░] 39/40 plans + Plan 05-12 functionally complete (code/data shipped, prod verified, gates green). Plan 05-12 awaits ONLY friend-test responses (Google Form https://forms.gle/yovqkpe3QVnNpVTP7 sent to 3 testers 2026-05-11) before sign-off + verifier + mark-complete. Phase 05.2 fully closed — VERIFICATION 14/14 must-haves; HUMAN-UAT items 1-6 approved by user; item 7 (npm run eval cat6 end-to-end) deferred to Plan 05-12 LAUNCH-05 pre-flight (resolved via cat6 documented baseline 17/20 with 3 pre-existing admin-403 spec failures filed in 05.2 deferred-items).
 
 ## Performance Metrics
 
