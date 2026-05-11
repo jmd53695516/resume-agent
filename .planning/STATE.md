@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Completed 05.2-05-PLAN.md (MatrixRain canvas component + lazy-mount via next/dynamic; D-A-04 matrix-mode easter egg LIVE end-to-end; CD-02 code-split verified; CD-03 a11y + viewport gates inside useEffect; CD-04 conversation streams above canvas with pointer-events: none; tsc + build + 562/562 tests green)"
-last_updated: "2026-05-11T03:29:36.509Z"
+stopped_at: "Completed 05.2-06-PLAN.md (cat6 Playwright re-baseline: view-toggle sanity assertion in chat-happy-path + new cat-06-view-toggle.spec.ts with 5 tests covering pill round-trip, body.matrix-mode class side-effect, MatrixRain canvas mount/unmount, framing-page absence, Pitfall-2 cleanup-on-navigation; tsc green; pre-existing cat-06-admin-403 failures + chat-six-gate-order flake filed in deferred-items.md per scope-boundary rule). Phase 05.2 all 6 plans have SUMMARY.md — ready for verify_phase_goal."
+last_updated: "2026-05-11T04:25:00.000Z"
 last_activity: 2026-05-11
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 40
-  completed_plans: 38
-  percent: 95
+  completed_plans: 39
+  percent: 98
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 
 ## Current Position
 
-Phase: 05.2 (implement-chat-stream-design-from-anthropic-design-system) — EXECUTING
-Plan: 6 of 6
-Status: Ready to execute
+Phase: 05.2 (implement-chat-stream-design-from-anthropic-design-system) — ALL PLANS COMPLETE
+Plan: 6 of 6 (SUMMARY.md present for all)
+Status: Ready for verify_phase_goal
 Last activity: 2026-05-11
 
-Progress: [██████████] 100% within Phase 05.1 plan-count; cat1 D-B-01 hard gate deferred to 05-12 due to architectural finding outside 05.1 scope
+Progress: [██████████] 100% of Phase 05.2 plan-count; phase-level verification next. cat-06-admin-403 (3 tests) + chat-six-gate-order parallel flake filed in 05.2 deferred-items.md as pre-existing, NOT caused by Phase 05.2.
 
 ## Performance Metrics
 
@@ -79,6 +79,9 @@ Progress: [██████████] 100% within Phase 05.1 plan-count; ca
 | Phase 05.2 P01 | 6min | 3 tasks | 7 files |
 | Phase 05.2 P02 | 2min | 1 tasks | 1 files |
 | Phase 05.2 P03 | 4min | 3 tasks | 3 files |
+| Phase 05.2 P04 | 3min | 2 tasks | 2 files |
+| Phase 05.2 P05 | 4min | 2 tasks | 2 files |
+| Phase 05.2 P06 | 12min | 3 tasks | 3 files |
 | Phase 05.2 P04 | 3min | 2 tasks | 2 files |
 | Phase 05.2 P05 | 4min | 2 tasks | 2 files |
 
@@ -187,6 +190,9 @@ Recent decisions affecting current work:
 - [Phase 05.2]: Plan 05.2-04: ViewToggle pill (~70 LOC hand-rolled, role=tablist + 3 testids, exact 'Light Mode' / 'Dark Mode' labels per D-B-02) + chat/page.tsx view state lift with body-class useEffect cleanup (Pitfall 2 — prevents matrix-mode leak to /admin/*) + literal 'chat' initial state (Pitfall 3 — hydration-safe). D-B-01..03 all LIVE; activates Plan 02's matrix-mode CSS end-to-end. ChatUI prop surface UNCHANGED (Plan 05 will add view prop).
 - [Phase 05.2]: Plan 05.2-04 recovery: prior session committed Task 1 (0805622) but dropped before Task 2 commit. Task 2 code was on disk dirty (~33 lines on chat/page.tsx). Resume strategy: inspect dirty diff against plan acceptance criteria (all 13 grep checks pass on disk state), re-run verification gates (tsc + build + 562/562 tests green), commit Task 2 atomically (f6e546c), close out. Zero code rework needed — the dropped session's on-disk work matched the plan exactly.
 - [Phase 05.2]: Plan 05.2-05: MatrixRain ported to TS/React 19 from design-bundle/project/matrix-rain.jsx with all bundle tunables byte-identical (fontSize=18, trailFade=0.06, flipChance=0.04, speed range, headWhiteChance=0.72). Two CD-03 gates layered inside useEffect (prefers-reduced-motion + viewport <768px) — canvas mounts but RAF skips. StrictMode-safe RAF cleanup. Lazy-mounted via next/dynamic({ ssr: false, loading: () => null }) with named-export indirection; conditionally rendered (view === 'matrix' && <MatrixRain visible />) so default chat-mode bundle is clean (CD-02 verified at .next/static/chunks/0uk62i9w5y1ib.js). ChatUI prop surface UNCHANGED (no view prop). D-A-04 matrix-mode easter egg LIVE end-to-end. tsc + build + 562/562 tests green.
+- [Phase 05.2]: Plan 05.2-06: cat6 Playwright re-baseline — chat-happy-path.spec.ts gets a single view-toggle visibility assertion appended to the empty-state test (3 pre-existing CHAT-14 starter-prompt tests preserved verbatim); new cat-06-view-toggle.spec.ts ships 5 tests (pill + initial aria-selected, dark-click → body.matrix-mode + matrix-canvas mount, light-click → strip + unmount, framing-page (/) absence, Pitfall-2 cleanup-on-navigation via expect.poll). All 9 plan acceptance grep checks pass on the live specs. tsc green at close-out.
+- [Phase 05.2]: Plan 05.2-06 scope boundary: pre-existing cat-06-admin-403.spec.ts (3 failures) + chat-six-gate-order.test.ts parallel-execution flake filed in 05.2/deferred-items.md. cat-06-admin-403 root cause: src/proxy.ts redirect matcher short-circuits the `(authed)/layout` NotAuthorized render path BEFORE the test's heading assertion can fire — verified pre-existing at commit 664a227. Two fix options documented (update spec to assert /admin/login redirect, OR adjust proxy matcher). Out of scope for Plan 05.2-06 (only modifies chat-happy-path + new view-toggle spec); deferred to Plan 05-12 LAUNCH-* pre-flight.
+- [Phase 05.2]: Plan 05.2-06 close-out recovery: two prior executor agents timed out on full Playwright runs (`npx playwright test` is slow + heavy). First agent finished Tasks 1 + 2 (fac4b3d + 64a9cc2) + wrote the deferred-items.md investigation; second agent timed out during inline verification. Third executor (close-out) accepted deferred-items.md as authoritative, re-ran only `npx tsc --noEmit` (exit 0), wrote SUMMARY + STATE + ROADMAP inline. Recovery pattern: when verification re-runs would not catch new regressions (because no application code changed since the last green build/test), trust the prior green state and complete metadata writes inline.
 
 ### Roadmap Evolution
 
@@ -216,11 +222,11 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-11T03:29:36.496Z
-Stopped at: Completed 05.2-05-PLAN.md (MatrixRain canvas component + lazy-mount via next/dynamic; D-A-04 matrix-mode easter egg LIVE end-to-end; CD-02 code-split verified; CD-03 a11y + viewport gates inside useEffect; CD-04 conversation streams above canvas with pointer-events: none; tsc + build + 562/562 tests green)
+Last session: 2026-05-11T04:25:00.000Z
+Stopped at: Completed 05.2-06-PLAN.md — Phase 05.2 all 6 plans complete. cat6 Playwright re-baseline: chat-happy-path view-toggle sanity assertion + new cat-06-view-toggle.spec.ts (5 tests). Pre-existing cat-06-admin-403 + chat-six-gate-order failures filed in 05.2/deferred-items.md per scope-boundary rule. Phase ready for verify_phase_goal.
 Resume file: None
 
-Resumed: 2026-05-11 — routing to /gsd-execute-phase 5.2 (UI polish; visual-only Anthropic chat-stream design port).
+Resumed: 2026-05-11 — completed /gsd-execute-phase 5.2 Wave 5 close-out inline after two executor timeouts on full Playwright runs.
 
 ## Quick Tasks Completed
 

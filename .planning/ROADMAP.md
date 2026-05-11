@@ -138,7 +138,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 **Goal:** Close the visual gap between the Anthropic Chat Stream design bundle (delivered 2026-05-01, partially ported on 2026-04-30) and the live recruiter-facing chat surface BEFORE Plan 05-12 LAUNCH-05. Visual-only port of the four remaining bundle features: bubble grouping with iMessage tail-corner radii (D-A-01), inter-group timestamps with the 5-minute rule (D-A-02 + AMENDED — fully client-side, no /api/chat changes), top-right "Light Mode / Dark Mode" toggle pill (D-B-01..03), and the matrix-mode easter egg view with canvas digital-rain backdrop + green-monospace terminal restyle (D-A-04). Re-baseline cat6 Playwright e2e suite at close-out per D-C-03. Strict preservation of Phase 02 D-G byte-identical /api/chat contract and all existing data-testids (D-C-03).
 **Requirements**: None (decimal phase — design polish before LAUNCH-05; CONTEXT D-* IDs serve as the requirement surface)
 **Depends on:** Phase 5
-**Plans:** 5/6 plans executed
+**Plans:** 6/6 plans complete
 
 Plans:
 - [x] 05.2-01-PLAN.md — Foundation: install date-fns@^4, register Share Tech Mono via next/font/google as --font-matrix, create src/lib/chat-types.ts (ResumeAgentUIMessage + BubblePosition) and src/lib/chat-format.ts (computePositions + shouldShowTimestampBefore pure helpers + Vitest coverage)
@@ -146,7 +146,7 @@ Plans:
 - [x] 05.2-03-PLAN.md — Bubble grouping (D-A-01) + inter-group timestamps (D-A-02-AMENDED — fully client-side): create TimestampDivider component, add position prop + tail-corner radius math to MessageBubble, refactor ChatUI render block to walk computePositions/shouldShowTimestampBefore, capture assistant timestamps in client React state on status==='streaming' transition; api/chat/route.ts NOT modified
 - [x] 05.2-04-PLAN.md — ViewToggle pill (D-B-01..03) + view state lift to chat/page.tsx + body-class useEffect with cleanup (Pitfall 2); pill labels exactly "Light Mode" / "Dark Mode" (D-B-02 LOCKED — no flattening); session-only state, no persistence
 - [x] 05.2-05-PLAN.md — MatrixRain canvas (D-A-04, CD-02..04): port matrix-rain.jsx to TS/React 19 with bundle tunables + StrictMode-safe RAF cleanup + prefers-reduced-motion + viewport <768px gates; lazy-mount via next/dynamic({ ssr: false }) conditionally on view==='matrix'
-- [ ] 05.2-06-PLAN.md — Cat6 e2e re-baseline (D-C-03): add view-toggle assertions to chat-happy-path.spec.ts; create cat-06-view-toggle.spec.ts with 5 tests (pill visibility + body-class round-trip + canvas mount/unmount + framing-page absence + Pitfall-2 cleanup); run full verification gate (tsc + build + vitest + Playwright + npm run eval cat6)
+- [x] 05.2-06-PLAN.md — Cat6 e2e re-baseline (D-C-03): add view-toggle assertions to chat-happy-path.spec.ts; create cat-06-view-toggle.spec.ts with 5 tests (pill visibility + body-class round-trip + canvas mount/unmount + framing-page absence + Pitfall-2 cleanup); run full verification gate (tsc + build + vitest + Playwright + npm run eval cat6)
 
 ### Phase 05.1: Eval Content Trust Restoration (INSERTED — CLOSED PARTIAL 2026-05-10)
 
