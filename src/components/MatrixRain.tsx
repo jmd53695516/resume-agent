@@ -11,9 +11,12 @@
  * Lazy-mounted from chat/page.tsx via next/dynamic({ ssr: false })
  * (CD-02 — keep canvas + RAF out of default chat-mode bundle).
  *
- * CD-03 defensive gates inside the useEffect:
- *   - prefers-reduced-motion: reduce → return early (canvas mounts blank)
- *   - viewport width < 768px → return early (mobile skips rain entirely)
+ * CD-03 defensive gates inside the useEffect (continuous, not mount-only):
+ *   - prefers-reduced-motion: reduce → RAF loop halts (canvas stays blank)
+ *   - viewport width < 768px → RAF loop halts (mobile skips rain entirely)
+ * Both gates are re-evaluated every frame and via a MediaQueryList
+ * listener + resize handler, so toggling OS reduce-motion mid-session or
+ * resizing across the 768px boundary halts/resumes the loop as expected.
  *
  * CD-04: this is a visual layer ONLY. It sits at z-index 1 (behind the
  * chat panel which gets z-index 5 in matrix mode via Plan 05.2-02 CSS).
@@ -83,22 +86,20 @@ export function MatrixRain({ visible }: Props) {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // CD-03: a11y gate — skip animation if user prefers reduced motion.
-    // Canvas stays mounted (so the dark background still renders) but
-    // there is no animation loop. Static green-on-black is still readable.
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      return;
-    }
-
-    // CD-03: viewport gate — skip animation on small viewports where
-    // canvas overhead matters more. Mobile gets the green chat skin
-    // (from Plan 02 CSS) but no rain.
-    if (window.innerWidth < 768) {
-      return;
-    }
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    // CD-03 (WR-01 fix): continuous a11y + viewport gates.
+    // The original mount-only checks let the RAF loop keep running if the
+    // user enabled "Reduce motion" mid-session or resized down across the
+    // 768px threshold. We now re-evaluate every frame via shouldAnimate()
+    // and use a MediaQueryList listener + resize handler to (re-)start the
+    // loop when conditions change in either direction.
+    const reducedMotionMql = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    function shouldAnimate(): boolean {
+      return !reducedMotionMql.matches && window.innerWidth >= 768;
+    }
 
     // Cap DPR at 2 to avoid excess fillrate on retina (UI-SPEC line 850).
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -137,10 +138,19 @@ export function MatrixRain({ visible }: Props) {
     }
 
     resize();
-    window.addEventListener('resize', resize);
 
     function step() {
       if (!ctx) return;
+
+      // WR-01 fix: continuous gate. If a11y/viewport conditions no longer
+      // allow animation (user toggled reduce-motion mid-session, or resized
+      // down across the 768px boundary), halt the loop. maybeStart() —
+      // wired to resize + matchMedia change events below — resumes it when
+      // conditions return.
+      if (!shouldAnimate()) {
+        rafRef.current = 0;
+        return;
+      }
 
       // Per-frame fade — black overlay at trailFade alpha. Produces the
       // classic decay-trail effect.
@@ -205,11 +215,29 @@ export function MatrixRain({ visible }: Props) {
       rafRef.current = requestAnimationFrame(step);
     }
 
-    rafRef.current = requestAnimationFrame(step);
+    function maybeStart() {
+      if (shouldAnimate() && !rafRef.current) {
+        rafRef.current = requestAnimationFrame(step);
+      }
+    }
+
+    function onResize() {
+      resize();
+      maybeStart();
+    }
+
+    window.addEventListener('resize', onResize);
+    reducedMotionMql.addEventListener('change', maybeStart);
+
+    if (shouldAnimate()) {
+      rafRef.current = requestAnimationFrame(step);
+    }
 
     return () => {
-      cancelAnimationFrame(rafRef.current);
-      window.removeEventListener('resize', resize);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = 0;
+      window.removeEventListener('resize', onResize);
+      reducedMotionMql.removeEventListener('change', maybeStart);
     };
   }, [visible]);
 
