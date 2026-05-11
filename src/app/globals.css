@@ -56,6 +56,7 @@
   --color-me-fg: var(--me-fg);
   --color-them: var(--them);
   --color-them-fg: var(--them-fg);
+  --font-matrix: var(--font-matrix);
 }
 
 /*
