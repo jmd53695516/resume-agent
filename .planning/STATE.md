@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 05.2 UI-SPEC approved
-last_updated: "2026-05-11T01:20:04.505Z"
-last_activity: "2026-05-10 -- Phase 05.1 closed PARTIAL (Items #6/#7/#8 RESOLVED; new Item #11 classifier-over-flagging promoted)"
+last_updated: "2026-05-11T01:52:51.344Z"
+last_activity: 2026-05-11 -- Phase 05.2 planning complete
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 34
+  total_plans: 40
   completed_plans: 33
-  percent: 97
+  percent: 83
 ---
 
 # Project State
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 
 Phase: 05.1 (eval-content-trust-restoration) — CLOSED PARTIAL
 Plan: 1 of 1 complete (deferred-items #6/#7/#8 RESOLVED; cat1=15/15 D-B-01 hard gate NOT met — promoted to Plan 05-12 via NEW Item #11)
-Status: Ready to execute Plan 05-12 (LAUNCH-05 prod-URL eval gate). Phase 5 deferred items unblocked at the Item #6/#7/#8 layer.
-Last activity: 2026-05-10 -- Phase 05.1 closed PARTIAL (Items #6/#7/#8 RESOLVED; new Item #11 classifier-over-flagging promoted)
+Status: Ready to execute
+Last activity: 2026-05-11 -- Phase 05.2 planning complete
 
 Progress: [██████████] 100% within Phase 05.1 plan-count; cat1 D-B-01 hard gate deferred to 05-12 due to architectural finding outside 05.1 scope
 
