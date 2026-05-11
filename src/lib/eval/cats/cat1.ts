@@ -22,6 +22,7 @@ import { writeCase } from '@/lib/eval/storage';
 import { checkAllowlist, loadAllowlist } from '@/lib/eval/fabrication';
 import { judgeFactualFidelity } from '@/lib/eval/judge';
 import { callAgent, mintEvalSession } from '@/lib/eval/agent-client';
+import { loadKB } from '@/lib/kb-loader';
 import type { CategoryResult, EvalCase, EvalCaseResult } from '@/lib/eval/types';
 
 const log = childLogger({ event: 'eval_cat1' });
@@ -51,6 +52,16 @@ export async function runCat1(
   const allCat1GroundTruth: string[] = cases.flatMap(
     (c) => (c.ground_truth_facts as string[] | undefined) ?? [],
   );
+  // Plan 05-12 Task 0 iter-5 (final structural fix): load Joe's full KB
+  // once and pass to every judge call as the broader fact corpus. Eliminates
+  // the structural false positive where Sonnet correctly cites real KB
+  // content (e.g. UA project rescue narrative in cat1-fab-002) that wasn't
+  // captured in any cat1 ground_truth_facts. The judge's prompt now verifies
+  // claims against (case-specific facts ∪ allCat1GroundTruth ∪ KB) — a
+  // claim is fabrication ONLY if it matches none of those.
+  // Cost: ~22k extra Haiku input tokens per case × 15 cases ≈ 35¢/run extra,
+  // up from ~1¢. Acceptable to close the 15/15 gate per addendum D-12-C-03.
+  const kb = loadKB();
   // Quick task 260509-q00: mint ONE real session per category. /api/chat
   // (BL-17) validates session_id existence in Supabase; synthetic
   // `eval-cli-cat1-<case_id>` strings now bounce with 404. Mint failure here
@@ -124,6 +135,7 @@ export async function runCat1(
         prompt: c.prompt,
         response,
         groundedFacts: allCat1GroundTruth,
+        kb,
         caseId: c.case_id,
       });
 
