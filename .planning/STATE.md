@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Plan 05-12 launch decisions locked (addendum + plan edits)
-last_updated: "2026-05-10T18:45:38.618Z"
+stopped_at: Phase 05.2 context gathered
+last_updated: "2026-05-11T00:52:08.687Z"
 last_activity: "2026-05-10 -- Phase 05.1 closed PARTIAL (Items #6/#7/#8 RESOLVED; new Item #11 classifier-over-flagging promoted)"
 progress:
-  total_phases: 6
+  total_phases: 7
   completed_phases: 5
   total_plans: 34
   completed_plans: 33
@@ -174,6 +174,7 @@ Recent decisions affecting current work:
 
 - 2026-05-10: Phase 05.1 (Eval Content Trust Restoration) inserted after Phase 5 — URGENT decimal phase to fix eval failing on real signal (Items #6/#7/#8) before Plan 05-12 LAUNCH-05 hard-gate. Bundles Sonnet hallucination fix (system-prompt rule + KB counter-facts), local ipLimiter friction, deflection-vs-real disambiguation in eval CLI.
 - 2026-05-10: Phase 05.1 (Eval Content Trust Restoration) CLOSED PARTIAL. Four feature/fix commits: Item #8 = `78f4f8c`, Item #6 = `699c294`, Item #7 = `d286b74`, Item #6 sliding-window-key bug fix = `4281c3b`. Local cat1 hit 8-13/15 across 3 runs (D-B-01 NOT met) — failures are now classifier-deflections (Item #7 made them visible) NOT real fabrications; cat1-fab-005 (the original Item #8 trigger) passed in every post-Task-1 run. Local cat3 hit 0/6 vs pinned pre-Task-1 baseline 1/6 — the pre-baseline was deflection-grading-as-warmth noise, NOT a real cat3 baseline. Production /api/chat byte-identical to pre-phase SHA `8be227b` (D-E-03 verified via pinned $PRE_SHA, not HEAD~N). Plan 05-12 LAUNCH-05 partially unblocked; classifier-over-flagging finding promoted to NEW deferred-item #11. Item #6/#7/#8 marked RESOLVED in deferred-items.md.
+- 2026-05-11: Phase 05.2 (Implement Chat Stream design from Anthropic design system) inserted after Phase 5 — UI-polish decimal phase to port relevant aspects of the Anthropic Chat Stream design bundle into the recruiter-facing chat surface BEFORE Plan 05-12 LAUNCH-05, so v1.0 ships with an intentionally-designed UI rather than generic Tailwind defaults. Visual-only — no changes to useChat wiring, prompt caching, six-gate order, email gate, or PlainHtmlFallback. Source: todo `2026-05-11-implement-chat-stream-design-from-anthropic-design-system.md`. Discuss + plan to follow.
 
 ### Pending Todos
 
@@ -197,9 +198,9 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-10T18:45:38.613Z
-Stopped at: Plan 05-12 launch decisions locked (addendum + plan edits)
-Resume file: .planning/phases/05-eval-gates-launch/05-12-CONTEXT-ADDENDUM.md
+Last session: 2026-05-11T00:52:08.682Z
+Stopped at: Phase 05.2 context gathered
+Resume file: .planning/phases/05.2-implement-chat-stream-design-from-anthropic-design-system/05.2-CONTEXT.md
 
 Resumed: 2026-05-10 — proceeding to /gsd-execute-phase 5 (Plan 05-12).
 
