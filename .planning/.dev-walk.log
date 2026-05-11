@@ -1,0 +1,76 @@
+
+> agent-for-interviews@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.4.58:3000
+- Environments: .env.local
+✓ Ready in 449ms
+
+ GET /api/health 200 in 629ms (next.js: 225ms, application-code: 403ms)
+ POST /api/session 200 in 183ms (next.js: 53ms, application-code: 131ms)
+ POST /api/session 200 in 190ms (next.js: 64ms, application-code: 126ms)
+{"level":"info","time":"2026-05-10T17:48:07.898Z","event":"deflect","reason":"injection","verdict":{"label":"injection","confidence":0.99},"session_id":"zy7_xXLtgiWZVnmVWp-7D"}
+ POST /api/chat 200 in 1378ms (next.js: 235ms, application-code: 1143ms)
+{"level":"info","time":"2026-05-10T17:48:08.580Z","event":"deflect","reason":"injection","verdict":{"label":"injection","confidence":0.92},"session_id":"PByuy5jmK5kkCZcciPJXO"}
+ POST /api/chat 200 in 2.1s (next.js: 229ms, application-code: 1831ms)
+{"level":"info","time":"2026-05-10T17:48:09.340Z","event":"deflect","reason":"sensitive","verdict":{"label":"sensitive","confidence":0.92},"session_id":"zy7_xXLtgiWZVnmVWp-7D"}
+ POST /api/chat 200 in 1384ms (next.js: 2ms, application-code: 1382ms)
+{"level":"info","time":"2026-05-10T17:48:10.802Z","event":"deflect","reason":"injection","verdict":{"label":"injection","confidence":0.92},"session_id":"zy7_xXLtgiWZVnmVWp-7D"}
+ POST /api/chat 200 in 1409ms (next.js: 3ms, application-code: 1407ms)
+{"level":"info","time":"2026-05-10T17:48:12.198Z","event":"deflect","reason":"sensitive","verdict":{"label":"sensitive","confidence":0.96},"session_id":"zy7_xXLtgiWZVnmVWp-7D"}
+ POST /api/chat 200 in 1342ms (next.js: 3ms, application-code: 1339ms)
+{"level":"info","time":"2026-05-10T17:48:13.763Z","event":"deflect","reason":"injection","verdict":{"label":"injection","confidence":0.99},"session_id":"zy7_xXLtgiWZVnmVWp-7D"}
+ POST /api/chat 200 in 1508ms (next.js: 1848µs, application-code: 1507ms)
+{"level":"info","time":"2026-05-10T17:48:15.383Z","event":"deflect","reason":"sensitive","verdict":{"label":"sensitive","confidence":0.92},"session_id":"zy7_xXLtgiWZVnmVWp-7D"}
+ POST /api/chat 200 in 1569ms (next.js: 2ms, application-code: 1566ms)
+{"level":"info","time":"2026-05-10T17:48:15.500Z","event":"chat","session_id":"PByuy5jmK5kkCZcciPJXO","classifier_verdict":"normal","classifier_confidence":0.96,"model":"claude-sonnet-4-6","input_tokens":22288,"output_tokens":151,"cache_read_input_tokens":0,"cache_creation_input_tokens":21948,"cost_cents":16,"latency_ms":6852,"stop_reason":"stop"}
+ POST /api/chat 200 in 6.9s (next.js: 3ms, application-code: 6.9s)
+{"level":"info","time":"2026-05-10T17:48:15.888Z","event":"session_email_sent","session_id":"PByuy5jmK5kkCZcciPJXO","email_domain":"joedollinger.dev","is_priority":true,"resend_send_id":"f36c2ccb-0743-4ac7-9b6d-82942a2aa67f","latency_ms":322}
+{"level":"info","time":"2026-05-10T17:48:25.346Z","event":"chat","session_id":"PByuy5jmK5kkCZcciPJXO","classifier_verdict":"normal","classifier_confidence":0.89,"model":"claude-sonnet-4-6","input_tokens":22280,"output_tokens":76,"cache_read_input_tokens":21948,"cache_creation_input_tokens":0,"cost_cents":8,"latency_ms":5310,"stop_reason":"stop"}
+ POST /api/chat 200 in 5.3s (next.js: 3ms, application-code: 5.3s)
+{"level":"info","time":"2026-05-10T17:48:34.771Z","event":"chat","session_id":"PByuy5jmK5kkCZcciPJXO","classifier_verdict":"normal","classifier_confidence":0.92,"model":"claude-sonnet-4-6","input_tokens":22284,"output_tokens":104,"cache_read_input_tokens":21948,"cache_creation_input_tokens":0,"cost_cents":8,"latency_ms":5959,"stop_reason":"stop"}
+ POST /api/chat 200 in 6.0s (next.js: 4ms, application-code: 6.0s)
+{"level":"info","time":"2026-05-10T17:48:45.717Z","event":"chat","session_id":"PByuy5jmK5kkCZcciPJXO","classifier_verdict":"normal","classifier_confidence":0.92,"model":"claude-sonnet-4-6","input_tokens":22287,"output_tokens":119,"cache_read_input_tokens":21948,"cache_creation_input_tokens":0,"cost_cents":8,"latency_ms":7535,"stop_reason":"stop"}
+ POST /api/chat 200 in 7.5s (next.js: 1578µs, application-code: 7.5s)
+{"level":"info","time":"2026-05-10T17:48:54.295Z","event":"chat","session_id":"PByuy5jmK5kkCZcciPJXO","classifier_verdict":"normal","classifier_confidence":0.92,"model":"claude-sonnet-4-6","input_tokens":22293,"output_tokens":136,"cache_read_input_tokens":21948,"cache_creation_input_tokens":0,"cost_cents":8,"latency_ms":6050,"stop_reason":"stop"}
+ POST /api/chat 200 in 6.1s (next.js: 3ms, application-code: 6.1s)
+{"level":"info","time":"2026-05-10T17:49:05.712Z","event":"chat","session_id":"PByuy5jmK5kkCZcciPJXO","classifier_verdict":"normal","classifier_confidence":0.92,"model":"claude-sonnet-4-6","input_tokens":22294,"output_tokens":142,"cache_read_input_tokens":21948,"cache_creation_input_tokens":0,"cost_cents":8,"latency_ms":8167,"stop_reason":"stop"}
+ POST /api/chat 200 in 8.2s (next.js: 3ms, application-code: 8.2s)
+{"level":"info","time":"2026-05-10T17:49:10.526Z","event":"deflect","reason":"offtopic","verdict":{"label":"offtopic","confidence":0.92},"session_id":"PByuy5jmK5kkCZcciPJXO"}
+ POST /api/chat 200 in 2.0s (next.js: 3ms, application-code: 2.0s)
+{"level":"info","time":"2026-05-10T17:49:14.653Z","event":"chat","session_id":"PByuy5jmK5kkCZcciPJXO","classifier_verdict":"normal","classifier_confidence":0.82,"model":"claude-sonnet-4-6","input_tokens":22291,"output_tokens":58,"cache_read_input_tokens":21948,"cache_creation_input_tokens":0,"cost_cents":8,"latency_ms":4069,"stop_reason":"stop"}
+ POST /api/chat 200 in 4.1s (next.js: 2ms, application-code: 4.1s)
+{"level":"info","time":"2026-05-10T17:49:26.041Z","event":"chat","session_id":"PByuy5jmK5kkCZcciPJXO","classifier_verdict":"normal","classifier_confidence":0.92,"model":"claude-sonnet-4-6","input_tokens":22303,"output_tokens":211,"cache_read_input_tokens":21948,"cache_creation_input_tokens":0,"cost_cents":8,"latency_ms":8580,"stop_reason":"stop"}
+ POST /api/chat 200 in 8.6s (next.js: 4ms, application-code: 8.6s)
+{"level":"info","time":"2026-05-10T17:49:40.526Z","event":"chat","session_id":"PByuy5jmK5kkCZcciPJXO","classifier_verdict":"normal","classifier_confidence":0.85,"model":"claude-sonnet-4-6","input_tokens":22298,"output_tokens":175,"cache_read_input_tokens":21948,"cache_creation_input_tokens":0,"cost_cents":8,"latency_ms":8836,"stop_reason":"stop"}
+ POST /api/chat 200 in 8.8s (next.js: 3ms, application-code: 8.8s)
+{"level":"info","time":"2026-05-10T17:49:51.954Z","event":"chat","session_id":"PByuy5jmK5kkCZcciPJXO","classifier_verdict":"normal","classifier_confidence":0.92,"model":"claude-sonnet-4-6","input_tokens":22296,"output_tokens":170,"cache_read_input_tokens":21948,"cache_creation_input_tokens":0,"cost_cents":8,"latency_ms":7912,"stop_reason":"stop"}
+ POST /api/chat 200 in 7.9s (next.js: 3ms, application-code: 7.9s)
+{"level":"info","time":"2026-05-10T17:49:56.169Z","event":"deflect","reason":"injection","verdict":{"label":"injection","confidence":0.88},"session_id":"PByuy5jmK5kkCZcciPJXO"}
+ POST /api/chat 200 in 1434ms (next.js: 3ms, application-code: 1431ms)
+{"level":"info","time":"2026-05-10T17:50:05.919Z","event":"chat","session_id":"PByuy5jmK5kkCZcciPJXO","classifier_verdict":"normal","classifier_confidence":0.92,"model":"claude-sonnet-4-6","input_tokens":22282,"output_tokens":197,"cache_read_input_tokens":21948,"cache_creation_input_tokens":0,"cost_cents":8,"latency_ms":9701,"stop_reason":"stop"}
+ POST /api/chat 200 in 9.7s (next.js: 1880µs, application-code: 9.7s)
+{"level":"info","time":"2026-05-10T18:04:02.797Z","event":"chat","session_id":"PByuy5jmK5kkCZcciPJXO","classifier_verdict":"normal","classifier_confidence":0.92,"model":"claude-sonnet-4-6","input_tokens":22278,"output_tokens":168,"cache_read_input_tokens":0,"cache_creation_input_tokens":21948,"cost_cents":16,"latency_ms":7490,"stop_reason":"stop"}
+ POST /api/chat 200 in 7.5s (next.js: 3ms, application-code: 7.5s)
+ GET /?code=ced39c29-2cef-4bad-8a88-99e306456dc3 200 in 585ms (next.js: 277ms, application-code: 308ms)
+ POST /api/session 200 in 452ms (next.js: 133ms, application-code: 319ms)
+ GET /chat 200 in 129ms (next.js: 83ms, application-code: 47ms)
+{"level":"info","time":"2026-05-10T22:40:30.833Z","event":"chat","session_id":"ZTykjKcYmxrYxD8dfXOZI","classifier_verdict":"normal","classifier_confidence":0.92,"model":"claude-sonnet-4-6","input_tokens":22298,"output_tokens":41,"cache_read_input_tokens":0,"cache_creation_input_tokens":21948,"cost_cents":15,"latency_ms":4332,"stop_reason":"stop"}
+ POST /api/chat 200 in 4.7s (next.js: 344ms, application-code: 4.3s)
+{"level":"info","time":"2026-05-10T22:40:31.194Z","event":"session_email_sent","session_id":"ZTykjKcYmxrYxD8dfXOZI","email_domain":"tester.com","is_priority":true,"resend_send_id":"8d5c8096-f9a7-482b-b300-c2f45d4cae4f","latency_ms":305}
+{"level":"info","time":"2026-05-10T22:40:44.126Z","event":"tool_call","tool_name":"research_company","args_hash":"4164a3f2ae430159","latency_ms":1058,"status":"ok"}
+{"level":"info","time":"2026-05-10T22:40:57.180Z","event":"chat","session_id":"ZTykjKcYmxrYxD8dfXOZI","classifier_verdict":"normal","classifier_confidence":0.85,"model":"claude-sonnet-4-6","input_tokens":26002,"output_tokens":385,"cache_read_input_tokens":21948,"cache_creation_input_tokens":388,"cost_cents":10,"latency_ms":17827,"stop_reason":"stop"}
+ POST /api/chat 200 in 17.8s (next.js: 3ms, application-code: 17.8s)
+{"level":"info","time":"2026-05-10T22:42:04.719Z","event":"deflect","reason":"offtopic","verdict":{"label":"offtopic","confidence":0.88},"session_id":"ZTykjKcYmxrYxD8dfXOZI"}
+ POST /api/chat 200 in 2.5s (next.js: 3ms, application-code: 2.5s)
+{"level":"info","time":"2026-05-10T22:42:22.940Z","event":"chat","session_id":"ZTykjKcYmxrYxD8dfXOZI","classifier_verdict":"normal","classifier_confidence":0.95,"model":"claude-sonnet-4-6","input_tokens":26459,"output_tokens":168,"cache_read_input_tokens":22295,"cache_creation_input_tokens":109,"cost_cents":9,"latency_ms":6804,"stop_reason":"stop"}
+ POST /api/chat 200 in 6.8s (next.js: 3ms, application-code: 6.8s)
+{"level":"info","time":"2026-05-10T22:42:54.749Z","event":"chat","session_id":"ZTykjKcYmxrYxD8dfXOZI","classifier_verdict":"normal","classifier_confidence":0.92,"model":"claude-sonnet-4-6","input_tokens":26641,"output_tokens":93,"cache_read_input_tokens":22345,"cache_creation_input_tokens":4039,"cost_cents":11,"latency_ms":5788,"stop_reason":"stop"}
+ POST /api/chat 200 in 5.8s (next.js: 3ms, application-code: 5.8s)
+{"level":"info","time":"2026-05-10T22:43:14.175Z","event":"deflect","reason":"offtopic","verdict":{"label":"offtopic","confidence":0.92},"session_id":"ZTykjKcYmxrYxD8dfXOZI"}
+ POST /api/chat 200 in 2.4s (next.js: 3ms, application-code: 2.4s)
+{"level":"info","time":"2026-05-10T22:43:43.014Z","event":"deflect","reason":"offtopic","verdict":{"label":"offtopic","confidence":0.85},"session_id":"ZTykjKcYmxrYxD8dfXOZI"}
+ POST /api/chat 200 in 1931ms (next.js: 3ms, application-code: 1929ms)
+ GET /?code=594ffbc8-9017-4681-9783-8296b750db9f 200 in 87ms (next.js: 3ms, application-code: 84ms)
