@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 05.2 context gathered
-last_updated: "2026-05-11T00:52:08.687Z"
+stopped_at: Phase 05.2 UI-SPEC approved
+last_updated: "2026-05-11T01:20:04.505Z"
 last_activity: "2026-05-10 -- Phase 05.1 closed PARTIAL (Items #6/#7/#8 RESOLVED; new Item #11 classifier-over-flagging promoted)"
 progress:
   total_phases: 7
@@ -198,9 +198,9 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-11T00:52:08.682Z
-Stopped at: Phase 05.2 context gathered
-Resume file: .planning/phases/05.2-implement-chat-stream-design-from-anthropic-design-system/05.2-CONTEXT.md
+Last session: 2026-05-11T01:20:04.501Z
+Stopped at: Phase 05.2 UI-SPEC approved
+Resume file: .planning/phases/05.2-implement-chat-stream-design-from-anthropic-design-system/05.2-UI-SPEC.md
 
 Resumed: 2026-05-10 — proceeding to /gsd-execute-phase 5 (Plan 05-12).
 
