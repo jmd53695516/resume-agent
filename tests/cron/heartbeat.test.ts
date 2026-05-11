@@ -291,7 +291,11 @@ describe('POST /api/cron/heartbeat', () => {
 
     await POST(makeReq({ auth: `Bearer ${mocks.CRON_SECRET}` }));
 
-    expect(mocks.classifyUserMessage).toHaveBeenCalledWith('health check ping');
+    // WR-01 follow-up: probe phrase changed from 'health check ping' (could
+    // legitimately classify as offtopic with confidence 1.0 → indistinguishable
+    // from the fail-closed sentinel) to a Joe-relevant phrase that anchors as
+    // 'normal' in the classifier system prompt examples.
+    expect(mocks.classifyUserMessage).toHaveBeenCalledWith("Tell me about Joe's PM experience");
     expect(mocks.log).toHaveBeenCalledWith(
       expect.objectContaining({
         event: 'heartbeat',
