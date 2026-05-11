@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 05.2 UI-SPEC approved
-last_updated: "2026-05-11T01:52:51.344Z"
-last_activity: 2026-05-11 -- Phase 05.2 planning complete
+stopped_at: "Completed 05.2-01-PLAN.md (foundation: date-fns + Share Tech Mono + chat-types/chat-format pure helpers, 18/18 tests, 562/562 full suite, tsc + build clean)"
+last_updated: "2026-05-11T02:32:17.755Z"
+last_activity: 2026-05-11
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 40
-  completed_plans: 33
-  percent: 83
+  completed_plans: 34
+  percent: 85
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** A recruiter in under five minutes walks away with a distinctive, specific impression of Joe — grounded in real projects, free of fabrication, and delivered by an agent they can see was engineered (not just prompted) with cost, abuse, and hallucination controls.
-**Current focus:** Phase 05 — eval-gates-launch
+**Current focus:** Phase 05.2 — implement-chat-stream-design-from-anthropic-design-system
 
 ## Current Position
 
-Phase: 05.1 (eval-content-trust-restoration) — CLOSED PARTIAL
-Plan: 1 of 1 complete (deferred-items #6/#7/#8 RESOLVED; cat1=15/15 D-B-01 hard gate NOT met — promoted to Plan 05-12 via NEW Item #11)
+Phase: 05.2 (implement-chat-stream-design-from-anthropic-design-system) — EXECUTING
+Plan: 2 of 6
 Status: Ready to execute
-Last activity: 2026-05-11 -- Phase 05.2 planning complete
+Last activity: 2026-05-11
 
 Progress: [██████████] 100% within Phase 05.1 plan-count; cat1 D-B-01 hard gate deferred to 05-12 due to architectural finding outside 05.1 scope
 
@@ -76,6 +76,7 @@ Progress: [██████████] 100% within Phase 05.1 plan-count; ca
 | Phase 05-eval-gates-launch P05-07 | 18min | 3 tasks | 11 files |
 | Phase 05-eval-gates-launch P05-08 | 22min | 4 tasks | 6 files |
 | Phase 05-eval-gates-launch P05-09 | 12min | 3 tasks | 8 files |
+| Phase 05.2 P01 | 6min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -169,6 +170,9 @@ Recent decisions affecting current work:
 - [Phase 05-eval-gates-launch]: Plan 05-10: Vercel preview Deployment Protection blocks the eval CLI by default (returns 401 + login HTML for any anonymous request to preview URLs). For this project, disabled preview Auth entirely (production is already public-by-design); Protection Bypass for Automation token is the more secure alternative if preview privacy ever becomes a requirement
 - [Phase 05-eval-gates-launch]: Plan 05-10: `npm run eval` requires --env-file-if-exists (NOT --env-file) — CI runner has no .env.local; secrets come from process.env via GH Actions env block. Also requires preeval npm hook to run scripts/generate-fallback.ts so cat6's spawned local Next.js webServer compiles (the fallback file is .gitignored)
 - [Phase 05-eval-gates-launch]: Plan 05-10: AI SDK v6's onFinish callback type requires the destructure to NOT default to `{}` — `next build` strict tsc catches this; `npm run dev` + vitest do not. Run `npx tsc --noEmit` + `npm run build` locally before declaring TS work done (feedback memory captured)
+- [Phase 05.2]: Plan 05.2-01: Test file placed at tests/lib/chat-format.test.ts (mirror-pattern convention) NOT src/lib/chat-format.test.ts (plan's stated co-located path) — vitest.config.ts include glob is tests/**/*.test.{ts,tsx}; src/-co-located tests are invisible to npm test + CI. Uses @/lib/* alias imports per tests/lib/cost.test.ts pattern.
+- [Phase 05.2]: Plan 05.2-01: chat-format.ts helpers are pure + un-memoized (no useMemo) per plan instruction — CHAT-10 caps at 30 turns; computePositions is O(n) over <=30 elements; shouldShowTimestampBefore is O(1) per call.
+- [Phase 05.2]: Plan 05.2-01: Share Tech Mono via next/font/google with display:'swap' (matches Inter pattern; RESEARCH Pitfall 7 — prevents FOUT-driven reflow during Plan 02 matrix-mode toggle). Tailwind v4 utility generation via --font-matrix: var(--font-matrix) line inside @theme inline — no tailwind.config.js introduced.
 
 ### Roadmap Evolution
 
@@ -198,11 +202,11 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-11T01:20:04.501Z
-Stopped at: Phase 05.2 UI-SPEC approved
-Resume file: .planning/phases/05.2-implement-chat-stream-design-from-anthropic-design-system/05.2-UI-SPEC.md
+Last session: 2026-05-11T02:32:17.751Z
+Stopped at: Completed 05.2-01-PLAN.md (foundation: date-fns + Share Tech Mono + chat-types/chat-format pure helpers, 18/18 tests, 562/562 full suite, tsc + build clean)
+Resume file: None
 
-Resumed: 2026-05-10 — proceeding to /gsd-execute-phase 5 (Plan 05-12).
+Resumed: 2026-05-11 — routing to /gsd-execute-phase 5.2 (UI polish; visual-only Anthropic chat-stream design port).
 
 ## Quick Tasks Completed
 
