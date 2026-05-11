@@ -6,8 +6,12 @@ import type { z } from 'zod';
 
 const researchCompany = vi.fn();
 const log = vi.fn();
+const redisSet = vi.fn();
 vi.mock('@/lib/exa', () => ({ researchCompany }));
 vi.mock('@/lib/logger', () => ({ log }));
+// Plan 05-12 launch fix: tool refreshes heartbeat:exa on success so the
+// /api/health banner stays clean during real-traffic windows.
+vi.mock('@/lib/redis', () => ({ redis: { set: redisSet } }));
 
 // AI SDK v6 erases the Zod-specific shape from the tool().inputSchema public type
 // (FlexibleSchema), but the runtime value IS still the Zod schema we passed in.
@@ -21,6 +25,10 @@ describe('research_company tool', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    // Plan 05-12 launch fix: research-company tool now calls
+    // redis.set('heartbeat:exa', ...).catch(() => {}). Default the mock to
+    // return a Promise so .catch() doesn't throw on undefined.
+    redisSet.mockResolvedValue('OK');
     toolModule = await import('../../../src/lib/tools/research-company');
   });
 
@@ -91,6 +99,38 @@ describe('research_company tool', () => {
       status: 'error',
     });
     expect((errCalls[0][0] as any).error_class).toBe('Error');
+  });
+
+  // -- heartbeat:exa refresh (Plan 05-12 launch fix) --
+  it('refreshes heartbeat:exa with TTL=120 on successful Exa call', async () => {
+    redisSet.mockResolvedValue('OK');
+    researchCompany.mockResolvedValue({ recent: false, results: [] });
+    await toolModule.research_company.execute!({ name: 'Notion' }, {} as any);
+    expect(redisSet).toHaveBeenCalledWith(
+      'heartbeat:exa',
+      expect.any(Number),
+      { ex: 120 },
+    );
+  });
+
+  it('does NOT refresh heartbeat:exa when Exa call throws', async () => {
+    redisSet.mockResolvedValue('OK');
+    researchCompany.mockRejectedValue(new Error('exa down'));
+    await toolModule.research_company.execute!({ name: 'Notion' }, {} as any);
+    expect(redisSet).not.toHaveBeenCalledWith(
+      'heartbeat:exa',
+      expect.any(Number),
+      expect.anything(),
+    );
+  });
+
+  it('does not throw when redis.set rejects (best-effort heartbeat)', async () => {
+    redisSet.mockRejectedValue(new Error('redis down'));
+    researchCompany.mockResolvedValue({ recent: false, results: [] });
+    // The .catch(() => {}) on the redis.set call swallows errors so the tool
+    // still returns the wrapped Exa data even when the heartbeat write fails.
+    const r = await toolModule.research_company.execute!({ name: 'Notion' }, {} as any);
+    expect(r).toEqual({ recent: false, results: [] });
   });
 
   // -- logging shape (PII protection) --

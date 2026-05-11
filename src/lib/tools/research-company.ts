@@ -11,6 +11,7 @@ import { wrapFetchedContent } from './sanitize';
 import { TOOL_FAILURE_COPY } from './failure-copy';
 import { log } from '@/lib/logger';
 import { hashArgs } from '@/lib/hash';
+import { redis } from '@/lib/redis';
 
 export const research_company = tool({
   description:
@@ -42,6 +43,11 @@ export const research_company = tool({
       // BEFORE returning to model. The system-prompt FETCHED_CONTENT_RULE
       // (Task 5 of this plan) tells Sonnet to treat tagged content as data.
       const wrapped = wrapFetchedContent(raw);
+      // Plan 05-12 launch fix: refresh heartbeat:exa on real-traffic success
+      // (mirrors chat route's heartbeat:anthropic + heartbeat:classifier
+      // refreshes in onFinish). Best-effort — banner refresh is non-critical
+      // compared to returning the data to Sonnet.
+      redis.set('heartbeat:exa', Date.now(), { ex: 120 }).catch(() => {});
       log({
         event: 'tool_call',
         tool_name: 'research_company',
