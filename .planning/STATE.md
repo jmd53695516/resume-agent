@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05.2-04-PLAN.md (ViewToggle pill + chat/page.tsx view state lift with body-class effect cleanup; D-B-01..03 LIVE; activates Plan 02 matrix-mode CSS end-to-end; ChatUI prop surface UNCHANGED; tsc + build + 562/562 tests green)
-last_updated: "2026-05-11T03:21:56.884Z"
+stopped_at: "Completed 05.2-05-PLAN.md (MatrixRain canvas component + lazy-mount via next/dynamic; D-A-04 matrix-mode easter egg LIVE end-to-end; CD-02 code-split verified; CD-03 a11y + viewport gates inside useEffect; CD-04 conversation streams above canvas with pointer-events: none; tsc + build + 562/562 tests green)"
+last_updated: "2026-05-11T03:29:36.509Z"
 last_activity: 2026-05-11
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 40
-  completed_plans: 37
-  percent: 93
+  completed_plans: 38
+  percent: 95
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 ## Current Position
 
 Phase: 05.2 (implement-chat-stream-design-from-anthropic-design-system) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 Status: Ready to execute
 Last activity: 2026-05-11
 
@@ -80,6 +80,7 @@ Progress: [██████████] 100% within Phase 05.1 plan-count; ca
 | Phase 05.2 P02 | 2min | 1 tasks | 1 files |
 | Phase 05.2 P03 | 4min | 3 tasks | 3 files |
 | Phase 05.2 P04 | 3min | 2 tasks | 2 files |
+| Phase 05.2 P05 | 4min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -185,6 +186,7 @@ Recent decisions affecting current work:
 - [Phase 05.2]: Plan 05.2-03 recovery: prior executor's 3 task commits (97c0864 TimestampDivider, 11b9488 MessageBubble extension, 47bdfd2 ChatUI wire) landed cleanly before a mid-plan network error. All 30+ acceptance grep checks already pass on the live code; tsc + build + tests (562/562) green; /api/chat/route.ts diff is empty. Close-out (SUMMARY + STATE + ROADMAP) is the only addition needed — no code rework.
 - [Phase 05.2]: Plan 05.2-04: ViewToggle pill (~70 LOC hand-rolled, role=tablist + 3 testids, exact 'Light Mode' / 'Dark Mode' labels per D-B-02) + chat/page.tsx view state lift with body-class useEffect cleanup (Pitfall 2 — prevents matrix-mode leak to /admin/*) + literal 'chat' initial state (Pitfall 3 — hydration-safe). D-B-01..03 all LIVE; activates Plan 02's matrix-mode CSS end-to-end. ChatUI prop surface UNCHANGED (Plan 05 will add view prop).
 - [Phase 05.2]: Plan 05.2-04 recovery: prior session committed Task 1 (0805622) but dropped before Task 2 commit. Task 2 code was on disk dirty (~33 lines on chat/page.tsx). Resume strategy: inspect dirty diff against plan acceptance criteria (all 13 grep checks pass on disk state), re-run verification gates (tsc + build + 562/562 tests green), commit Task 2 atomically (f6e546c), close out. Zero code rework needed — the dropped session's on-disk work matched the plan exactly.
+- [Phase 05.2]: Plan 05.2-05: MatrixRain ported to TS/React 19 from design-bundle/project/matrix-rain.jsx with all bundle tunables byte-identical (fontSize=18, trailFade=0.06, flipChance=0.04, speed range, headWhiteChance=0.72). Two CD-03 gates layered inside useEffect (prefers-reduced-motion + viewport <768px) — canvas mounts but RAF skips. StrictMode-safe RAF cleanup. Lazy-mounted via next/dynamic({ ssr: false, loading: () => null }) with named-export indirection; conditionally rendered (view === 'matrix' && <MatrixRain visible />) so default chat-mode bundle is clean (CD-02 verified at .next/static/chunks/0uk62i9w5y1ib.js). ChatUI prop surface UNCHANGED (no view prop). D-A-04 matrix-mode easter egg LIVE end-to-end. tsc + build + 562/562 tests green.
 
 ### Roadmap Evolution
 
@@ -214,8 +216,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-11T03:21:56.879Z
-Stopped at: Completed 05.2-04-PLAN.md (ViewToggle pill + chat/page.tsx view state lift with body-class effect cleanup; D-B-01..03 LIVE; activates Plan 02 matrix-mode CSS end-to-end; ChatUI prop surface UNCHANGED; tsc + build + 562/562 tests green)
+Last session: 2026-05-11T03:29:36.496Z
+Stopped at: Completed 05.2-05-PLAN.md (MatrixRain canvas component + lazy-mount via next/dynamic; D-A-04 matrix-mode easter egg LIVE end-to-end; CD-02 code-split verified; CD-03 a11y + viewport gates inside useEffect; CD-04 conversation streams above canvas with pointer-events: none; tsc + build + 562/562 tests green)
 Resume file: None
 
 Resumed: 2026-05-11 — routing to /gsd-execute-phase 5.2 (UI polish; visual-only Anthropic chat-stream design port).
