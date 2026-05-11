@@ -2,8 +2,19 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { ChatUI } from '@/components/ChatUI';
 import { ViewToggle } from '@/components/ViewToggle';
+
+// Lazy import — code-split out of default chat-mode bundle (CD-02).
+// ssr: false is valid here because chat/page.tsx is 'use client'
+// (Pitfall 4 in RESEARCH — ssr: false rejects in Server Components).
+// The fade-in is opacity-only via inline transition (matrix-stage), so
+// a flash of nothing on first frame is invisible — loading: () => null.
+const MatrixRain = dynamic(
+  () => import('@/components/MatrixRain').then((m) => ({ default: m.MatrixRain })),
+  { ssr: false, loading: () => null },
+);
 
 /**
  * Phase 05.2 (D-A-04, D-B-01..03): view-toggle state lives at this page
@@ -17,6 +28,12 @@ import { ViewToggle } from '@/components/ViewToggle';
  *
  * D-B-02: pill labels are "Light Mode" / "Dark Mode" — the cheeky
  * double-meaning IS the design payoff. DO NOT flatten.
+ *
+ * Plan 05.2-05: MatrixRain canvas lazy-mounted via next/dynamic (CD-02).
+ * Conditionally rendered when view === 'matrix' so the RAF loop only
+ * exists when the user has actively chosen matrix view. CD-03 a11y +
+ * viewport gates are inside MatrixRain itself (canvas mounts but RAF
+ * skips on prefers-reduced-motion or viewport <768px).
  */
 export default function ChatPage() {
   const router = useRouter();
@@ -52,6 +69,7 @@ export default function ChatPage() {
 
   return (
     <>
+      {view === 'matrix' && <MatrixRain visible />}
       <ViewToggle view={view} onChange={setView} />
       <ChatUI sessionId={sessionId} />
     </>
