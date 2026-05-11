@@ -69,7 +69,8 @@ status: friend-test-pending
 - [x] EVAL cat 1 (15/15) passing on prod — runId `sWLys5bpVsiHAfwvoln04`
 - [x] EVAL cat 4 (LLM-judge avg ≥4.0 + per_case all pass) passing on prod — runId `OPoI0ljuwE4GlbT_LFh4u`
 - [ ] Friend-test sign-off (3 testers, ≥1 PM, ≥1 non-PM, non-PM Q1=Y) — _pending responses_
-- [ ] Real transcript verified end-to-end in /admin/sessions (Joe sends one chat as anonymous, sees row + transcript with traces)
+- [x] Real transcript verified end-to-end in /admin/sessions (Joe sent chat as fake recruiter in incognito → row + transcript with traces visible in /admin/sessions)
+  - **Launch-night finding:** Supabase Site URL was still `http://localhost:3000` (dev default). After successful GitHub OAuth, Supabase fell back to Site URL because `https://joe-dollinger-chat.com/auth/callback` was not in the Redirect URLs allowlist — admin login bounced to `localhost:3000`. Fixed in Supabase Dashboard → Authentication → URL Configuration: Site URL → `https://joe-dollinger-chat.com`; Redirect URLs added `https://joe-dollinger-chat.com/auth/callback` (kept `http://localhost:3000/auth/callback` for local dev).
 
 ## LAUNCH-07 (preview-to-prod gate)
 
