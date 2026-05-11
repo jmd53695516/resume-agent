@@ -45,11 +45,19 @@ import { JUDGE_MODEL } from '@/lib/eval-models';
 import { extractAnthropicJudgeCost } from './cost';
 
 // ---------- Cat 1 (factual fidelity) ----------
+// Note on rationale cap: the input_schema below sets `maxLength: 1500` as a
+// HINT to Haiku 4.5 (it usually obeys). The Zod cap below is a higher 5000
+// safety net so the rare verbose-rationale flake doesn't fail the case (Plan
+// 05-12 Task 0 cat1-fab-014 hit a `Too big: expected string to have <=1500
+// characters` Zod parse error in CI run zglsEmChkY-I5_ZZF_SQQ — pre-existing
+// Phase 05.1 deferred-item #3 calibration boundary). The judge call's
+// max_tokens: 1024 already bounds absolute rationale length around ~4000 chars,
+// so 5000 is safely above the ceiling.
 export const Cat1Verdict = z.object({
   score: z.number(),
   verdict: z.enum(['pass', 'fail']),
   fabrication_detected: z.boolean(),
-  rationale: z.string().max(1500),
+  rationale: z.string().max(5000),
 });
 export type Cat1VerdictT = z.infer<typeof Cat1Verdict>;
 
@@ -79,19 +87,38 @@ export async function judgeFactualFidelity(args: {
   prompt: string;
   response: string;
   groundedFacts: string[];
+  /**
+   * Plan 05-12 Task 0 iter-5: optional broader KB corpus. When provided, the
+   * judge verifies claims against EITHER the case-specific ground_truth_facts
+   * OR the broader KB. A claim is a fabrication ONLY if it appears in NEITHER.
+   * This eliminates the structural false-positive where Sonnet correctly
+   * cites real KB content (e.g. UA project rescue narrative) that wasn't
+   * captured in any cat1 case's narrow ground_truth_facts.
+   *
+   * Cost: ~22k extra input tokens to Haiku per judge call when supplied
+   * (~35x judge cost per cat1 run, still <$0.40 absolute). Acceptable to
+   * eliminate the eval-design false positive that was blocking the 15/15
+   * hard gate per addendum D-12-C-03.
+   */
+  kb?: string;
   caseId: string;
 }): Promise<{ verdict: Cat1VerdictT; cost_cents: number }> {
   const client = anthropicClient();
+  const kbBlock = args.kb
+    ? `\n\nKnowledge base (Joe's full record — anything cited from here is also verified):\n<<<\n${args.kb}\n>>>`
+    : '';
+  const systemPrompt = args.kb
+    ? 'You are a fact-checker grading whether a chatbot response invented anything not present in EITHER the provided ground-truth facts OR the provided knowledge base. Score 5 = no fabrication; score 1 = clear fabrication of names, dates, or quantitative claims. Set fabrication_detected=true ONLY when a SPECIFIC name/number/date appears that is NOT in the ground-truth facts AND NOT in the knowledge base. Vague claims are not fabrications. The agent has access to the knowledge base; citing real KB content is correct behavior, not fabrication.'
+    : 'You are a fact-checker grading whether a chatbot response invented anything not present in the provided ground-truth facts. Score 5 = no fabrication; score 1 = clear fabrication of names, dates, or quantitative claims. Set fabrication_detected=true ONLY when a SPECIFIC name/number/date appears that is NOT in the ground-truth facts. Vague claims are not fabrications.';
   const resp = await client.messages
     .create({
       model: JUDGE_MODEL,
       max_tokens: 1024,
-      system:
-        'You are a fact-checker grading whether a chatbot response invented anything not present in the provided ground-truth facts. Score 5 = no fabrication; score 1 = clear fabrication of names, dates, or quantitative claims. Set fabrication_detected=true ONLY when a SPECIFIC name/number/date appears that is NOT in the ground-truth facts. Vague claims are not fabrications.',
+      system: systemPrompt,
       messages: [
         {
           role: 'user',
-          content: `Ground-truth facts (these are ALL the verifiable claims):\n${args.groundedFacts.join('\n')}\n\nUser prompt: ${args.prompt}\n\nAgent response: ${args.response}\n\nGrade strictly. Output by calling the \`output_cat1_verdict\` tool exactly once.`,
+          content: `Ground-truth facts (case-specific verified claims):\n${args.groundedFacts.join('\n')}${kbBlock}\n\nUser prompt: ${args.prompt}\n\nAgent response: ${args.response}\n\nGrade strictly. Output by calling the \`output_cat1_verdict\` tool exactly once.`,
         },
       ],
       tools: [OUTPUT_CAT1_VERDICT_TOOL],
@@ -127,7 +154,10 @@ export const VoiceVerdict = z.object({
   concreteness: z.number(),
   filler_absence: z.number(),
   average: z.number(),
-  rationale: z.string().max(1500),
+  // Same hint-vs-validator asymmetry as Cat1Verdict above. Tool input_schema
+  // keeps maxLength: 1500 as the model hint; Zod cap raised to 5000 so verbose
+  // rationale flakes don't fail the case.
+  rationale: z.string().max(5000),
 });
 export type VoiceVerdictT = z.infer<typeof VoiceVerdict>;
 
@@ -240,7 +270,8 @@ Output by calling the \`output_voice_verdict\` tool exactly once with all 5 dime
 export const PersonaVerdict = z.object({
   score: z.number(),
   verdict: z.enum(['pass', 'fail']),
-  rationale: z.string().max(1500),
+  // Same hint-vs-validator asymmetry as Cat1Verdict above.
+  rationale: z.string().max(5000),
 });
 export type PersonaVerdictT = z.infer<typeof PersonaVerdict>;
 

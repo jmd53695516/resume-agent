@@ -7,6 +7,9 @@ import { DefaultChatTransport } from 'ai';
 import { useRouter } from 'next/navigation';
 import { StarterPrompts } from './StarterPrompts';
 import { MessageBubble } from './MessageBubble';
+import { TimestampDivider } from './TimestampDivider';
+import { computePositions, shouldShowTimestampBefore } from '@/lib/chat-format';
+import type { ResumeAgentUIMessage } from '@/lib/chat-types';
 
 type ChatUIProps = {
   sessionId: string;
@@ -22,6 +25,15 @@ type ChatUIProps = {
 // 03-05) consumes that query param and renders <PlainHtmlFallback />. Counter
 // resets on any successful onFinish so transient single failures don't kick
 // the user out.
+//
+// Phase 05.2 (D-A-01, D-A-02-AMENDED, CD-06): bubble grouping via
+// computePositions; inter-group timestamps via shouldShowTimestampBefore
+// + TimestampDivider; assistant timestamps captured CLIENT-SIDE on
+// status==='streaming' transition (NO /api/chat changes — Phase 02 D-G
+// byte-identical contract preserved). Header now has chev (CD-06) and
+// matrix-mode selector-hook data-testids (chat-main, chat-header,
+// chat-avatar, chat-contact-name, chat-contact-chev, chat-composer)
+// for Plan 05.2-02 CSS to bind to.
 export function ChatUI({ sessionId }: ChatUIProps) {
   // Consumer-managed input (v6 pattern: useChat no longer owns input state)
   const [input, setInput] = useState('');
@@ -30,7 +42,13 @@ export function ChatUI({ sessionId }: ChatUIProps) {
   const router = useRouter();
   const errorCountRef = useRef(0);
 
-  const { messages, sendMessage, status, error } = useChat({
+  // D-A-02-AMENDED: assistant message timestamps are captured CLIENT-SIDE
+  // (no /api/chat changes). When status transitions from 'submitted' to
+  // 'streaming', the latest assistant message has just received its first
+  // chunk — stamp it now. Keyed by message id; survives the message growing.
+  const [assistantTimestamps, setAssistantTimestamps] = useState<Record<string, number>>({});
+
+  const { messages, sendMessage, status, error } = useChat<ResumeAgentUIMessage>({
     transport: new DefaultChatTransport({
       api: '/api/chat',
       body: { session_id: sessionId },
@@ -55,6 +73,18 @@ export function ChatUI({ sessionId }: ChatUIProps) {
     },
   });
 
+  // D-A-02-AMENDED: capture assistant message timestamp on first chunk.
+  // status === 'streaming' fires when AI SDK transitions from waiting-for-
+  // first-token to actively streaming. The current latest assistant message
+  // is the one being streamed; if it doesn't yet have a timestamp, stamp it.
+  useEffect(() => {
+    if (status !== 'streaming') return;
+    const latest = [...messages].reverse().find((m) => m.role === 'assistant');
+    if (!latest) return;
+    if (assistantTimestamps[latest.id]) return; // already stamped
+    setAssistantTimestamps((prev) => ({ ...prev, [latest.id]: Date.now() }));
+  }, [status, messages, assistantTimestamps]);
+
   const isStreaming = status === 'submitted' || status === 'streaming';
   const isEmpty = messages.length === 0;
 
@@ -66,7 +96,7 @@ export function ChatUI({ sessionId }: ChatUIProps) {
 
   function submit() {
     if (!input.trim() || isStreaming) return;
-    sendMessage({ text: input });
+    sendMessage({ text: input, metadata: { createdAt: Date.now() } });
     setInput('');
   }
 
@@ -76,7 +106,10 @@ export function ChatUI({ sessionId }: ChatUIProps) {
   }
 
   return (
-    <main className="mx-auto flex h-screen w-full max-w-2xl flex-col bg-[var(--panel)] text-foreground transition-colors duration-300">
+    <main
+      className="mx-auto flex h-screen w-full max-w-2xl flex-col bg-[var(--panel)] text-foreground transition-colors duration-300"
+      data-testid="chat-main"
+    >
       {/* Header — backdrop-blurred bar with avatar + name */}
       <header
         className="flex h-[88px] flex-shrink-0 items-end justify-center border-b border-[var(--hairline)] px-2 pb-2.5 pt-3.5"
@@ -85,13 +118,39 @@ export function ChatUI({ sessionId }: ChatUIProps) {
           backdropFilter: 'blur(20px) saturate(160%)',
           WebkitBackdropFilter: 'blur(20px) saturate(160%)',
         }}
+        data-testid="chat-header"
       >
         <div className="flex flex-col items-center gap-1">
-          <div className="grid h-[38px] w-[38px] place-items-center rounded-full bg-gradient-to-br from-[#b8b8be] to-[#6e6e74] text-[13px] font-semibold tracking-wide text-white shadow-sm dark:from-[#5a5a60] dark:to-[#2c2c30]">
+          <div
+            className="grid h-[38px] w-[38px] place-items-center rounded-full bg-gradient-to-br from-[#b8b8be] to-[#6e6e74] text-[13px] font-semibold tracking-wide text-white shadow-sm dark:from-[#5a5a60] dark:to-[#2c2c30]"
+            data-testid="chat-avatar"
+          >
             JD
           </div>
-          <div className="text-[11px] font-medium tracking-tight text-foreground">
-            Joe&apos;s Agent
+          <div className="inline-flex items-center gap-[3px]">
+            <span
+              data-testid="chat-contact-name"
+              className="text-[11px] font-medium tracking-tight text-foreground"
+            >
+              Joe&apos;s Agent
+            </span>
+            <svg
+              data-testid="chat-contact-chev"
+              width="8"
+              height="12"
+              viewBox="0 0 8 12"
+              fill="none"
+              className="mt-px text-muted-foreground"
+              aria-hidden="true"
+            >
+              <path
+                d="M1.5 1.5L6 6l-4.5 4.5"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </div>
         </div>
       </header>
@@ -104,9 +163,34 @@ export function ChatUI({ sessionId }: ChatUIProps) {
               <StarterPrompts onSelect={handleStarterSelect} disabled={isStreaming} />
             </div>
           ) : (
-            messages
-              .filter((m) => m.role === 'user' || m.role === 'assistant')
-              .map((m) => {
+            (() => {
+              const visible = messages.filter(
+                (m) => m.role === 'user' || m.role === 'assistant',
+              );
+              const positions = computePositions(visible);
+
+              // For shouldShowTimestampBefore, supply a metadata-shaped view.
+              // User messages have metadata.createdAt directly (set by sendMessage).
+              // Assistant messages get metadata.createdAt FROM assistantTimestamps
+              // state (D-A-02-AMENDED — client-side capture).
+              const metaView = visible.map((m) => ({
+                metadata: {
+                  createdAt:
+                    m.role === 'assistant'
+                      ? assistantTimestamps[m.id]
+                      : (m.metadata as { createdAt?: number } | undefined)?.createdAt,
+                },
+              }));
+
+              const items: React.ReactNode[] = [];
+              visible.forEach((m, i) => {
+                if (shouldShowTimestampBefore(metaView, i)) {
+                  const createdAt = metaView[i].metadata.createdAt;
+                  items.push(
+                    <TimestampDivider key={`ts-${m.id}`} createdAt={createdAt} />,
+                  );
+                }
+                const position = positions.get(m.id) ?? 'only';
                 if (m.role === 'user') {
                   // User messages stay text-only — Phase 2 contract.
                   const text = m.parts
@@ -116,28 +200,36 @@ export function ChatUI({ sessionId }: ChatUIProps) {
                     )
                     .map((p) => p.text)
                     .join('');
-                  return (
-                    <MessageBubble key={m.id} role="user" text={text} />
+                  items.push(
+                    <MessageBubble
+                      key={m.id}
+                      role="user"
+                      text={text}
+                      position={position}
+                    />,
+                  );
+                } else {
+                  // Assistant: forward full m.parts so MessageBubble can dispatch
+                  // text → prose, tool-* → TracePanel + (for design_metric_framework)
+                  // MetricCard. The two-step cast (unknown → assistant-parts) is
+                  // required because AI SDK v6's UIMessage.parts is a wider union
+                  // than MessageBubble's narrower (TextPart | ToolPart) union.
+                  type AssistantProps = Extract<
+                    React.ComponentProps<typeof MessageBubble>,
+                    { role: 'assistant' }
+                  >;
+                  items.push(
+                    <MessageBubble
+                      key={m.id}
+                      role="assistant"
+                      position={position}
+                      parts={m.parts as unknown as AssistantProps['parts']}
+                    />,
                   );
                 }
-                // Assistant: forward full m.parts so MessageBubble can dispatch
-                // text → prose, tool-* → TracePanel + (for design_metric_framework)
-                // MetricCard. Replaces the Phase 2 text-only filter.
-                // The two-step cast (unknown → assistant-parts) is required
-                // because AI SDK v6's UIMessage.parts is a wider union than
-                // MessageBubble's narrower (TextPart | ToolPart) union.
-                type AssistantProps = Extract<
-                  React.ComponentProps<typeof MessageBubble>,
-                  { role: 'assistant' }
-                >;
-                return (
-                  <MessageBubble
-                    key={m.id}
-                    role="assistant"
-                    parts={m.parts as unknown as AssistantProps['parts']}
-                  />
-                );
-              })
+              });
+              return <>{items}</>;
+            })()
           )}
 
           {/* Typing indicator: shown when waiting for first token */}
@@ -182,6 +274,7 @@ export function ChatUI({ sessionId }: ChatUIProps) {
           e.preventDefault();
           submit();
         }}
+        data-testid="chat-composer"
       >
         <div className="flex h-[34px] flex-1 items-center rounded-full border border-[var(--hairline)] bg-[var(--input-bg)] pl-3.5 pr-1">
           <input

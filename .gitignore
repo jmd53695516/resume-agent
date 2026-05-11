@@ -61,3 +61,10 @@ next-env.d.ts
 # git from traversing into it (the negation never applies).
 .eval-tmp/*
 !.eval-tmp/sample-stream.txt
+
+# Phase 05.1 ephemeral working-state files — pre-phase SHA pin and cat3
+# baseline integer used by Task 3 byte-identical verification + D-B-02
+# no-regression gate. Cleaned up by Task 4 PART F. Never committed.
+.planning/phases/**/.pre-phase-sha
+.planning/phases/**/.cat3-baseline
+.planning/phases/**/.cat3-baseline-detail

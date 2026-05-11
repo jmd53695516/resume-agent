@@ -22,6 +22,7 @@ import { writeCase } from '@/lib/eval/storage';
 import { checkAllowlist, loadAllowlist } from '@/lib/eval/fabrication';
 import { judgeFactualFidelity } from '@/lib/eval/judge';
 import { callAgent, mintEvalSession } from '@/lib/eval/agent-client';
+import { loadKB } from '@/lib/kb-loader';
 import type { CategoryResult, EvalCase, EvalCaseResult } from '@/lib/eval/types';
 
 const log = childLogger({ event: 'eval_cat1' });
@@ -38,6 +39,29 @@ export async function runCat1(
   const yamlPath = path.join(process.cwd(), 'evals', 'cat-01-fabrication.yaml');
   const cases: EvalCase[] = await loadCases(yamlPath);
   const allowlist: string[] = await loadAllowlist();
+  // Plan 05-12 Task 0 iter-4 (structural fix per addendum D-12-C-* spirit):
+  // The judge sees the UNION of all cat1 cases' ground_truth_facts, not just
+  // the per-case subset. Eliminates per-case isolation false positives that
+  // happen when Sonnet correctly cites real KB facts present in ANOTHER
+  // case's ground truth (e.g. cat1-fab-014 citing cat1-fab-007's metrics).
+  // The gate's intent is "did Sonnet hallucinate beyond Joe's verified
+  // record" — the union represents that record. Per-case isolation was
+  // surfacing artifacts of the eval-design choice rather than real
+  // fabrications. Real hallucinations (claims not in ANY cat1 ground truth
+  // and not in the broader KB) still get flagged.
+  const allCat1GroundTruth: string[] = cases.flatMap(
+    (c) => (c.ground_truth_facts as string[] | undefined) ?? [],
+  );
+  // Plan 05-12 Task 0 iter-5 (final structural fix): load Joe's full KB
+  // once and pass to every judge call as the broader fact corpus. Eliminates
+  // the structural false positive where Sonnet correctly cites real KB
+  // content (e.g. UA project rescue narrative in cat1-fab-002) that wasn't
+  // captured in any cat1 ground_truth_facts. The judge's prompt now verifies
+  // claims against (case-specific facts ∪ allCat1GroundTruth ∪ KB) — a
+  // claim is fabrication ONLY if it matches none of those.
+  // Cost: ~22k extra Haiku input tokens per case × 15 cases ≈ 35¢/run extra,
+  // up from ~1¢. Acceptable to close the 15/15 gate per addendum D-12-C-03.
+  const kb = loadKB();
   // Quick task 260509-q00: mint ONE real session per category. /api/chat
   // (BL-17) validates session_id existence in Supabase; synthetic
   // `eval-cli-cat1-<case_id>` strings now bounce with 404. Mint failure here
@@ -45,7 +69,13 @@ export async function runCat1(
   // silent per-case error rows.
   const sessionId = await mintEvalSession(targetUrl);
   log.info(
-    { runId, caseCount: cases.length, allowlistSize: allowlist.length, sessionId },
+    {
+      runId,
+      caseCount: cases.length,
+      allowlistSize: allowlist.length,
+      groundTruthFactCount: allCat1GroundTruth.length,
+      sessionId,
+    },
     'cat1_started',
   );
 
@@ -54,11 +84,42 @@ export async function runCat1(
 
   for (const c of cases) {
     try {
-      const { response } = await callAgent({
+      const { response, deflection } = await callAgent({
         targetUrl,
         prompt: c.prompt,
         sessionId,
       });
+
+      // Phase 05.1 Item #7: skip deflected cases (rate-limit / spend-cap /
+      // turn-cap / borderline / classifier deflections). These are
+      // environmental signals, not real model responses — feeding them to
+      // the judge produces false-positive fabrication detections (e.g.
+      // cat1-fab-014 in runId vstFDlWpoKcyGH29w2KKs hit ipLimiter10m mid-run
+      // and the judge flagged the canned ratelimit deflection as a
+      // fabrication). passed: false with a recognizable rationale prefix
+      // so admin queries can filter deflection-noise out of pass-rate
+      // calculations (RESEARCH Open Question 1: rationale-prefix convention
+      // chosen over schema widening; defer schema decision to Plan 05-12).
+      if (deflection !== null) {
+        const result: EvalCaseResult = {
+          case_id: c.case_id,
+          category: 'cat1',
+          prompt: c.prompt,
+          response,
+          judge_score: null,
+          judge_verdict: null,
+          judge_rationale: `skipped: ${deflection.reason} deflection`,
+          passed: false,
+          cost_cents: 0,
+        };
+        await writeCase({ runId, result });
+        results.push(result);
+        log.warn(
+          { runId, caseId: c.case_id, deflectionReason: deflection.reason },
+          'cat1_case_skipped_deflection',
+        );
+        continue;
+      }
       // Sonnet usage isn't surfaced via the streaming body; /api/chat persists
       // it server-side. Cat 1 cost is dominated by the judge call.
       const agentCost = 0;
@@ -68,10 +129,13 @@ export async function runCat1(
 
       // LLM judge (always runs per EVAL-02 hybrid — both signals are needed
       // for the 15/15 zero-tolerance gate; deterministic alone is too coarse).
+      // groundedFacts: union of all cat1 cases' ground_truth_facts (built once
+      // above as allCat1GroundTruth). See iter-4 design note for rationale.
       const judgeOut = await judgeFactualFidelity({
         prompt: c.prompt,
         response,
-        groundedFacts: (c.ground_truth_facts as string[] | undefined) ?? [],
+        groundedFacts: allCat1GroundTruth,
+        kb,
         caseId: c.case_id,
       });
 

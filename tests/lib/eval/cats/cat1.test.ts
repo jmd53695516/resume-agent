@@ -103,7 +103,7 @@ describe('runCat1', () => {
   it('loads cases from evals/cat-01-fabrication.yaml and the allowlist from kb/profile.yml', async () => {
     loadCasesMock.mockResolvedValue([fakeCase()]);
     loadAllowlistMock.mockResolvedValue(['joe', 'dollinger']);
-    callAgentMock.mockResolvedValue({ response: 'I have not worked at Anthropic.', httpStatus: 200, rawBody: '' });
+    callAgentMock.mockResolvedValue({ response: 'I have not worked at Anthropic.', httpStatus: 200, rawBody: '', deflection: null });
     judgeMock.mockResolvedValue(goodVerdict);
     const { runCat1 } = await import('@/lib/eval/cats/cat1');
     await runCat1('http://localhost:3000', 'run_test');
@@ -116,7 +116,7 @@ describe('runCat1', () => {
   it('calls callAgent for each case and captures the assistant response', async () => {
     loadCasesMock.mockResolvedValue([fakeCase({ case_id: 'a' }), fakeCase({ case_id: 'b' })]);
     loadAllowlistMock.mockResolvedValue([]);
-    callAgentMock.mockResolvedValue({ response: 'I have not worked there.', httpStatus: 200, rawBody: '' });
+    callAgentMock.mockResolvedValue({ response: 'I have not worked there.', httpStatus: 200, rawBody: '', deflection: null });
     judgeMock.mockResolvedValue(goodVerdict);
     const { runCat1 } = await import('@/lib/eval/cats/cat1');
     await runCat1('http://localhost:3000', 'run_test');
@@ -137,7 +137,7 @@ describe('runCat1', () => {
   it('runs LLM judge for every case and combines with deterministic check', async () => {
     loadCasesMock.mockResolvedValue([fakeCase()]);
     loadAllowlistMock.mockResolvedValue([]);
-    callAgentMock.mockResolvedValue({ response: 'OK no fabrication.', httpStatus: 200, rawBody: '' });
+    callAgentMock.mockResolvedValue({ response: 'OK no fabrication.', httpStatus: 200, rawBody: '', deflection: null });
     judgeMock.mockResolvedValue(goodVerdict);
     const { runCat1 } = await import('@/lib/eval/cats/cat1');
     const result = await runCat1('http://localhost:3000', 'run_test');
@@ -157,7 +157,7 @@ describe('runCat1', () => {
     // BJ-ktbmzmyJYp0vW7vpfa where 14/15 cases had judge=pass but failed.
     loadCasesMock.mockResolvedValue([fakeCase()]);
     loadAllowlistMock.mockResolvedValue([]);
-    callAgentMock.mockResolvedValue({ response: 'I worked at InventCorp.', httpStatus: 200, rawBody: '' });
+    callAgentMock.mockResolvedValue({ response: 'I worked at InventCorp.', httpStatus: 200, rawBody: '', deflection: null });
     judgeMock.mockResolvedValue(goodVerdict);
     const { runCat1 } = await import('@/lib/eval/cats/cat1');
     const result = await runCat1('http://localhost:3000', 'run_test');
@@ -168,7 +168,7 @@ describe('runCat1', () => {
   it('hybrid fail: det=flag-for-llm-judge + judge=fail → overall fail (both layers disagree with response)', async () => {
     loadCasesMock.mockResolvedValue([fakeCase()]);
     loadAllowlistMock.mockResolvedValue([]);
-    callAgentMock.mockResolvedValue({ response: 'I worked at InventCorp.', httpStatus: 200, rawBody: '' });
+    callAgentMock.mockResolvedValue({ response: 'I worked at InventCorp.', httpStatus: 200, rawBody: '', deflection: null });
     judgeMock.mockResolvedValue(badVerdict);
     const { runCat1 } = await import('@/lib/eval/cats/cat1');
     const result = await runCat1('http://localhost:3000', 'run_test');
@@ -183,7 +183,7 @@ describe('runCat1', () => {
       fakeCase({ case_id: 'c' }),
     ]);
     loadAllowlistMock.mockResolvedValue([]);
-    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '' });
+    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '', deflection: null });
     judgeMock.mockResolvedValue(goodVerdict);
     const { runCat1 } = await import('@/lib/eval/cats/cat1');
     await runCat1('http://localhost:3000', 'run_test');
@@ -196,7 +196,7 @@ describe('runCat1', () => {
     // Both responses contain "InventCorp" → det='flag-for-llm-judge', so the
     // judge is the arbiter (post-fix hybrid semantics). A 'pass' response
     // requires judge=pass; judge=fail propagates to category fail.
-    callAgentMock.mockResolvedValue({ response: 'I worked at InventCorp.', httpStatus: 200, rawBody: '' });
+    callAgentMock.mockResolvedValue({ response: 'I worked at InventCorp.', httpStatus: 200, rawBody: '', deflection: null });
     // First case judge passes; second judge fails
     judgeMock.mockResolvedValueOnce(goodVerdict).mockResolvedValueOnce(badVerdict);
     const { runCat1 } = await import('@/lib/eval/cats/cat1');
@@ -216,7 +216,7 @@ describe('runCat1', () => {
     // First call: callAgent throws (network error); second succeeds
     callAgentMock
       .mockRejectedValueOnce(new Error('callAgent network error: ECONNREFUSED'))
-      .mockResolvedValueOnce({ response: 'good', httpStatus: 200, rawBody: '' });
+      .mockResolvedValueOnce({ response: 'good', httpStatus: 200, rawBody: '', deflection: null });
     judgeMock.mockResolvedValue(goodVerdict);
     const { runCat1 } = await import('@/lib/eval/cats/cat1');
     const result = await runCat1('http://localhost:3000', 'run_test');
@@ -229,10 +229,33 @@ describe('runCat1', () => {
     expect(writeCaseMock).toHaveBeenCalledTimes(2);
   });
 
+  // Phase 05.1 Item #7: when callAgent returns deflection !== null, the case
+  // is marked passed:false with a 'skipped: <reason> deflection' rationale and
+  // the judge is NOT called (saves cost; environmental signal not real fab).
+  it('skips deflected cases without calling judge; writes a fail row with skipped: rationale', async () => {
+    loadCasesMock.mockResolvedValue([fakeCase()]);
+    loadAllowlistMock.mockResolvedValue([]);
+    callAgentMock.mockResolvedValue({
+      response: "You've been at this a bit",
+      httpStatus: 200,
+      rawBody: '',
+      deflection: { reason: 'ratelimit' },
+    });
+    const { runCat1 } = await import('@/lib/eval/cats/cat1');
+    const result = await runCat1('http://localhost:3000', 'run_test_deflect');
+    // Judge MUST NOT be called for a deflected case.
+    expect(judgeMock).not.toHaveBeenCalled();
+    expect(result.cases[0].passed).toBe(false);
+    expect(result.cases[0].judge_score).toBeNull();
+    expect(result.cases[0].judge_verdict).toBeNull();
+    expect(result.cases[0].judge_rationale).toBe('skipped: ratelimit deflection');
+    expect(writeCaseMock).toHaveBeenCalledTimes(1);
+  });
+
   it('aggregates cost_cents from agent + judge across all cases', async () => {
     loadCasesMock.mockResolvedValue([fakeCase({ case_id: 'a' }), fakeCase({ case_id: 'b' })]);
     loadAllowlistMock.mockResolvedValue([]);
-    callAgentMock.mockResolvedValue({ response: 'ok', httpStatus: 200, rawBody: '' });
+    callAgentMock.mockResolvedValue({ response: 'ok', httpStatus: 200, rawBody: '', deflection: null });
     judgeMock
       .mockResolvedValueOnce({ ...goodVerdict, cost_cents: 2 })
       .mockResolvedValueOnce({ ...goodVerdict, cost_cents: 3 });

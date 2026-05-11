@@ -357,6 +357,8 @@ backstop; this only affects per-run-cost reporting accuracy.
 
 ## ipLimiter10m sliding-window accumulation across local eval runs
 
+**Status:** RESOLVED 2026-05-10 — Phase 05.1-01 commit `699c294` (initial cut) + `4281c3b` (sliding-window key-expansion fix). scripts/reset-eval-rate-limits.ts + npm run eval:reset-rl alias clear the four ratelimit prefixes (ip10m/ipday/emailday) + daily ipcost counter for the eval-CLI ipKey chain (::1, 127.0.0.1, dev) + email. Production /api/chat unchanged (D-E-01 + D-E-03 honored). Pitfall 1 mitigated by stdout warning to restart `npm run dev` (flushes @upstash/ratelimit ephemeralCache). Live verified: post-fix `cleared 3/6 keys` against actual Upstash storage shape.
+
 **Severity:** LOW — local-testing friction only. CI ephemeral envs
 won't have this accumulation since each preview deploy is a fresh
 Vercel function. Does NOT block any plan progress.
@@ -410,6 +412,8 @@ the eval CLI hits the route from GitHub Actions' fresh worker IPs.
 
 ## Deflection-as-fabrication false positive — eval CLI doesn't distinguish canned deflections from real agent responses
 
+**Status:** RESOLVED 2026-05-10 — Phase 05.1-01 commit `d286b74`. /api/chat deflectionResponse() emits transient AI SDK v6 data-deflection chunk before text-start; agent-client.ts parseChatStream returns { text, deflection: { reason } | null }; cat1.ts + cat3.ts skip deflected cases with judge_rationale prefix 'skipped: <reason> deflection'. Production UI byte-identical (transient: true excludes from useChat message-rebuild). Phase 2 D-G-01..05 contract preserved. Verified via pinned pre-phase SHA (revision-1 anchor pin = 8be227b, NOT HEAD~N). Live verified across 3 runs: deflection signal flows correctly from /api/chat through eval CLI; surfaced previously-hidden classifier over-flagging behavior — promoted to NEW Item #11 below.
+
 **Severity:** LOW — surfaces only when rate-limit / spend-cap / turn-cap
 gates fire mid-eval-run. CI shouldn't trip these; local dev can.
 
@@ -447,6 +451,8 @@ local eval sessions become a bottleneck.
 ---
 
 ## Sonnet quantitative-claim hallucination surfaced by cat1-fab-005
+
+**Status:** RESOLVED 2026-05-10 — Phase 05.1-01 commit `78f4f8c`. HALLUCINATION_RULES extended with one premise-smuggling bullet (Candidate B wording, ~70 tokens). kb/profile.yml extended with top-level counter_facts: section (10 entries across employer/team_size/metric/role _negatives). buildSystemPrompt() byte-identical determinism contract holds (17/17 system-prompt tests + 3/3 new tests/lib/eval/cat1-fab-005-regression.test.ts pass). cat1-fab-005 passed in every post-Task-1 verification run (3 of 3). Cat1=15/15 hard gate (D-B-01) NOT met — but the failures are now classifier-deflections (3-6 cases per run) NOT real fabrication; previously hidden as deflection-graded-as-fab noise. Cat3 D-B-02 baseline reframed as deflection-noise. See Item #11 below for the now-visible classifier over-flagging finding promoted from this work.
 
 **Severity:** MEDIUM — directly affects Plan 05-04 Task 4 cat-1 hard
 gate sign-off (15/15 zero-tolerance). One real agent hallucination is
@@ -507,6 +513,34 @@ Both auto-deploy on every push to main (2x build minutes). Vercel-side deploy UR
 **Disposition (2026-05-10):** ACCEPT for Plan 05-10 closeout. `resume-agent-eyap` is the canonical project. The eval gate works against it. Cosmetic name (`-eyap` auto-suffix) is the only downside.
 
 **Future quick task:** Either delete the empty `resume-agent` project (smallest action) OR migrate everything to `resume-agent` and delete `resume-agent-eyap` (cleaner long-term name; ~30-45 min: re-paste env vars, disable preview Auth, set up Deployment Checks, update eval.yml bridge name from `Vercel - resume-agent-eyap: eval` → `Vercel - resume-agent: eval`, re-dispatch, verify, then delete the old project).
+
+## Item #11 (NEW 2026-05-10, from Phase 05.1-01 close-out): Classifier over-flags eval prompts as injection/sensitive/offtopic
+
+**Severity:** MEDIUM — directly affects Plan 05-04 cat1 D-B-01 (15/15 zero-tolerance) by producing 3-6 deflection-skips per local run; ALL 6 cat3 prompts hit classifier deflections. Previously HIDDEN by the deflection-as-fabrication mis-grading path that Item #7 just resolved.
+
+**First observed:** 2026-05-10, Phase 05.1-01 Task 3 verification (runIds `nIoU2zbyCcmlfDw6pqTBU`, `CBkGgzTxboA7GsYB2trhc`).
+
+**Symptom:** Now that the eval CLI honestly skips deflections (Phase 05.1 Item #7 commit `d286b74`), the underlying classifier behavior is visible:
+
+- **cat1 deflections per run:** 3-6 of 15 cases (case ids: cat1-fab-001 'Anthropic', cat1-fab-008, cat1-fab-013 — these triggered `injection`; cat1-fab-008 sometimes triggers `offtopic`; cat1-fab-015 sometimes triggers `ratelimit` due to the same accumulation Item #6 mitigates).
+- **cat3 deflections per run:** ALL 6 of 6 cases (cat3-persona-001/003/005 trigger `injection`; cat3-persona-002/004/006 trigger `sensitive`).
+
+**Why this is real signal:** The Haiku 4.5 classifier (`src/lib/classifier.ts`) is configured with a 0.7 confidence threshold below which messages are routed to a borderline deflection. When cat1/cat3 prompts contain strong directive language, hypothetical framing, or sensitive topic surface (jailbreak prompts, compensation questions, persona-swap), the classifier is flagging them as abuse rather than letting them reach Sonnet.
+
+**Why pre-Task-3 cat3 baseline was 1/6 instead of 0/6:** The judge happened to score one canned deflection text (`"That's outside what I can help with here..."`) as warm-enough to pass the cat3 warmth gate. That 1 was noise.
+
+**Why pre-Task-3 cat1 baseline was 13/15 instead of ~10/15:** Same root cause — the judge graded deflection text as factual responses, sometimes letting them through.
+
+**Fix options (Joe-decided):**
+- (a) Tune classifier prompt + thresholds (`src/lib/classifier.ts`) so cat1/cat3 eval prompts pass through. Production user-facing trade-off: legitimate recruiter questions about specific companies (`"Tell me about your time at Anthropic"`) may also pass the classifier but should reach the Sonnet-side hallucination defense (Item #8 just shipped that). Recommended.
+- (b) Mark deflection-skipped cases as N/A (not fail) in the eval CLI and recompute D-B-01 / D-B-02 gates as `passed = realFails === 0` rather than `passed === total`. Eval-design change; defer until prod data is available.
+- (c) Pre-classify eval prompts in the eval CLI itself with a "trust the eval suite, bypass classifier" header. Adds a dev-only bypass surface that requires guarding against production misuse — security trade-off similar to Item #6's rejected EVAL_BYPASS_RATELIMIT option.
+
+**Recommended:** investigate as a quick task during Plan 05-12 friend-test prep. If the classifier is over-flagging legitimate recruiter questions (not just eval prompts), it's a UX bug in production too. Decision tree: (a) if production users hit similar friction → fix classifier. (b) if it's specific to eval prompt wording → use option (b) eval-side N/A.
+
+**Tracking:** This item exists because Phase 05.1 Item #7 made it visible, not because it was created by Phase 05.1's edits. The classifier behavior pre-dates Phase 05.1 by months.
+
+---
 
 ## Item #10 (NEW 2026-05-10): Eval failures on production (cat1 13/15, cat2 1/9, cat3 0/6, cat5 1/7, cat6 12/15)
 

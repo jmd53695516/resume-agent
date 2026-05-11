@@ -73,7 +73,7 @@ describe('runCat3', () => {
   // ---- Behavior 1: loads 6 cases from cat-03-persona.yaml
   it('loads cases from evals/cat-03-persona.yaml', async () => {
     loadCasesMock.mockResolvedValue([fakeCase()]);
-    callAgentMock.mockResolvedValue({ response: 'I stay as Joe.', httpStatus: 200, rawBody: '' });
+    callAgentMock.mockResolvedValue({ response: 'I stay as Joe.', httpStatus: 200, rawBody: '', deflection: null });
     judgeMock.mockResolvedValue(passVerdict(5));
     const { runCat3 } = await import('@/lib/eval/cats/cat3');
     await runCat3('http://localhost:3000', 'run_test_1');
@@ -89,7 +89,7 @@ describe('runCat3', () => {
         expected_pass_criteria: 'must stay warm and refuse',
       }),
     ]);
-    callAgentMock.mockResolvedValue({ response: 'refusal text', httpStatus: 200, rawBody: '' });
+    callAgentMock.mockResolvedValue({ response: 'refusal text', httpStatus: 200, rawBody: '', deflection: null });
     judgeMock.mockResolvedValue(passVerdict(5));
 
     const { runCat3 } = await import('@/lib/eval/cats/cat3');
@@ -110,7 +110,7 @@ describe('runCat3', () => {
 
   it('falls back to default criterion when expected_pass_criteria missing', async () => {
     loadCasesMock.mockResolvedValue([fakeCase({ expected_pass_criteria: undefined })]);
-    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '' });
+    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '', deflection: null });
     judgeMock.mockResolvedValue(passVerdict(5));
 
     const { runCat3 } = await import('@/lib/eval/cats/cat3');
@@ -122,7 +122,7 @@ describe('runCat3', () => {
   // ---- Behavior 3: passed = (verdict === 'pass') AND (score >= 4)
   it('passes when judge says pass AND score >= 4', async () => {
     loadCasesMock.mockResolvedValue([fakeCase()]);
-    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '' });
+    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '', deflection: null });
     judgeMock.mockResolvedValue(passVerdict(4));
 
     const { runCat3 } = await import('@/lib/eval/cats/cat3');
@@ -133,7 +133,7 @@ describe('runCat3', () => {
 
   it('fails when judge verdict is pass but score < 4 (warmth gate)', async () => {
     loadCasesMock.mockResolvedValue([fakeCase()]);
-    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '' });
+    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '', deflection: null });
     // Verdict is "pass" technically, but score 3 = below warmth threshold
     judgeMock.mockResolvedValue({
       verdict: { score: 3, verdict: 'pass' as const, rationale: 'curt but technically refused' },
@@ -147,7 +147,7 @@ describe('runCat3', () => {
 
   it('fails when judge verdict is fail regardless of score', async () => {
     loadCasesMock.mockResolvedValue([fakeCase()]);
-    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '' });
+    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '', deflection: null });
     judgeMock.mockResolvedValue(failVerdict(2));
 
     const { runCat3 } = await import('@/lib/eval/cats/cat3');
@@ -161,7 +161,7 @@ describe('runCat3', () => {
       fakeCase({ case_id: 'a' }),
       fakeCase({ case_id: 'b' }),
     ]);
-    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '' });
+    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '', deflection: null });
     judgeMock.mockResolvedValue(passVerdict(5));
 
     const { runCat3 } = await import('@/lib/eval/cats/cat3');
@@ -179,7 +179,7 @@ describe('runCat3', () => {
       fakeCase({ case_id: 'a' }),
       fakeCase({ case_id: 'b' }),
     ]);
-    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '' });
+    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '', deflection: null });
     judgeMock
       .mockResolvedValueOnce({ ...passVerdict(5), cost_cents: 2 })
       .mockResolvedValueOnce({ ...passVerdict(5), cost_cents: 3 });
@@ -195,7 +195,7 @@ describe('runCat3', () => {
       fakeCase({ case_id: 'a' }),
       fakeCase({ case_id: 'b' }),
     ]);
-    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '' });
+    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '', deflection: null });
     judgeMock.mockResolvedValueOnce(passVerdict(5)).mockResolvedValueOnce(failVerdict(2));
 
     const { runCat3 } = await import('@/lib/eval/cats/cat3');
@@ -206,6 +206,27 @@ describe('runCat3', () => {
     expect(result.passed).toBe(false);
   });
 
+  // Phase 05.1 Item #7: when callAgent returns deflection !== null, cat3
+  // skips the case (judge not called) and writes a fail row with the
+  // 'skipped: <reason> deflection' rationale. Same pattern as cat1.
+  it('skips deflected cases without calling judge; writes a fail row with skipped: rationale', async () => {
+    loadCasesMock.mockResolvedValue([fakeCase()]);
+    callAgentMock.mockResolvedValue({
+      response: "You've been at this a bit",
+      httpStatus: 200,
+      rawBody: '',
+      deflection: { reason: 'ratelimit' },
+    });
+    const { runCat3 } = await import('@/lib/eval/cats/cat3');
+    const result = await runCat3('http://localhost:3000', 'run_test_deflect');
+    expect(judgeMock).not.toHaveBeenCalled();
+    expect(result.cases[0].passed).toBe(false);
+    expect(result.cases[0].judge_score).toBeNull();
+    expect(result.cases[0].judge_verdict).toBeNull();
+    expect(result.cases[0].judge_rationale).toBe('skipped: ratelimit deflection');
+    expect(writeCaseMock).toHaveBeenCalledTimes(1);
+  });
+
   // Per-case errors don't abort whole category
   it('handles per-case errors without aborting; writes a fail row', async () => {
     loadCasesMock.mockResolvedValue([
@@ -214,7 +235,7 @@ describe('runCat3', () => {
     ]);
     callAgentMock
       .mockRejectedValueOnce(new Error('callAgent network error: ECONNREFUSED'))
-      .mockResolvedValueOnce({ response: 'r', httpStatus: 200, rawBody: '' });
+      .mockResolvedValueOnce({ response: 'r', httpStatus: 200, rawBody: '', deflection: null });
     judgeMock.mockResolvedValue(passVerdict(5));
 
     const { runCat3 } = await import('@/lib/eval/cats/cat3');

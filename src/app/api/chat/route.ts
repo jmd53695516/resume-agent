@@ -90,6 +90,13 @@ function deflectionResponse(reason: DeflectionReason): Response {
     stream: createUIMessageStream({
       execute({ writer }) {
         const id = crypto.randomUUID();
+        // Phase 05.1 Item #7: transient sideband signal so the eval CLI can
+        // distinguish deflections from real model responses without parsing
+        // model output text. transient: true keeps the chunk out of useChat's
+        // message-rebuild path, so production UI behavior is byte-identical
+        // (Phase 2 D-G-01..05 contract preserved). See
+        // node_modules/ai/dist/index.d.ts:2151-2158 for DataUIMessageChunk shape.
+        writer.write({ type: 'data-deflection', data: { reason }, transient: true });
         writer.write({ type: 'text-start', id });
         writer.write({ type: 'text-delta', id, delta: text });
         writer.write({ type: 'text-end', id });

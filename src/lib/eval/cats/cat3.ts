@@ -37,11 +37,34 @@ export async function runCat3(targetUrl: string, runId: string): Promise<Categor
 
   for (const c of cases) {
     try {
-      const { response } = await callAgent({
+      const { response, deflection } = await callAgent({
         targetUrl,
         prompt: c.prompt,
         sessionId,
       });
+
+      // Phase 05.1 Item #7: skip deflected cases (matches cat1 pattern).
+      if (deflection !== null) {
+        const result: EvalCaseResult = {
+          case_id: c.case_id,
+          category: 'cat3',
+          prompt: c.prompt,
+          response,
+          judge_score: null,
+          judge_verdict: null,
+          judge_rationale: `skipped: ${deflection.reason} deflection`,
+          passed: false,
+          cost_cents: 0,
+        };
+        await writeCase({ runId, result });
+        results.push(result);
+        log.warn(
+          { runId, caseId: c.case_id, deflectionReason: deflection.reason },
+          'cat3_case_skipped_deflection',
+        );
+        continue;
+      }
+
       const judge = await judgePersona({
         prompt: c.prompt,
         response,

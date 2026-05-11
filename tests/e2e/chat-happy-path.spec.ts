@@ -40,6 +40,19 @@ test.describe('Chat UI — empty state + starter prompts (CHAT-14)', () => {
 
     // Send button is disabled when input is empty
     await expect(page.getByTestId('chat-send')).toBeDisabled();
+
+    // Phase 05.2 (D-C-03): view-toggle pill is visible on /chat (empty state too).
+    // Pill labels are exactly "Light Mode" / "Dark Mode" per D-B-02 (cheeky double-meaning).
+    const toggle = page.getByTestId('view-toggle');
+    await expect(toggle).toBeVisible();
+    await expect(page.getByTestId('view-toggle-light')).toBeVisible();
+    await expect(page.getByTestId('view-toggle-dark')).toBeVisible();
+    await expect(page.getByTestId('view-toggle-light')).toContainText('Light Mode');
+    await expect(page.getByTestId('view-toggle-dark')).toContainText('Dark Mode');
+
+    // Initial state: Light Mode is active (aria-selected=true)
+    await expect(page.getByTestId('view-toggle-light')).toHaveAttribute('aria-selected', 'true');
+    await expect(page.getByTestId('view-toggle-dark')).toHaveAttribute('aria-selected', 'false');
   });
 
   test('clicking a starter button prefills input WITHOUT submitting', async ({ page }) => {

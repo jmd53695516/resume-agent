@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter, Geist_Mono } from 'next/font/google';
+import { Inter, Geist_Mono, Share_Tech_Mono } from 'next/font/google';
 import './globals.css';
 
 const inter = Inter({
@@ -11,6 +11,13 @@ const inter = Inter({
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
+});
+
+const shareTechMono = Share_Tech_Mono({
+  variable: '--font-matrix',
+  subsets: ['latin'],
+  weight: '400', // Share Tech Mono ships only weight 400
+  display: 'swap', // matches Inter — no FOUT-driven reflow (Pitfall 7)
 });
 
 export const metadata: Metadata = {
@@ -28,7 +35,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${geistMono.variable} h-full antialiased`}>
+    <html
+      lang="en"
+      className={`${inter.variable} ${geistMono.variable} ${shareTechMono.variable} h-full antialiased`}
+    >
       <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );

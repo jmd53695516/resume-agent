@@ -74,6 +74,8 @@ import {
   checkDependencies,
   checkErrorRate,
   checkRateLimitAbuse,
+  checkWeeklyEvalFailure,
+  getSuppressionTtlSeconds,
   runAllAlarms,
 } from '@/lib/alarms';
 
@@ -293,7 +295,7 @@ describe('runAllAlarms', () => {
     mocks.pingExa.mockResolvedValue('ok');
   }
 
-  it('does NOT call sendAlarm when no condition is tripped', async () => {
+  it('does NOT call sendAlarm when no condition is tripped (5 conditions total)', async () => {
     mocks.getSpendTodayMock.mockResolvedValue(0);
     setAllOk();
     mocks.queryReturn = { data: [], error: null };
@@ -301,12 +303,13 @@ describe('runAllAlarms', () => {
     const results = await runAllAlarms();
     expect(mocks.sendAlarmMock).not.toHaveBeenCalled();
     expect(results.every((r) => !r.fired)).toBe(true);
-    expect(results).toHaveLength(4);
+    expect(results).toHaveLength(5);
     expect(results.map((r) => r.condition)).toEqual([
       'spend-cap',
       'error-rate',
       'dep-down',
       'rate-limit-abuse',
+      'weekly-eval-failure',
     ]);
   });
 
@@ -353,5 +356,144 @@ describe('runAllAlarms', () => {
     expect(mocks.logMock).toHaveBeenCalledWith(
       expect.objectContaining({ event: 'alarm_suppressed', condition: 'spend-cap' }),
     );
+  });
+});
+
+describe('getSuppressionTtlSeconds', () => {
+  it('returns default 3600s for non-overridden conditions', () => {
+    expect(getSuppressionTtlSeconds('spend-cap')).toBe(3600);
+    expect(getSuppressionTtlSeconds('error-rate')).toBe(3600);
+    expect(getSuppressionTtlSeconds('dep-down')).toBe(3600);
+    expect(getSuppressionTtlSeconds('rate-limit-abuse')).toBe(3600);
+  });
+
+  it('returns 86400s (24h) for weekly-eval-failure', () => {
+    expect(getSuppressionTtlSeconds('weekly-eval-failure')).toBe(86400);
+  });
+});
+
+describe('checkWeeklyEvalFailure (Plan 05-11 — 5th alarm)', () => {
+  // Test 1: queries eval_runs WHERE scheduled=true AND status='failed' AND
+  //         finished_at > now() - interval '1 hour'.
+  it('queries eval_runs with the documented filter shape', async () => {
+    // Capture the chain calls by overriding the mock fromMock implementation
+    // for this test, while still resolving via mocks.queryReturn.
+    const eqCalls: Array<[string, unknown]> = [];
+    const gteCalls: Array<[string, string]> = [];
+    let fromTable: string | null = null;
+    mocks.fromMock.mockImplementation((table: string) => {
+      fromTable = table;
+      const c: Record<string, unknown> = {};
+      c.select = () => c;
+      c.eq = (col: string, val: unknown) => {
+        eqCalls.push([col, val]);
+        return c;
+      };
+      c.gte = (col: string, val: string) => {
+        gteCalls.push([col, val]);
+        return c;
+      };
+      c.then = (resolve: (v: unknown) => void) =>
+        Promise.resolve(mocks.queryReturn).then(resolve);
+      return c;
+    });
+    mocks.queryReturn = { data: [], error: null };
+
+    await checkWeeklyEvalFailure();
+
+    expect(fromTable).toBe('eval_runs');
+    expect(eqCalls).toEqual(
+      expect.arrayContaining([
+        ['scheduled', true],
+        ['status', 'failed'],
+      ]),
+    );
+    expect(gteCalls).toHaveLength(1);
+    expect(gteCalls[0][0]).toBe('finished_at');
+    // The since-timestamp should be ~1 hour ago.
+    const sinceMs = new Date(gteCalls[0][1]).getTime();
+    const oneHourAgo = Date.now() - 60 * 60_000;
+    expect(Math.abs(sinceMs - oneHourAgo)).toBeLessThan(5_000); // within 5s slop
+  });
+
+  // Test 2: trips when >= 1 such row found.
+  it('trips when >= 1 failed scheduled run is in the window', async () => {
+    mocks.queryReturn = {
+      data: [
+        { id: 'run_1', finished_at: new Date().toISOString(), status: 'failed' },
+      ],
+      error: null,
+    };
+    const r = await checkWeeklyEvalFailure();
+    expect(r.tripped).toBe(true);
+    expect(r.summary).toContain('= 1');
+  });
+
+  // Test 3: no-fire when query returns empty.
+  it('does not trip when no failed scheduled runs in window', async () => {
+    mocks.queryReturn = { data: [], error: null };
+    const r = await checkWeeklyEvalFailure();
+    expect(r.tripped).toBe(false);
+    expect(r.summary).toContain('= 0');
+  });
+
+  // Test 4: claim writes Redis key with EX=86400.
+  it("claimAlarmSuppression('weekly-eval-failure') uses EX=86400 (24h, NOT default 3600)", async () => {
+    mocks.redisSet.mockResolvedValue('OK');
+    expect(await claimAlarmSuppression('weekly-eval-failure')).toBe(true);
+    expect(mocks.redisSet).toHaveBeenCalledWith(
+      'resume-agent:alarms:fired:weekly-eval-failure',
+      '1',
+      { ex: 86400, nx: true },
+    );
+  });
+
+  // Test 5: when suppression key already exists (NX returns null), no email
+  //         dispatched even though condition trips.
+  it('does NOT fire weekly-eval-failure email when suppression key already exists', async () => {
+    // Make weekly-eval-failure trip but spend not.
+    mocks.getSpendTodayMock.mockResolvedValue(0);
+    mocks.pingAnthropic.mockResolvedValue('ok');
+    mocks.pingClassifier.mockResolvedValue('ok');
+    mocks.pingSupabase.mockResolvedValue('ok');
+    mocks.pingUpstash.mockResolvedValue('ok');
+    mocks.pingExa.mockResolvedValue('ok');
+    mocks.queryReturn = {
+      data: [{ id: 'run_x', finished_at: new Date().toISOString(), status: 'failed' }],
+      error: null,
+    };
+    // claim returns null → suppressed
+    mocks.redisSet.mockResolvedValue(null);
+
+    const results = await runAllAlarms();
+    const weekly = results.find((r) => r.condition === 'weekly-eval-failure');
+    expect(weekly?.tripped).toBe(true);
+    expect(weekly?.fired).toBe(false);
+    expect(mocks.sendAlarmMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({ condition: 'weekly-eval-failure' }),
+    );
+    expect(mocks.logMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: 'alarm_suppressed',
+        condition: 'weekly-eval-failure',
+      }),
+    );
+  });
+
+  // Test 6: runAllAlarms includes weekly_eval_failure as 5th condition.
+  it('runAllAlarms exposes weekly-eval-failure as the 5th condition', async () => {
+    mocks.getSpendTodayMock.mockResolvedValue(0);
+    mocks.pingAnthropic.mockResolvedValue('ok');
+    mocks.pingClassifier.mockResolvedValue('ok');
+    mocks.pingSupabase.mockResolvedValue('ok');
+    mocks.pingUpstash.mockResolvedValue('ok');
+    mocks.pingExa.mockResolvedValue('ok');
+    mocks.queryReturn = { data: [], error: null };
+
+    const results = await runAllAlarms();
+    expect(results).toHaveLength(5);
+    expect(results.map((r) => r.condition)).toContain('weekly-eval-failure');
+    // Order matters for the "5th condition" framing.
+    expect(results[4].condition).toBe('weekly-eval-failure');
   });
 });

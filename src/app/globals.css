@@ -56,6 +56,7 @@
   --color-me-fg: var(--me-fg);
   --color-them: var(--them);
   --color-them-fg: var(--them-fg);
+  --font-matrix: var(--font-matrix);
 }
 
 /*
@@ -230,3 +231,217 @@
 .dark .chat-scroll::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.15);
 }
+
+/*
+ * Matrix-mode tokens (Phase 05.2, D-A-04).
+ * Body class is set by useEffect in src/app/chat/page.tsx (Plan 05.2-04).
+ * Selectors target the SAME DOM as chat mode (CD-04 — no fork).
+ * The .dark block above (lines 118-162) is DEAD CODE per D-A-03 — preserved
+ * for a future true light/dark mode but NEVER activated by the toggle pill.
+ */
+body.matrix-mode {
+  --bg-page: #000;
+  --bg-page-2: #000;
+  --panel: rgba(0, 12, 4, 0.72);
+  --header-bg: rgba(0, 20, 8, 0.55);
+  --composer-bg: rgba(0, 20, 8, 0.55);
+  --input-bg: rgba(0, 20, 8, 0.6);
+  --hairline: rgba(0, 255, 100, 0.25);
+  --me: rgba(0, 255, 100, 0.92);
+  --me-fg: #001a08;
+  --them: rgba(0, 25, 10, 0.65);
+  --them-fg: #9bff9b;
+  --foreground: #9bff9b;
+  --muted-foreground: rgba(0, 255, 100, 0.55);
+  background: #000;
+}
+
+/* Panel — green CRT border + glow + flicker. Selector targets the
+   <main data-testid="chat-main"> hook added in Plan 05.2-03. */
+body.matrix-mode main[data-testid="chat-main"] {
+  border: 1px solid rgba(0, 255, 100, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(0, 255, 100, 0.12),
+    0 0 40px rgba(0, 255, 100, 0.18),
+    0 0 80px rgba(0, 255, 100, 0.08),
+    inset 0 0 30px rgba(0, 60, 20, 0.25);
+  animation: matrix-flicker 4s infinite;
+  position: relative;
+  z-index: 5; /* above .matrix-stage which is z-index: 1 */
+}
+
+/* Header — disable backdrop-blur, swap border */
+body.matrix-mode header[data-testid="chat-header"] {
+  background: rgba(0, 20, 8, 0.55);
+  border-bottom: 1px solid rgba(0, 255, 100, 0.25);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* Avatar JD circle */
+body.matrix-mode [data-testid="chat-avatar"] {
+  background: rgba(0, 30, 12, 0.8);
+  border: 1px solid rgba(0, 255, 100, 0.45);
+  color: #9bff9b;
+  box-shadow: 0 0 12px rgba(0, 255, 100, 0.35);
+  font-family: var(--font-matrix), 'Share Tech Mono', monospace;
+}
+
+/* Contact name "Joe's Agent" + chev (CD-06) */
+body.matrix-mode [data-testid="chat-contact-name"] {
+  color: #d6ffe6;
+  font-family: var(--font-matrix), 'Share Tech Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 10px;
+}
+body.matrix-mode [data-testid="chat-contact-chev"] {
+  color: rgba(0, 255, 100, 0.5);
+}
+
+/* Timestamp dividers (Plan 05.2-03 component) */
+body.matrix-mode [data-testid="timestamp-divider"] {
+  color: rgba(0, 255, 100, 0.55);
+  font-family: var(--font-matrix), 'Share Tech Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: 10px;
+}
+
+/* Bubble text styling — radius is JS-set per Plan 05.2-03, not overridden here */
+body.matrix-mode [data-testid="msg-user"] > div,
+body.matrix-mode [data-testid="msg-assistant"] > div {
+  font-family: var(--font-matrix), 'Share Tech Mono', "Courier New", monospace;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
+}
+body.matrix-mode [data-testid="msg-user"] > div {
+  background: linear-gradient(180deg, rgba(0,255,100,.92), rgba(0,200,80,.85));
+  color: #001a08;
+  box-shadow:
+    0 0 12px rgba(0, 255, 100, 0.55),
+    inset 0 0 1px rgba(255, 255, 255, 0.4);
+  text-shadow: 0 0 1px rgba(0, 255, 100, 0.4);
+}
+body.matrix-mode [data-testid="msg-assistant"] > div:first-child {
+  background: rgba(0, 25, 10, 0.65);
+  color: #9bff9b;
+  border: 1px solid rgba(0, 255, 100, 0.45);
+  box-shadow: 0 0 8px rgba(0, 255, 100, 0.15);
+  text-shadow: 0 0 6px rgba(0, 255, 100, 0.4);
+}
+
+/* Typing indicator dots — phosphor green with glow */
+body.matrix-mode [data-testid="thinking-indicator"] .typing-dot {
+  background: #9bff9b;
+  box-shadow: 0 0 6px rgba(0, 255, 100, 0.6);
+}
+
+/* Composer */
+body.matrix-mode form[data-testid="chat-composer"] {
+  background: rgba(0, 20, 8, 0.55);
+  border-top: 1px solid rgba(0, 255, 100, 0.25);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* Input shell (the rounded div wrapping chat-input + chat-send) */
+body.matrix-mode form[data-testid="chat-composer"] > div {
+  background: rgba(0, 20, 8, 0.6);
+  border: 1px solid rgba(0, 255, 100, 0.35);
+  color: rgba(0, 255, 100, 0.55);
+}
+
+/* Input placeholder */
+body.matrix-mode [data-testid="chat-input"]::placeholder {
+  font-family: var(--font-matrix), 'Share Tech Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: 11px;
+  color: rgba(0, 255, 100, 0.55);
+}
+body.matrix-mode [data-testid="chat-input"] {
+  color: #9bff9b;
+}
+
+/* Send button */
+body.matrix-mode [data-testid="chat-send"] {
+  background: linear-gradient(180deg, rgba(0,255,100,.92), rgba(0,200,80,.85));
+  color: #001a08;
+}
+
+/* Starter prompts — readability override on dark green field */
+body.matrix-mode [data-testid^="starter-"] {
+  border-color: rgba(0, 255, 100, 0.3);
+  color: #9bff9b;
+}
+body.matrix-mode [data-testid^="starter-"]:hover {
+  background: rgba(0, 255, 100, 0.08);
+}
+
+/* TracePanel — readability override */
+body.matrix-mode [data-testid^="trace-"] {
+  background: rgba(0, 30, 12, 0.5);
+  border-color: rgba(0, 255, 100, 0.3);
+  color: #9bff9b;
+}
+
+/* View Toggle pill — matrix variant. Plan 05.2-04 owns the chat-mode pill. */
+body.matrix-mode [data-testid="view-toggle"] {
+  background: rgba(0, 15, 5, 0.7);
+  border: 0.5px solid rgba(0, 255, 100, 0.25);
+  box-shadow:
+    0 0 24px rgba(0, 255, 100, 0.15),
+    0 1px 0 rgba(0, 255, 100, 0.1) inset;
+}
+body.matrix-mode [data-testid="view-toggle-light"][aria-selected="false"],
+body.matrix-mode [data-testid="view-toggle-dark"][aria-selected="false"] {
+  color: rgba(0, 255, 100, 0.55);
+  font-family: var(--font-matrix), 'Share Tech Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 11px;
+  font-weight: 400;
+}
+body.matrix-mode [data-testid="view-toggle-light"][aria-selected="true"],
+body.matrix-mode [data-testid="view-toggle-dark"][aria-selected="true"] {
+  background: rgba(0, 255, 100, 0.18);
+  color: #d6ffe6;
+  box-shadow: inset 0 0 12px rgba(0, 255, 100, 0.3);
+  font-family: var(--font-matrix), 'Share Tech Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+/* Matrix-mode CRT flicker. 50% step nudges opacity to 0.985 — barely
+   perceptible but adds a CRT lived-in feel. Source: bundle:398-402. */
+@keyframes matrix-flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.985;
+  }
+}
+
+/* Reduced-motion: disable matrix-flicker AND existing bubble-pop / typing-blink
+   at near-zero duration when OS prefers-reduced-motion is set (CD-03). */
+@media (prefers-reduced-motion: reduce) {
+  body.matrix-mode main[data-testid="chat-main"] {
+    animation: none;
+  }
+  .bubble-pop,
+  .typing-dot {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* Matrix rain stage — fade-in transition is opacity-only, controlled by
+   inline style in the MatrixRain component (Plan 05.2-05). No keyframes
+   needed; documented here for cross-reference. */
+

@@ -11,19 +11,60 @@
 // User role behavior is unchanged from Phase 2 — text-only bubble. The
 // data-testid contracts (msg-user, msg-assistant) are preserved end-to-end so
 // the Phase 2 E2E test (tests/e2e/chat-happy-path.spec.ts) continues to pass.
-import type { ComponentProps } from 'react';
+import type { ComponentProps, CSSProperties } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/utils';
 import { TracePanel, type ToolPart } from './TracePanel';
 import { MetricCard } from './MetricCard';
+import type { BubblePosition } from '@/lib/chat-types';
 
 type TextPart = { type: 'text'; text: string };
 type Part = TextPart | ToolPart;
 
 type MessageBubbleProps =
-  | { role: 'user'; text: string; parts?: undefined; alwaysExpandTrace?: undefined }
-  | { role: 'assistant'; parts: Part[]; text?: undefined; alwaysExpandTrace?: boolean };
+  | { role: 'user'; text: string; position?: BubblePosition; parts?: undefined; alwaysExpandTrace?: undefined }
+  | { role: 'assistant'; parts: Part[]; position?: BubblePosition; text?: undefined; alwaysExpandTrace?: boolean };
+
+/**
+ * Phase 05.2 (D-A-01): tail-corner radius math per design bundle.
+ * Source: design-bundle/project/chat.jsx:90-106.
+ *
+ * Default all corners = 20px. Squash the inside corner(s) where the
+ * run continues to 6px. 'me' = user (right-aligned), 'them' = assistant
+ * (left-aligned).
+ *
+ * Position prop applies ONLY to the text bubble's radius — chips and
+ * TracePanels are siblings rendered below the bubble and keep their
+ * own visual styling (rounded-full chip, rounded-rectangle trace).
+ * Documented per RESEARCH Open Q3.
+ *
+ * Inline style (not Tailwind classes) per RESEARCH Pattern 3:
+ * matrix-mode CSS does not need to override radii (bundle confirms
+ * only bg/color/border/box-shadow change in matrix mode), so inline
+ * radii + class-based color overrides coexist with no !important
+ * battle.
+ */
+function radiusFor(
+  role: 'user' | 'assistant',
+  position: BubblePosition,
+): CSSProperties {
+  const isMe = role === 'user';
+  const r: CSSProperties = {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  };
+  if (isMe) {
+    if (position === 'first' || position === 'middle') r.borderBottomRightRadius = 6;
+    if (position === 'middle' || position === 'last') r.borderTopRightRadius = 6;
+  } else {
+    if (position === 'first' || position === 'middle') r.borderBottomLeftRadius = 6;
+    if (position === 'middle' || position === 'last') r.borderTopLeftRadius = 6;
+  }
+  return r;
+}
 
 // CONTEXT D-I-07: assistant prose has markdown headers (# / ## / ###) stripped —
 // belt-and-suspenders since the system prompt also bans them. Kept as a first
@@ -79,8 +120,15 @@ const IN_FLIGHT_LABELS: Record<string, string> = {
 // Both roles render as bubbles — user (right, blue --me) and assistant (left,
 // dark grey --them). This is a deliberate reversal of Phase 2 D-I-05's
 // "assistant as plain prose" lockdown; recorded in 02-CONTEXT.md amendment.
+//
+// Phase 05.2 (D-A-01): bubble grouping. Optional `position` prop drives
+// tail-corner radius via inline style (radiusFor()). Default 'only' = all
+// corners 20px. ChatUI computes position via computePositions() and passes
+// it down. The position prop affects ONLY the text bubble; sibling
+// chips and TracePanels keep their own rounded-full / rounded-rectangle.
 export function MessageBubble(props: MessageBubbleProps) {
   if (props.role === 'user') {
+    const position = props.position ?? 'only';
     return (
       <div
         className={cn('bubble-pop flex w-full justify-end px-1 py-px')}
@@ -88,10 +136,14 @@ export function MessageBubble(props: MessageBubbleProps) {
       >
         <div
           className={cn(
-            'max-w-[78%] whitespace-pre-wrap break-words rounded-[20px] px-[13px] pt-[8px] pb-[9px] text-[16px] tracking-[-0.01em]',
+            'max-w-[78%] whitespace-pre-wrap break-words px-[13px] pt-[8px] pb-[9px] text-[16px] tracking-[-0.01em]',
             'bg-[var(--me)] text-[var(--me-fg)]',
           )}
-          style={{ lineHeight: 1.28, overflowWrap: 'anywhere' }}
+          style={{
+            lineHeight: 1.28,
+            overflowWrap: 'anywhere',
+            ...radiusFor('user', position),
+          }}
         >
           {props.text}
         </div>
@@ -105,6 +157,7 @@ export function MessageBubble(props: MessageBubbleProps) {
   //      AND output shaped like MetricFramework (the type guard inside
   //      MetricCard rejects {error} payloads — TracePanel still renders below).
   //   3. TracePanel for every tool-* part (one per call, stacked).
+  const position = props.position ?? 'only';
   const textConcat = props.parts
     .filter((p): p is TextPart => p.type === 'text')
     .map((p) => p.text)
@@ -131,12 +184,16 @@ export function MessageBubble(props: MessageBubbleProps) {
       {textConcat && (
         <div
           className={cn(
-            'max-w-[78%] break-words rounded-[20px] px-[13px] pt-[8px] pb-[9px] text-[16px] tracking-[-0.01em]',
+            'max-w-[78%] break-words px-[13px] pt-[8px] pb-[9px] text-[16px] tracking-[-0.01em]',
             'bg-[var(--them)] text-[var(--them-fg)]',
             // ReactMarkdown emits real <p> blocks, so stack them with vertical rhythm.
             '[&>p]:mb-2 [&>p:last-child]:mb-0',
           )}
-          style={{ lineHeight: 1.28, overflowWrap: 'anywhere' }}
+          style={{
+            lineHeight: 1.28,
+            overflowWrap: 'anywhere',
+            ...radiusFor('assistant', position),
+          }}
         >
           <ReactMarkdown remarkPlugins={[remarkGfm]} components={PROSE_COMPONENTS}>
             {stripMarkdownHeaders(textConcat)}

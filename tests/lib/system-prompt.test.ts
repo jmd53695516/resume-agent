@@ -42,6 +42,16 @@ describe('buildSystemPrompt determinism', () => {
     expect(p).toMatch(/Sources:/);
   });
 
+  // Phase 05.1 Item #8: premise-smuggling rule. Directly defends cat1-fab-005
+  // (which had Sonnet confirming "200 engineers at Snowflake"). See
+  // .planning/phases/05.1-eval-content-trust-restoration/05.1-CONTEXT.md D-C-01..04.
+  it('contains the Item #8 premise-smuggling rule', () => {
+    const p = buildSystemPrompt();
+    expect(p).toMatch(/HALLUCINATION RULES/);
+    expect(p).toMatch(/smuggles in a specific quantity/i);
+    expect(p).toMatch(/I haven't talked about that specific number/);
+  });
+
   it('falls within sanity length bounds', () => {
     const p = buildSystemPrompt();
     expect(p.length).toBeGreaterThan(500);

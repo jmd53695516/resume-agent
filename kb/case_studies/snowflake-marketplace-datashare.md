@@ -46,6 +46,7 @@ Eighteen months in:
 - 20 custom Snowflake table functions in production
 - 5 clients live in production, 2 more in UAT/pilot
 - Now expanding scope to build the internal operations group's analytics warehouse off the same foundation
+- Next on the roadmap: Snowflake Streams (change-tracking) so clients get visibility into when their data updates instead of polling for changes
 
 The skeptic's predicted outcome — "this won't fit our timelines" — didn't materialize once the resource constraint was solved.
 
