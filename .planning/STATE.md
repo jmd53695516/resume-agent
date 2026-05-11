@@ -177,7 +177,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None yet.
+- [implement-chat-stream-design-from-anthropic-design-system](todos/pending/2026-05-11-implement-chat-stream-design-from-anthropic-design-system.md) — port relevant parts of Anthropic Chat Stream design bundle into our chat UI (area: ui)
 
 ### Blockers/Concerns
 
