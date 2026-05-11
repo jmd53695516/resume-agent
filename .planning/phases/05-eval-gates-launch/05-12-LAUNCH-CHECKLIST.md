@@ -49,12 +49,19 @@ status: friend-test-pending
 **Per CONTEXT D-D-03: 3 testers, ≥1 PM + ≥1 non-PM. Non-PM Q1=Y is the blocking criterion.**
 
 > Form template + DM copy: `.planning/phases/05-eval-gates-launch/05-12-FRIEND-TEST-FORM.md`
+>
+> **Live Google Form:** https://forms.gle/yovqkpe3QVnNpVTP7
 
 | Tester | Role | Q1 (substantive Y/N) | Q2 (awkward) | Q3 (favorite) | Q4 (cringe) | Q5 (open) |
 |--------|------|----------------------|--------------|---------------|-------------|-----------|
-| 1      | PM     | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
-| 2      | non-PM | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
-| 3      | _TBD_  | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
+| 1      | non-PM, non-technical, non-HR | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
+| 2      | PM with some technical ability | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
+| 3      | recruiter | _pending_ | _pending_ | _pending_ | _pending_ | _pending_ |
+
+**Role-constraint check (LAUNCH-04 per CONTEXT D-D-03):**
+- ≥1 PM: ✓ Tester 2
+- ≥1 non-PM: ✓ Tester 1 (also satisfies the "non-PM Q1=Y is blocking" criterion)
+- Tester 3 is a recruiter — strongest signal of all (recruiters ARE the target user); doesn't change the role-constraint math but adds the most authentic feedback channel.
 
 ## Awkward-issues triage
 
