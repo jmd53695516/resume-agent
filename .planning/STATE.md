@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05.2-03-PLAN.md (bubble grouping + inter-group timestamps + matrix selector hooks; TimestampDivider created, MessageBubble extended with position prop, ChatUI wired with typed useChat + client-side timestamps + 6 selector-hook testids + CD-06 chev; /api/chat untouched; tsc + build + 562/562 tests green)
-last_updated: "2026-05-11T02:51:16.577Z"
+stopped_at: Completed 05.2-04-PLAN.md (ViewToggle pill + chat/page.tsx view state lift with body-class effect cleanup; D-B-01..03 LIVE; activates Plan 02 matrix-mode CSS end-to-end; ChatUI prop surface UNCHANGED; tsc + build + 562/562 tests green)
+last_updated: "2026-05-11T03:21:56.884Z"
 last_activity: 2026-05-11
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 40
-  completed_plans: 36
-  percent: 90
+  completed_plans: 37
+  percent: 93
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 ## Current Position
 
 Phase: 05.2 (implement-chat-stream-design-from-anthropic-design-system) — EXECUTING
-Plan: 4 of 6
+Plan: 5 of 6
 Status: Ready to execute
 Last activity: 2026-05-11
 
@@ -79,6 +79,7 @@ Progress: [██████████] 100% within Phase 05.1 plan-count; ca
 | Phase 05.2 P01 | 6min | 3 tasks | 7 files |
 | Phase 05.2 P02 | 2min | 1 tasks | 1 files |
 | Phase 05.2 P03 | 4min | 3 tasks | 3 files |
+| Phase 05.2 P04 | 3min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -182,6 +183,8 @@ Recent decisions affecting current work:
 - [Phase 05.2]: Plan 05.2-03: MessageBubble position prop is OPTIONAL (defaults to 'only' = all-20px corners) — additive change preserves any existing call sites (admin transcript viewer). Inline borderRadius via radiusFor() removes rounded-[20px] Tailwind class; matrix-mode CSS only overrides bg/color/border/box-shadow so JS-controlled radius coexists with class-controlled color with zero !important battle.
 - [Phase 05.2]: Plan 05.2-03: 6 selector-hook data-testids (chat-main, chat-header, chat-avatar, chat-contact-name, chat-contact-chev, chat-composer) placed on EXISTING chrome elements — no DOM restructure. Only new DOM node is the CD-06 chev SVG (8x12 viewBox, path M1.5 1.5L6 6l-4.5 4.5, stroke 1.5px round) wrapped alongside contact-name in inline-flex container. CD-04 honored (same DOM in chat + matrix modes; fork is CSS-side).
 - [Phase 05.2]: Plan 05.2-03 recovery: prior executor's 3 task commits (97c0864 TimestampDivider, 11b9488 MessageBubble extension, 47bdfd2 ChatUI wire) landed cleanly before a mid-plan network error. All 30+ acceptance grep checks already pass on the live code; tsc + build + tests (562/562) green; /api/chat/route.ts diff is empty. Close-out (SUMMARY + STATE + ROADMAP) is the only addition needed — no code rework.
+- [Phase 05.2]: Plan 05.2-04: ViewToggle pill (~70 LOC hand-rolled, role=tablist + 3 testids, exact 'Light Mode' / 'Dark Mode' labels per D-B-02) + chat/page.tsx view state lift with body-class useEffect cleanup (Pitfall 2 — prevents matrix-mode leak to /admin/*) + literal 'chat' initial state (Pitfall 3 — hydration-safe). D-B-01..03 all LIVE; activates Plan 02's matrix-mode CSS end-to-end. ChatUI prop surface UNCHANGED (Plan 05 will add view prop).
+- [Phase 05.2]: Plan 05.2-04 recovery: prior session committed Task 1 (0805622) but dropped before Task 2 commit. Task 2 code was on disk dirty (~33 lines on chat/page.tsx). Resume strategy: inspect dirty diff against plan acceptance criteria (all 13 grep checks pass on disk state), re-run verification gates (tsc + build + 562/562 tests green), commit Task 2 atomically (f6e546c), close out. Zero code rework needed — the dropped session's on-disk work matched the plan exactly.
 
 ### Roadmap Evolution
 
@@ -211,8 +214,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-11T02:50:55.152Z
-Stopped at: Completed 05.2-03-PLAN.md (bubble grouping + inter-group timestamps + matrix selector hooks; TimestampDivider created, MessageBubble extended with position prop, ChatUI wired with typed useChat + client-side timestamps + 6 selector-hook testids + CD-06 chev; /api/chat untouched; tsc + build + 562/562 tests green)
+Last session: 2026-05-11T03:21:56.879Z
+Stopped at: Completed 05.2-04-PLAN.md (ViewToggle pill + chat/page.tsx view state lift with body-class effect cleanup; D-B-01..03 LIVE; activates Plan 02 matrix-mode CSS end-to-end; ChatUI prop surface UNCHANGED; tsc + build + 562/562 tests green)
 Resume file: None
 
 Resumed: 2026-05-11 — routing to /gsd-execute-phase 5.2 (UI polish; visual-only Anthropic chat-stream design port).
