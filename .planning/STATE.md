@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: "Completed 05.2-06-PLAN.md — Phase 05.2 all 6 plans complete. cat6 Playwright re-baseline: chat-happy-path view-toggle sanity assertion + new cat-06-view-toggle.spec.ts (5 tests). Pre-existing cat-06-admin-403 + chat-six-gate-order failures filed in 05.2/deferred-items.md per scope-boundary rule. Phase ready for verify_phase_goal."
-last_updated: "2026-05-11T16:37:18.600Z"
+status: ready
+stopped_at: "Phase 05.2 fully closed — VERIFICATION green (14/14 must-haves); HUMAN-UAT items 1-6 approved by user (2026-05-11); item 7 (npm run eval cat6) deferred to Plan 05-12 LAUNCH-05 pre-flight. Stale Phase 01 .continue-here.md removed; chat-stream-design todo moved to completed/. Only Plan 05-12 (LAUNCH, autonomous:false) remains."
+last_updated: "2026-05-11T18:00:00.000Z"
 last_activity: 2026-05-11
 progress:
   total_phases: 7
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 
 ## Current Position
 
-Phase: 05.2
-Plan: Not started
-Status: Ready for verify_phase_goal
+Phase: 05 (Eval Gates & Launch)
+Plan: 05-12 (LAUNCH) — last remaining plan in the milestone
+Status: Ready to execute Plan 05-12 (autonomous:false; Joe-time-heavy)
 Last activity: 2026-05-11
 
-Progress: [██████████] 100% of Phase 05.2 plan-count; phase-level verification next. cat-06-admin-403 (3 tests) + chat-six-gate-order parallel flake filed in 05.2 deferred-items.md as pre-existing, NOT caused by Phase 05.2.
+Progress: [█████████░] 39/40 plans (98%). Phase 05.2 fully closed — VERIFICATION 14/14 must-haves; HUMAN-UAT items 1-6 approved by user; item 7 (npm run eval cat6 end-to-end) deferred to Plan 05-12 LAUNCH-05 pre-flight. cat-06-admin-403 (3 tests) + chat-six-gate-order parallel flake remain documented in 05.2 deferred-items.md as pre-existing, NOT caused by Phase 05.2.
 
 ## Performance Metrics
 
@@ -203,7 +203,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-- [implement-chat-stream-design-from-anthropic-design-system](todos/pending/2026-05-11-implement-chat-stream-design-from-anthropic-design-system.md) — port relevant parts of Anthropic Chat Stream design bundle into our chat UI (area: ui)
+(none — chat-stream-design todo delivered by Phase 05.2 and moved to completed/ on 2026-05-11)
 
 ### Blockers/Concerns
 
@@ -223,11 +223,12 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-11T04:25:00.000Z
-Stopped at: Completed 05.2-06-PLAN.md — Phase 05.2 all 6 plans complete. cat6 Playwright re-baseline: chat-happy-path view-toggle sanity assertion + new cat-06-view-toggle.spec.ts (5 tests). Pre-existing cat-06-admin-403 + chat-six-gate-order failures filed in 05.2/deferred-items.md per scope-boundary rule. Phase ready for verify_phase_goal.
+Last session: 2026-05-11T18:00:00.000Z
+Stopped at: Phase 05.2 fully closed. HUMAN-UAT items 1-6 user-approved; item 7 deferred to LAUNCH-05 pre-flight. Stale `.continue-here.md` (Phase 01, dated 2026-04-28) removed; chat-stream-design pending-todo moved to `todos/completed/`. STATE.md status flipped from `verifying` to `ready`. Only Plan 05-12 (LAUNCH) remains in the v1.0 milestone — autonomous:false, Joe-time-heavy.
 Resume file: None
 
 Resumed: 2026-05-11 — completed /gsd-execute-phase 5.2 Wave 5 close-out inline after two executor timeouts on full Playwright runs.
+Resumed: 2026-05-11 — /gsd-resume-work cleanup pass; STATE.md, stale checkpoint, and pending-todo reconciled to reflect Phase 05.2 closure.
 
 ## Quick Tasks Completed
 
