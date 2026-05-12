@@ -57,6 +57,23 @@ vi.mock('@/lib/eval/agent-client', async (importOriginal) => {
   };
 });
 
+// WR-RE-01 fix: mock @/lib/logger so spend-cap reset failures (the
+// `cat2_spendcap_reset_failed` log line emitted by the per-iteration
+// try/catch at cat2.ts:256-266) surface in test mock-call counts. Without
+// this mock, a regression where redis.set/del throws during restore would
+// be absorbed silently by the log-and-continue catch and the test harness
+// would have no signal. Pattern mirrors tests/lib/eval/storage.test.ts:32-35.
+const loggerInfoMock = vi.fn();
+const loggerWarnMock = vi.fn();
+const loggerErrorMock = vi.fn();
+vi.mock('@/lib/logger', () => ({
+  childLogger: () => ({
+    info: loggerInfoMock,
+    warn: loggerWarnMock,
+    error: loggerErrorMock,
+  }),
+}));
+
 beforeEach(() => {
   loadCasesMock.mockReset();
   writeCaseMock.mockReset();
@@ -65,6 +82,9 @@ beforeEach(() => {
   redisSetMock.mockReset();
   redisDelMock.mockReset();
   mintEvalSessionMock.mockReset();
+  loggerInfoMock.mockReset();
+  loggerWarnMock.mockReset();
+  loggerErrorMock.mockReset();
   writeCaseMock.mockResolvedValue(undefined);
   redisSetMock.mockResolvedValue('OK');
   redisDelMock.mockResolvedValue(1);
@@ -373,6 +393,55 @@ describe('runCat2', () => {
     expect(redisDelMock).toHaveBeenCalledWith(expectedHourKey);
     expect(redisDelMock).toHaveBeenCalledTimes(24);
     expect(result.cases[0].passed).toBe(false);
+  });
+
+  // WR-RE-01: verify the per-iteration try/catch inside the finally block
+  // (cat2.ts:249-267) is resilient — when one bucket's reset throws, the
+  // remaining 23 buckets still get restored AND the failure surfaces via the
+  // mocked logger.error. This guards against a regression where a future
+  // change accidentally re-aborts the loop on first throw, silently leaving
+  // the spend-cap stuck on for subsequent eval runs.
+  it('spend-cap reset continues across remaining buckets when one redis.del throws (log-and-continue)', async () => {
+    loadCasesMock.mockResolvedValue([
+      {
+        case_id: 'cat2-tool-metric-003',
+        category: 'cat2' as const,
+        prompt: 'X',
+        tool_expected: 'design_metric_framework',
+        tags: ['spend-cap', 'synthetic'],
+      },
+    ]);
+    // All 24 buckets originally null → finally will DEL each.
+    redisMgetMock.mockResolvedValue(Array.from({ length: 24 }, () => null));
+    // Make the SECOND del call throw (index 1 — first non-current-hour bucket).
+    // The first del (current-hour bucket, index 0) succeeds; the 22 that
+    // follow must still run.
+    let delCallIndex = 0;
+    redisDelMock.mockImplementation(async () => {
+      const idx = delCallIndex++;
+      if (idx === 1) {
+        throw new Error('redis transient: ECONNRESET');
+      }
+      return 1;
+    });
+    const deflection = "I'm taking a breather for the day — email Joe directly.";
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(fetchOk(ssTextStream(deflection)));
+
+    const { runCat2 } = await import('@/lib/eval/cats/cat2');
+    const result = await runCat2('http://localhost:3000', 'run_test_wrre01');
+
+    // All 24 del attempts ran despite the mid-loop throw.
+    expect(redisDelMock).toHaveBeenCalledTimes(24);
+    // The failure was surfaced via logger.error with the expected event tag
+    // (cat2.ts emits 'cat2_spendcap_reset_failed' from the catch).
+    expect(loggerErrorMock).toHaveBeenCalledWith(
+      expect.objectContaining({ err: expect.stringContaining('ECONNRESET') }),
+      'cat2_spendcap_reset_failed',
+    );
+    expect(loggerErrorMock).toHaveBeenCalledTimes(1);
+    // Case-level assertion still passes (deflection text + no tool fired);
+    // the run does not fail just because one reset bucket glitched.
+    expect(result.cases[0].passed).toBe(true);
   });
 
   it('spend-cap reset restores original value when one was present', async () => {
