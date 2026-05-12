@@ -141,17 +141,20 @@ export function assertMetric(_prompt: string, result: ChatStreamResult): Asserti
 }
 
 export function assertSpendCapDeflection(result: ChatStreamResult): AssertionResult {
-  // Deflection text from src/app/api/chat/route.ts DEFLECTIONS.spendcap pattern.
-  // Match on "taking a breather" / "back tomorrow" / "email Joe directly" tokens.
-  const isDeflection = /taking a breather|back tomorrow|email Joe directly|come back|few hours|spend cap|capacity|rate limit/i.test(
-    result.responseText,
-  );
+  // CR-01 / WR-04 fix: pin the assertion to the exact phrase from
+  // DEFLECTIONS.spendcap in src/app/api/chat/route.ts:80. The previous regex
+  // (`taking a breather|back tomorrow|email Joe directly|come back|few hours|spend cap|capacity|rate limit`)
+  // also matched DEFLECTIONS.ratelimit (which contains "rate limit" + "come
+  // back") and generic Sonnet output mentioning "capacity" — producing green
+  // cases that proved nothing under real-target runs. The signature phrase
+  // "taking a breather for the day" is unique to the spendcap deflection.
+  const isSpendcapText = /taking a breather for the day/i.test(result.responseText);
   const noToolFired = result.toolCalls.length === 0;
-  const passed = isDeflection && noToolFired && result.httpStatus === 200;
+  const passed = isSpendcapText && noToolFired && result.httpStatus === 200;
   return {
     passed,
     rationale: JSON.stringify({
-      isDeflection,
+      isSpendcapText,
       noToolFired,
       httpStatus: result.httpStatus,
       snippet: result.responseText.slice(0, 200),
@@ -171,33 +174,51 @@ export async function runCat2(targetUrl: string, runId: string): Promise<Categor
 
   const results: EvalCaseResult[] = [];
   let totalCost = 0;
-  const today = new Date().toISOString().slice(0, 10);
-  const spendKey = `resume-agent:spend:${today}`;
+  // CR-01 fix: production gate uses HOURLY buckets (src/lib/redis.ts
+  // hourBucketKey + getSpendToday mgets 24 hour-keys), not a single
+  // YYYY-MM-DD key. Setting `resume-agent:spend:YYYY-MM-DD` did NOT trip the
+  // gate at all — getSpendToday() never reads that key — so the eval case
+  // tested nothing. Match the production read pattern exactly: capture all
+  // 24 hour-keys for restore, set the current hour past threshold, sum still
+  // reads as over-cap because getSpendToday adds all 24 buckets.
+  function hourBucketKey(ts: number): string {
+    const iso = new Date(ts).toISOString().slice(0, 13); // "YYYY-MM-DDTHH"
+    return `resume-agent:spend:${iso}`;
+  }
 
   for (const c of cases) {
     const isSpendCapCase = (c.tags ?? []).includes('spend-cap');
     let assertion: AssertionResult;
     let response: string | null = null;
-    let originalSpend: number | null = null;
+    let spendKeys: string[] = [];
+    let originalSpends: (string | number | null)[] = [];
 
     if (isSpendCapCase) {
-      // Capture original BEFORE we mutate, so finally{} can restore exactly.
+      // Build the 24 hour-bucket keys matching getSpendToday's read pattern.
+      const nowMs = Date.now();
+      spendKeys = Array.from({ length: 24 }, (_, i) => hourBucketKey(nowMs - i * 3_600_000));
+      // Capture originals BEFORE we mutate, so finally{} can restore exactly.
       try {
-        originalSpend = await redis.get<number>(spendKey);
+        originalSpends = await redis.mget<(string | number | null)[]>(...spendKeys);
       } catch (e) {
         log.warn(
           { runId, caseId: c.case_id, err: (e as Error).message },
           'cat2_spendcap_originalread_failed',
         );
-        originalSpend = null;
+        originalSpends = spendKeys.map(() => null);
       }
     }
 
     try {
       if (isSpendCapCase) {
-        // EVAL-10 synthetic — set spend past 300-cent threshold.
-        await redis.set(spendKey, 350);
-        log.info({ runId, caseId: c.case_id, spendKey }, 'cat2_spendcap_synthetic_set');
+        // EVAL-10 synthetic — set the current-hour bucket past the 300-cent
+        // threshold. One bucket > 300 is sufficient because getSpendToday()
+        // sums all 24 buckets; the production gate's isOverCap() trips.
+        await redis.set(spendKeys[0], 350);
+        log.info(
+          { runId, caseId: c.case_id, spendKey: spendKeys[0] },
+          'cat2_spendcap_synthetic_set',
+        );
       }
 
       const out = await callAgentWithTools(targetUrl, c.prompt, sessionId);
@@ -224,20 +245,28 @@ export async function runCat2(targetUrl: string, runId: string): Promise<Categor
       // ALWAYS reset the spend-cap synthetic — even on assertion failure or
       // mid-loop throw — so subsequent cases aren't all spend-cap-deflected.
       if (isSpendCapCase) {
-        try {
-          if (originalSpend != null) {
-            await redis.set(spendKey, originalSpend);
-          } else {
-            await redis.del(spendKey);
+        for (let i = 0; i < spendKeys.length; i++) {
+          try {
+            const orig = originalSpends[i];
+            if (orig != null) {
+              await redis.set(spendKeys[i], orig);
+            } else {
+              await redis.del(spendKeys[i]);
+            }
+          } catch (e) {
+            // T-05-05-01: log-and-continue — do not fail the run for a reset glitch
+            log.error(
+              {
+                runId,
+                caseId: c.case_id,
+                key: spendKeys[i],
+                err: (e as Error).message,
+              },
+              'cat2_spendcap_reset_failed',
+            );
           }
-          log.info({ runId, caseId: c.case_id }, 'cat2_spendcap_synthetic_reset');
-        } catch (e) {
-          // T-05-05-01: log-and-continue — do not fail the run for a reset glitch
-          log.error(
-            { runId, caseId: c.case_id, err: (e as Error).message },
-            'cat2_spendcap_reset_failed',
-          );
         }
+        log.info({ runId, caseId: c.case_id }, 'cat2_spendcap_synthetic_reset');
       }
     }
 
