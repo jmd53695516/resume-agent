@@ -11,7 +11,7 @@ vi.mock('@/lib/anthropic', () => {
   };
 });
 
-import { classifyUserMessage } from '@/lib/classifier';
+import { classifyUserMessage, classifyUserMessageOrThrow } from '@/lib/classifier';
 import * as anthro from '@/lib/anthropic';
 const messagesCreate = (anthro as unknown as { __messagesCreate: ReturnType<typeof vi.fn> })
   .__messagesCreate;
@@ -79,6 +79,41 @@ describe('classifyUserMessage', () => {
       content: [{ type: 'text', text: 'not json at all' }],
     });
     expect(await classifyUserMessage('anything')).toEqual({ label: 'offtopic', confidence: 1.0 });
+  });
+});
+
+// WR-01: classifyUserMessageOrThrow is the throwing variant used by the heartbeat cron.
+// The chat route uses the fail-closed wrapper above; heartbeat wants errors to propagate
+// so the /api/health banner can accurately report classifier=degraded during Anthropic
+// outages. These tests assert the contract that distinguishes the throwing variant from
+// the fail-closed wrapper — any test that previously asserted `await ...rejects.toThrow`
+// would have been impossible against `classifyUserMessage` (it never throws).
+describe('classifyUserMessageOrThrow', () => {
+  beforeEach(() => messagesCreate.mockReset());
+
+  it('returns parsed verdict on successful Anthropic response', async () => {
+    messagesCreate.mockResolvedValueOnce(mockResp({ label: 'normal', confidence: 0.95 }));
+    expect(await classifyUserMessageOrThrow('hi')).toEqual({
+      label: 'normal',
+      confidence: 0.95,
+    });
+  });
+
+  it('RE-THROWS Anthropic API errors (the WR-01 contract)', async () => {
+    messagesCreate.mockRejectedValueOnce(new Error('rate limited'));
+    await expect(classifyUserMessageOrThrow('hi')).rejects.toThrow('rate limited');
+  });
+
+  it('RE-THROWS on malformed JSON response', async () => {
+    messagesCreate.mockResolvedValueOnce({
+      content: [{ type: 'text', text: 'not json at all' }],
+    });
+    await expect(classifyUserMessageOrThrow('hi')).rejects.toThrow();
+  });
+
+  it('RE-THROWS on zod validation failure (bad label)', async () => {
+    messagesCreate.mockResolvedValueOnce(mockResp({ label: 'nonsense-label', confidence: 0.5 }));
+    await expect(classifyUserMessageOrThrow('hi')).rejects.toThrow();
   });
 });
 
