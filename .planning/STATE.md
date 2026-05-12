@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: paused
-stopped_at: "INCIDENT 2026-05-12 EOD: prod agent spendcap-deflecting all traffic for ~24h. Root cause: rolling-24h spend counter at 308¢ (cap=300¢); 272¢ single-hour spike at 2026-05-12T02 UTC = prod cat1+cat4 eval verification run (LAUNCH-05 gate, 10pm ET 2026-05-11) — yesterday's eval verification poisoned today's friend-test window. Diagnostic+fix: npm run eval:reset-spend (cleared 308¢ → 0¢; per-hour distribution printed). Agent functioning again, Joe verified. 0/3 friend-test responses = friends saw broken agent, NOT slow. Two bugs surfaced for tomorrow: (1) cap design — extend SEED-001 to exempt eval-cli@joedollinger.dev from global spend counter (cleanest fix); (2) silent failure — spend-cap alarm code is shipped (Plan 04-06) but cron-job.org schedule never wired (in the '3 schedules still TBD' bucket). Resume tomorrow: (a) DM-nudge 3 friend-testers with form link + 'now fixed' note, (b) wire alarm cron on cron-job.org so the next trip is loud, (c) decide+implement cap-exemption for eval-cli."
-last_updated: "2026-05-12T23:59:00.000Z"
-last_activity: 2026-05-12
+status: executing
+stopped_at: "Plan 05-13 (gap-closure) complete. UAT Test 1 gap CLOSED — parseEvalArgs + EVAL_CATS_VALID + resolveTargetUrl exported from scripts/run-evals.ts; 24 new tests pass; 5/5 CLI smokes verified. deferred-items Item #12 RESOLVED. Plan IS post-launch gap-closure (NOT in v1.0 12-plan count)."
+last_updated: "2026-05-12T23:46:00.000Z"
+last_activity: 2026-05-12 -- Completed quick task 260512-r4s: SEED-001 (rate-limit half) shipped
 progress:
-  total_phases: 7
+  total_phases: 8
   completed_phases: 6
-  total_plans: 41
+  total_plans: 47
   completed_plans: 40
-  percent: 98
+  percent: 85
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 Phase: 05 (eval-gates-launch) — EXECUTING
 Plan: 2 of 13
 Status: Ready to execute
-Last activity: 2026-05-12 - Completed quick task 260511-u9d: WR-01 classifier banner false-green fix
+Last activity: 2026-05-12 -- Completed quick task 260512-r4s: SEED-001 rate-limit exemption shipped (spend-cap half deferred to follow-up quick task)
 
 Progress: [█████████░] 39/40 plans + Plan 05-12 functionally complete (code/data shipped, prod verified, gates green). Plan 05-12 awaits ONLY friend-test responses (Google Form https://forms.gle/yovqkpe3QVnNpVTP7 sent to 3 testers 2026-05-11) before sign-off + verifier + mark-complete. Phase 05.2 fully closed — VERIFICATION 14/14 must-haves; HUMAN-UAT items 1-6 approved by user; item 7 (npm run eval cat6 end-to-end) deferred to Plan 05-12 LAUNCH-05 pre-flight (resolved via cat6 documented baseline 17/20 with 3 pre-existing admin-403 spec failures filed in 05.2 deferred-items).
 
@@ -232,6 +232,7 @@ Recent decisions affecting current work:
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260511-u9d | WR-01 classifier banner false-green: extract classifyUserMessageOrThrow throwing variant; heartbeat caller now reports classifier=degraded truthfully during Anthropic outages | 2026-05-12 | 6a5a8b0 | [260511-u9d-fix-wr-01-classifier-banner-false-green-](./quick/260511-u9d-fix-wr-01-classifier-banner-false-green-/) |
+| 260512-r4s | SEED-001 rate-limit exemption: EVAL_CLI_RATELIMIT_ALLOWLIST Set + checkRateLimits skip for eval-cli@joedollinger.dev; per-IP + spend-cap still apply (exact-match, 12 new tests, STRIDE T-r4s-01..07 mitigated, route.ts byte-identical). NOTE: spend-cap half of EOD incident scope deferred to follow-up quick task. | 2026-05-12 | e3dbfae | [260512-r4s-exempt-eval-cli-email-from-per-email-rat](./quick/260512-r4s-exempt-eval-cli-email-from-per-email-rat/) |
 
 ## Session Continuity
 

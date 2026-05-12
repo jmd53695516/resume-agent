@@ -1,10 +1,12 @@
 ---
 id: SEED-001
-status: dormant
+status: resolved
 planted: 2026-05-12
 planted_during: v1.0 / Phase 05 (eval-gates-launch) — Plan 05-12 LAUNCH (prod live; friend-test pending)
 trigger_when: v1.1 milestone start OR Phase 6 (post-launch eval calibration) planning
 scope: Small
+resolved_on: 2026-05-12
+resolved_by: 260512-r4s
 ---
 
 # SEED-001: Exempt eval-cli email from per-email rate limiter
