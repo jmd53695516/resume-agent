@@ -44,6 +44,44 @@ export const sessionLimiter = new Ratelimit({
   analytics: false,
 });
 
+// --- Per-email rate-limit allowlist (SEED-001) ---------------------------
+//
+// Exact-match Set of emails that BYPASS the per-email 150/day limiter
+// while still being subject to all other gates (ip10m, ipday, session,
+// ipcost, spend cap). Designed to unblock the eval CLI from CI without
+// creating a blanket bypass.
+//
+// SECURITY (SEED-001 threat-model — STRIDE register in
+// .planning/quick/260512-r4s-exempt-eval-cli-email-from-per-email-rat/260512-r4s-PLAN.md):
+//   - Exact match only. NOT suffix, NOT regex, NOT case-insensitive.
+//     `eval-cli-test@joedollinger.dev` does NOT bypass.
+//     `EVAL-CLI@joedollinger.dev` does NOT bypass.
+//   - Per-IP rate limit still applies (an attacker spoofing this email
+//     is still capped at 60 messages/day per source IP).
+//   - Spend cap (SAFE-04, 300¢/day rolling 24h) still applies. An attacker
+//     would burn the cap fast, tripping spendcap deflection for all
+//     traffic — including the legitimate eval CLI.
+//   - The canonical eval-cli email literal is duplicated in
+//     src/lib/eval/agent-client.ts mintEvalSession(); drift between the
+//     two is caught by tests/lib/redis.test.ts (constant assertion test).
+//
+// To extend: prefer adding a new exact email here. If a use case ever
+// needs env-var-driven flexibility, add a second Set built from
+// `process.env.EVAL_CLI_RATELIMIT_ALLOWLIST_EXTRA` (comma-separated)
+// and union them — but DO NOT replace the hardcoded baseline (the drift
+// detection test would no longer catch updates to the eval CLI literal).
+export const EVAL_CLI_RATELIMIT_ALLOWLIST: ReadonlySet<string> = new Set([
+  'eval-cli@joedollinger.dev',
+]);
+
+/**
+ * Returns true if the given email is exempt from the per-email rate
+ * limiter. Per-IP / spend-cap / session checks are NOT affected.
+ */
+export function isEmailRatelimitAllowlisted(email: string): boolean {
+  return EVAL_CLI_RATELIMIT_ALLOWLIST.has(email);
+}
+
 export type RateLimitCheck =
   | { ok: true }
   | { ok: false; which: 'ip10m' | 'ipday' | 'email' | 'session' | 'ipcost' };
@@ -53,10 +91,17 @@ export async function checkRateLimits(
   email: string,
   sessionId: string,
 ): Promise<RateLimitCheck> {
+  const emailExempt = isEmailRatelimitAllowlisted(email);
+
   const [ip10, ipDay, emailRes, sessionRes, ipCostCents] = await Promise.all([
     ipLimiter10m.limit(ipKey),
     ipLimiterDay.limit(ipKey),
-    emailLimiterDay.limit(email),
+    // SEED-001: allowlisted emails skip the per-email window. Returning a
+    // synthetic success preserves the Promise.all shape and the precedence
+    // ordering below (ip10m → ipday → email → session → ipcost) unchanged.
+    emailExempt
+      ? Promise.resolve({ success: true } as const)
+      : emailLimiterDay.limit(email),
     sessionLimiter.limit(sessionId),
     getIpCostToday(ipKey),
   ]);
