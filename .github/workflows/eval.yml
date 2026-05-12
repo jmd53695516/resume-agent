@@ -43,9 +43,14 @@ jobs:
         env:
           # Precedence: workflow_dispatch input > Vercel client_payload.url > client_payload.target_url
           EVAL_TARGET_URL: ${{ inputs.target_url || github.event.client_payload.url || github.event.client_payload.target_url }}
-          # workflow_dispatch only — set EVAL_CATS so the runner filters categories.
-          # repository_dispatch keeps EVAL_CATS unset (runs all 6 cats per CI gate).
-          EVAL_CATS: ${{ inputs.cats || '' }}
+          # Per addendum D-12-B-01: launch gate is cat1 + cat4-judge only.
+          # workflow_dispatch can override via the cats input.
+          # repository_dispatch (Vercel deploy.ready + scheduled-eval) defaults to the narrowed gate.
+          # NOTE: gate on github.event_name explicitly — `inputs.cats || fallback` does NOT
+          # fall through for repository_dispatch (empirical: inputs context evaluates to a
+          # non-falsy empty-string value, so the `||` operator returns it instead of the
+          # fallback). See PR #3 / eval run 25708997422 for the failing-fallthrough evidence.
+          EVAL_CATS: ${{ github.event_name == 'workflow_dispatch' && inputs.cats || 'cat1,cat4-judge' }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

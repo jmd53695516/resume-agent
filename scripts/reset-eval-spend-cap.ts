@@ -38,11 +38,17 @@ import { redis } from '../src/lib/redis';
 const PREFIX = 'resume-agent';
 
 async function main(): Promise<void> {
-  // UTC date prefix matches src/lib/redis.ts hourBucketKey() —
-  // `${PREFIX}:spend:${iso}` where iso = "YYYY-MM-DDTHH" via toISOString().
-  const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
-  const hours = Array.from({ length: 24 }, (_, h) => h.toString().padStart(2, '0'));
-  const keys = hours.map((hh) => `${PREFIX}:spend:${today}T${hh}`);
+  // Build the SAME 24 keys getSpendToday() reads (src/lib/redis.ts:82-88):
+  // a rolling window walking backward 1h at a time from `now`. The previous
+  // current-UTC-day approach silently missed yesterday's buckets when the
+  // operator ran the script after midnight UTC but inside the cap's rolling
+  // window. Format mirrors hourBucketKey(): `${PREFIX}:spend:YYYY-MM-DDTHH`.
+  const now = Date.now();
+  const buckets = Array.from({ length: 24 }, (_, i) => {
+    const iso = new Date(now - i * 3_600_000).toISOString().slice(0, 13);
+    return { iso, key: `${PREFIX}:spend:${iso}` };
+  });
+  const keys = buckets.map((b) => b.key);
 
   // Read first so the operator sees the cumulative spend before deletion.
   const vals = await redis.mget<(string | number | null)[]>(...keys);
@@ -50,15 +56,15 @@ async function main(): Promise<void> {
 
   // Surface the per-bucket distribution so any anomalous bucket is visible.
   const populated = vals
-    .map((v, i) => ({ hour: hours[i], cents: Number(v ?? 0) }))
+    .map((v, i) => ({ iso: buckets[i].iso, cents: Number(v ?? 0) }))
     .filter((b) => b.cents > 0);
 
-  console.log(`reset-eval-spend-cap: today = ${today} (UTC)`);
+  console.log(`reset-eval-spend-cap: window = last 24h (UTC, rolling)`);
   console.log(`reset-eval-spend-cap: cumulative spend before reset = ${totalCents}¢ (cap = 300¢)`);
   if (populated.length > 0) {
     console.log('reset-eval-spend-cap: populated hourly buckets:');
     for (const b of populated) {
-      console.log(`  - ${today}T${b.hour}  ${b.cents}¢`);
+      console.log(`  - ${b.iso}  ${b.cents}¢`);
     }
   }
 

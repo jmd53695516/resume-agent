@@ -74,6 +74,7 @@ import {
   checkDependencies,
   checkErrorRate,
   checkRateLimitAbuse,
+  checkResearchCompanyErrorRate,
   checkWeeklyEvalFailure,
   getSuppressionTtlSeconds,
   runAllAlarms,
@@ -295,7 +296,7 @@ describe('runAllAlarms', () => {
     mocks.pingExa.mockResolvedValue('ok');
   }
 
-  it('does NOT call sendAlarm when no condition is tripped (5 conditions total)', async () => {
+  it('does NOT call sendAlarm when no condition is tripped (6 conditions total)', async () => {
     mocks.getSpendTodayMock.mockResolvedValue(0);
     setAllOk();
     mocks.queryReturn = { data: [], error: null };
@@ -303,13 +304,17 @@ describe('runAllAlarms', () => {
     const results = await runAllAlarms();
     expect(mocks.sendAlarmMock).not.toHaveBeenCalled();
     expect(results.every((r) => !r.fired)).toBe(true);
-    expect(results).toHaveLength(5);
+    expect(results).toHaveLength(6);
+    // WR-01 follow-up: research-company-error-rate added as the 6th condition
+    // so Exa outages surface even when heartbeat:exa is unconditionally bumped
+    // by the cron (defeating the dep-down alarm for Exa specifically).
     expect(results.map((r) => r.condition)).toEqual([
       'spend-cap',
       'error-rate',
       'dep-down',
       'rate-limit-abuse',
       'weekly-eval-failure',
+      'research-company-error-rate',
     ]);
   });
 
@@ -491,9 +496,82 @@ describe('checkWeeklyEvalFailure (Plan 05-11 — 5th alarm)', () => {
     mocks.queryReturn = { data: [], error: null };
 
     const results = await runAllAlarms();
-    expect(results).toHaveLength(5);
+    expect(results).toHaveLength(6);
     expect(results.map((r) => r.condition)).toContain('weekly-eval-failure');
     // Order matters for the "5th condition" framing.
     expect(results[4].condition).toBe('weekly-eval-failure');
+  });
+});
+
+describe('checkResearchCompanyErrorRate (WR-01 follow-up — 6th alarm)', () => {
+  it('does not trip when sample < minSample (default 3)', async () => {
+    // 2 calls, both errors — would be 100% but sample too small.
+    const rows = Array.from({ length: 2 }, () => ({
+      tool_result: { error: 'Exa down' },
+    }));
+    mocks.queryReturn = { data: rows, error: null };
+    const r = await checkResearchCompanyErrorRate();
+    expect(r.tripped).toBe(false);
+    expect(r.summary).toContain('skipping');
+  });
+
+  it('trips when ratio > 50% with sample >= 3', async () => {
+    // 4 calls, 3 errors = 75%
+    const rows = [
+      { tool_result: { error: 'Exa down' } },
+      { tool_result: { error: 'Exa down' } },
+      { tool_result: { error: 'Exa down' } },
+      { tool_result: { signals: [] } },
+    ];
+    mocks.queryReturn = { data: rows, error: null };
+    const r = await checkResearchCompanyErrorRate();
+    expect(r.tripped).toBe(true);
+    expect(r.summary).toContain('75.0%');
+  });
+
+  it('does not trip at exactly 50% (must be strictly >)', async () => {
+    const rows = [
+      { tool_result: { error: 'Exa down' } },
+      { tool_result: { error: 'Exa down' } },
+      { tool_result: { signals: [] } },
+      { tool_result: { signals: [] } },
+    ];
+    mocks.queryReturn = { data: rows, error: null };
+    const r = await checkResearchCompanyErrorRate();
+    expect(r.tripped).toBe(false);
+  });
+
+  it('treats null tool_result as success (not an error)', async () => {
+    // 3 calls: 1 null tool_result, 1 success, 1 error = 1/3 = 33% (below threshold)
+    const rows = [
+      { tool_result: null },
+      { tool_result: { signals: [] } },
+      { tool_result: { error: 'Exa down' } },
+    ];
+    mocks.queryReturn = { data: rows, error: null };
+    const r = await checkResearchCompanyErrorRate();
+    expect(r.tripped).toBe(false);
+    expect(r.summary).toContain('1/3');
+  });
+
+  it('does not trip on supabase query error (fail-safe)', async () => {
+    mocks.queryReturn = { data: [], error: { message: 'db down' } };
+    const r = await checkResearchCompanyErrorRate();
+    expect(r.tripped).toBe(false);
+    expect(r.summary).toContain('query failed');
+  });
+
+  it('runAllAlarms exposes research-company-error-rate as the 6th condition', async () => {
+    mocks.getSpendTodayMock.mockResolvedValue(0);
+    mocks.pingAnthropic.mockResolvedValue('ok');
+    mocks.pingClassifier.mockResolvedValue('ok');
+    mocks.pingSupabase.mockResolvedValue('ok');
+    mocks.pingUpstash.mockResolvedValue('ok');
+    mocks.pingExa.mockResolvedValue('ok');
+    mocks.queryReturn = { data: [], error: null };
+
+    const results = await runAllAlarms();
+    expect(results).toHaveLength(6);
+    expect(results[5].condition).toBe('research-company-error-rate');
   });
 });

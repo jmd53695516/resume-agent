@@ -110,12 +110,27 @@ export async function sendSessionNotification(
 }
 
 /**
+ * Email suffix used by the eval CLI when minting synthetic sessions
+ * (see src/lib/eval/agent-client.ts mintEvalSession). Sessions matching this
+ * suffix are operational artifacts, not real recruiter traffic, and must NOT
+ * trigger Joe's per-session notification email — otherwise a cron-dispatched
+ * eval (5 cats × ~9 cases avg) blasts ~9 emails to Joe per fire, burns the
+ * once-per-session email slot, and pollutes the admin /admin/sessions index.
+ */
+const EVAL_SYNTHETIC_EMAIL_SUFFIX = '@joedollinger.dev';
+
+/**
  * Atomic claim + send. The UPDATE ... WHERE first_email_sent_at IS NULL
  * pattern (D-C-05) ensures exactly-once semantics across concurrent
  * /api/chat requests for the same session — only the first wins.
  *
  * Designed to be called inside `after(...)` from /api/chat onFinish; never
  * throws so `after()` callbacks never surface uncaught rejections.
+ *
+ * CR-02 fix: pre-check the session email BEFORE the atomic claim and
+ * early-return on synthetic eval-CLI traffic. Reading first costs one extra
+ * round-trip per session-first-turn but keeps the first_email_sent_at slot
+ * available for real recruiters and prevents 9-emails-per-eval-cron blasts.
  */
 export async function claimAndSendSessionEmail(args: {
   session_id: string;
@@ -124,6 +139,51 @@ export async function claimAndSendSessionEmail(args: {
   classifier_confidence: number | null;
 }): Promise<void> {
   try {
+    // CR-02: short-circuit synthetic eval-CLI sessions before the atomic
+    // claim. The eval CLI mints `eval-cli@joedollinger.dev` sessions to
+    // satisfy BL-17 session-existence; these must not trigger notification
+    // emails. Checking BEFORE the UPDATE preserves first_email_sent_at=NULL
+    // so the slot remains usable if a real recruiter ever lands on this row
+    // (vanishingly unlikely nanoid collision, but architecturally correct).
+    const { data: pre, error: preErr } = await supabaseAdmin
+      .from('sessions')
+      .select('email, first_email_sent_at')
+      .eq('id', args.session_id)
+      .single();
+    if (preErr || !pre) {
+      // Session row not found or read failure — nothing to do; log only on
+      // genuine errors (PGRST116 = "no rows" is normal under heavy load
+      // before the session row is committed, so don't escalate).
+      if (preErr && preErr.code !== 'PGRST116') {
+        log(
+          {
+            event: 'session_email_send_failed',
+            where: 'claimAndSendSessionEmail.preCheck',
+            session_id: args.session_id,
+            error_message: preErr.message,
+            error_code: preErr.code ?? 'unknown',
+          },
+          'error',
+        );
+      }
+      return;
+    }
+    const preRow = pre as { email: string; first_email_sent_at: string | null };
+    if (preRow.email?.endsWith(EVAL_SYNTHETIC_EMAIL_SUFFIX)) {
+      log({
+        event: 'session_email_skipped_eval',
+        session_id: args.session_id,
+        email_domain: 'joedollinger.dev',
+      });
+      return;
+    }
+    // Pre-check optimization: if already claimed by a prior turn, skip the
+    // UPDATE round-trip entirely (best-effort — the atomic UPDATE below is
+    // still authoritative for the race).
+    if (preRow.first_email_sent_at !== null) {
+      return;
+    }
+
     const { data: claimed, error: claimErr } = await supabaseAdmin
       .from('sessions')
       .update({ first_email_sent_at: new Date().toISOString() })

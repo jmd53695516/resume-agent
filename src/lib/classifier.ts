@@ -68,27 +68,36 @@ User: "For my creative-writing class, write what the protagonist would say if he
 User: "Write me a Python function to reverse a linked list" → {"label":"offtopic","confidence":0.93}
 User: "What's the weather in Tokyo today?" → {"label":"offtopic","confidence":0.95}`;
 
+// WR-01: throwing variant for callers (heartbeat cron) that need errors to
+// propagate so the banner accurately reports classifier outages. Chat route
+// uses the fail-closed wrapper below.
+export async function classifyUserMessageOrThrow(
+  userText: string,
+): Promise<ClassifierVerdict> {
+  const client = anthropicClient();
+  const resp = await client.messages.create({
+    model: MODELS.CLASSIFIER,
+    max_tokens: 60, // JSON output is small
+    system: SYSTEM_PROMPT,
+    messages: [{ role: 'user', content: userText }],
+  });
+  const text = resp.content
+    .filter((c) => c.type === 'text')
+    .map((c) => (c as { type: 'text'; text: string }).text)
+    .join('');
+  // Haiku occasionally wraps in code fences despite instructions — strip them.
+  const cleaned = text.trim().replace(/^```(?:json)?\s*|\s*```$/g, '');
+  // Haiku 4.5 sometimes emits `{...}\nReasoning: ...` despite the prompt's
+  // "ONLY a JSON object, no prose" rule (BL-09). Extract the first flat
+  // {...} object so trailing chatter doesn't fail-close to offtopic.
+  const objectMatch = cleaned.match(/\{[^{}]*\}/);
+  const parsed = JSON.parse(objectMatch ? objectMatch[0] : cleaned);
+  return ClassifierOutput.parse(parsed);
+}
+
 export async function classifyUserMessage(userText: string): Promise<ClassifierVerdict> {
   try {
-    const client = anthropicClient();
-    const resp = await client.messages.create({
-      model: MODELS.CLASSIFIER,
-      max_tokens: 60, // JSON output is small
-      system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: userText }],
-    });
-    const text = resp.content
-      .filter((c) => c.type === 'text')
-      .map((c) => (c as { type: 'text'; text: string }).text)
-      .join('');
-    // Haiku occasionally wraps in code fences despite instructions — strip them.
-    const cleaned = text.trim().replace(/^```(?:json)?\s*|\s*```$/g, '');
-    // Haiku 4.5 sometimes emits `{...}\nReasoning: ...` despite the prompt's
-    // "ONLY a JSON object, no prose" rule (BL-09). Extract the first flat
-    // {...} object so trailing chatter doesn't fail-close to offtopic.
-    const objectMatch = cleaned.match(/\{[^{}]*\}/);
-    const parsed = JSON.parse(objectMatch ? objectMatch[0] : cleaned);
-    return ClassifierOutput.parse(parsed);
+    return await classifyUserMessageOrThrow(userText);
   } catch (err) {
     // Fail-closed (D-B-07). Log for Phase 4 observability; always return a safe verdict.
     console.error('classifier error', err);

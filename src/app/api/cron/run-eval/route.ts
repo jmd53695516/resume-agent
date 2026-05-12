@@ -42,7 +42,10 @@ export async function POST(req: Request): Promise<Response> {
   // / 05-10-SUMMARY.md). GH_REPO_SLUG env var overrides for repo renames.
   const repoSlug = process.env.GH_REPO_SLUG ?? 'jmd53695516/resume-agent';
   // T-05-11-03 mitigation: target_url comes from process.env, never the request body.
-  const targetUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://chat.joedollinger.com';
+  // Fallback is the apex URL locked in 05-12 (D-12-A-02: 'chat' is already in the
+  // apex name; no chat.* subdomain exists). NEXT_PUBLIC_SITE_URL is .optional() in
+  // env.ts; the fallback only fires if that env var drifts.
+  const targetUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://joe-dollinger-chat.com';
 
   try {
     const res = await fetch(

@@ -28,13 +28,17 @@ vi.mock('@/lib/eval/storage', () => ({
   writeCase: (args: unknown) => writeCaseMock(args),
 }));
 
-// Track redis calls so we can assert spend-cap synthetic set/reset behavior
+// Track redis calls so we can assert spend-cap synthetic set/reset behavior.
+// CR-01 fix: runner now uses redis.mget over 24 hourly buckets matching
+// getSpendToday()'s read pattern, not a single YYYY-MM-DD key. Mock mget here.
 const redisGetMock = vi.fn();
+const redisMgetMock = vi.fn();
 const redisSetMock = vi.fn();
 const redisDelMock = vi.fn();
 vi.mock('@/lib/redis', () => ({
   redis: {
     get: (key: string) => redisGetMock(key),
+    mget: (...keys: string[]) => redisMgetMock(...keys),
     set: (key: string, val: unknown) => redisSetMock(key, val),
     del: (key: string) => redisDelMock(key),
   },
@@ -53,17 +57,40 @@ vi.mock('@/lib/eval/agent-client', async (importOriginal) => {
   };
 });
 
+// WR-RE-01 fix: mock @/lib/logger so spend-cap reset failures (the
+// `cat2_spendcap_reset_failed` log line emitted by the per-iteration
+// try/catch at cat2.ts:256-266) surface in test mock-call counts. Without
+// this mock, a regression where redis.set/del throws during restore would
+// be absorbed silently by the log-and-continue catch and the test harness
+// would have no signal. Pattern mirrors tests/lib/eval/storage.test.ts:32-35.
+const loggerInfoMock = vi.fn();
+const loggerWarnMock = vi.fn();
+const loggerErrorMock = vi.fn();
+vi.mock('@/lib/logger', () => ({
+  childLogger: () => ({
+    info: loggerInfoMock,
+    warn: loggerWarnMock,
+    error: loggerErrorMock,
+  }),
+}));
+
 beforeEach(() => {
   loadCasesMock.mockReset();
   writeCaseMock.mockReset();
   redisGetMock.mockReset();
+  redisMgetMock.mockReset();
   redisSetMock.mockReset();
   redisDelMock.mockReset();
   mintEvalSessionMock.mockReset();
+  loggerInfoMock.mockReset();
+  loggerWarnMock.mockReset();
+  loggerErrorMock.mockReset();
   writeCaseMock.mockResolvedValue(undefined);
   redisSetMock.mockResolvedValue('OK');
   redisDelMock.mockResolvedValue(1);
   redisGetMock.mockResolvedValue(null);
+  // Default: all 24 hourly buckets empty (null) — runner will del them in finally.
+  redisMgetMock.mockResolvedValue(Array.from({ length: 24 }, () => null));
   mintEvalSessionMock.mockResolvedValue('test-session-id-cat2');
   vi.restoreAllMocks();
 });
@@ -296,7 +323,11 @@ describe('runCat2', () => {
   });
 
   // ---- Behavior 6: spend-cap synthetic test sets/resets Redis
-  it('spend-cap case: sets resume-agent:spend:<today> to 350 BEFORE call, resets AFTER', async () => {
+  // CR-01 fix: runner now SETs the current-hour bucket key matching
+  // getSpendToday's hourBucketKey() pattern (`resume-agent:spend:YYYY-MM-DDTHH`).
+  // Previously SET a YYYY-MM-DD-only key that the production gate never read,
+  // so the case never actually exercised /api/chat's isOverCap() branch.
+  it('spend-cap case: sets hourly-bucket key to 350 BEFORE call (matches getSpendToday), resets AFTER', async () => {
     loadCasesMock.mockResolvedValue([
       {
         case_id: 'cat2-tool-metric-003',
@@ -306,8 +337,8 @@ describe('runCat2', () => {
         tags: ['tool-correctness', 'spend-cap', 'synthetic'],
       },
     ]);
-    // Original spend was null → after the test, redis.del should be called
-    redisGetMock.mockResolvedValue(null);
+    // Original buckets all empty → after the test, redis.del should be called for each.
+    redisMgetMock.mockResolvedValue(Array.from({ length: 24 }, () => null));
     // Deflection text from /api/chat (DEFLECTIONS.spendcap pattern)
     const deflection = "I'm taking a breather for the day — back tomorrow, or email Joe directly at joe.dollinger@gmail.com.";
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(fetchOk(ssTextStream(deflection)));
@@ -315,12 +346,19 @@ describe('runCat2', () => {
     const { runCat2 } = await import('@/lib/eval/cats/cat2');
     const result = await runCat2('http://localhost:3000', 'run_test_8');
 
-    // SET to 350 must have been called BEFORE the fetch (verified by mock call order)
-    const today = new Date().toISOString().slice(0, 10);
-    const expectedKey = `resume-agent:spend:${today}`;
-    expect(redisSetMock).toHaveBeenCalledWith(expectedKey, 350);
-    // After the test, redis.del should have been called (originalSpend was null)
-    expect(redisDelMock).toHaveBeenCalledWith(expectedKey);
+    // SET to 350 must have been called with the current-hour-bucket key
+    // (YYYY-MM-DDTHH format matching src/lib/redis.ts hourBucketKey).
+    const currentHourIso = new Date().toISOString().slice(0, 13);
+    const expectedHourKey = `resume-agent:spend:${currentHourIso}`;
+    expect(redisSetMock).toHaveBeenCalledWith(expectedHourKey, 350);
+    // mget was called with all 24 hour-bucket keys to capture originals
+    expect(redisMgetMock).toHaveBeenCalled();
+    const mgetArgs = redisMgetMock.mock.calls[0] as string[];
+    expect(mgetArgs).toHaveLength(24);
+    // First arg is the current-hour bucket; format check.
+    expect(mgetArgs[0]).toMatch(/^resume-agent:spend:\d{4}-\d{2}-\d{2}T\d{2}$/);
+    // After the test, redis.del should have been called for each bucket (all originals were null).
+    expect(redisDelMock).toHaveBeenCalledWith(expectedHourKey);
     // The case should pass: deflection text + no tool fired + 200 status
     expect(result.cases[0].passed).toBe(true);
   });
@@ -335,7 +373,7 @@ describe('runCat2', () => {
         tags: ['spend-cap', 'synthetic'],
       },
     ]);
-    redisGetMock.mockResolvedValue(null);
+    redisMgetMock.mockResolvedValue(Array.from({ length: 24 }, () => null));
     // Response is NOT a deflection — assertion will fail. Reset must still run.
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       fetchOk(
@@ -349,11 +387,61 @@ describe('runCat2', () => {
 
     const { runCat2 } = await import('@/lib/eval/cats/cat2');
     const result = await runCat2('http://localhost:3000', 'run_test_9');
-    const today = new Date().toISOString().slice(0, 10);
-    const expectedKey = `resume-agent:spend:${today}`;
-    // Reset must run even though assertion failed
-    expect(redisDelMock).toHaveBeenCalledWith(expectedKey);
+    const currentHourIso = new Date().toISOString().slice(0, 13);
+    const expectedHourKey = `resume-agent:spend:${currentHourIso}`;
+    // Reset must run even though assertion failed (all 24 hourly buckets del'd)
+    expect(redisDelMock).toHaveBeenCalledWith(expectedHourKey);
+    expect(redisDelMock).toHaveBeenCalledTimes(24);
     expect(result.cases[0].passed).toBe(false);
+  });
+
+  // WR-RE-01: verify the per-iteration try/catch inside the finally block
+  // (cat2.ts:249-267) is resilient — when one bucket's reset throws, the
+  // remaining 23 buckets still get restored AND the failure surfaces via the
+  // mocked logger.error. This guards against a regression where a future
+  // change accidentally re-aborts the loop on first throw, silently leaving
+  // the spend-cap stuck on for subsequent eval runs.
+  it('spend-cap reset continues across remaining buckets when one redis.del throws (log-and-continue)', async () => {
+    loadCasesMock.mockResolvedValue([
+      {
+        case_id: 'cat2-tool-metric-003',
+        category: 'cat2' as const,
+        prompt: 'X',
+        tool_expected: 'design_metric_framework',
+        tags: ['spend-cap', 'synthetic'],
+      },
+    ]);
+    // All 24 buckets originally null → finally will DEL each.
+    redisMgetMock.mockResolvedValue(Array.from({ length: 24 }, () => null));
+    // Make the SECOND del call throw (index 1 — first non-current-hour bucket).
+    // The first del (current-hour bucket, index 0) succeeds; the 22 that
+    // follow must still run.
+    let delCallIndex = 0;
+    redisDelMock.mockImplementation(async () => {
+      const idx = delCallIndex++;
+      if (idx === 1) {
+        throw new Error('redis transient: ECONNRESET');
+      }
+      return 1;
+    });
+    const deflection = "I'm taking a breather for the day — email Joe directly.";
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(fetchOk(ssTextStream(deflection)));
+
+    const { runCat2 } = await import('@/lib/eval/cats/cat2');
+    const result = await runCat2('http://localhost:3000', 'run_test_wrre01');
+
+    // All 24 del attempts ran despite the mid-loop throw.
+    expect(redisDelMock).toHaveBeenCalledTimes(24);
+    // The failure was surfaced via logger.error with the expected event tag
+    // (cat2.ts emits 'cat2_spendcap_reset_failed' from the catch).
+    expect(loggerErrorMock).toHaveBeenCalledWith(
+      expect.objectContaining({ err: expect.stringContaining('ECONNRESET') }),
+      'cat2_spendcap_reset_failed',
+    );
+    expect(loggerErrorMock).toHaveBeenCalledTimes(1);
+    // Case-level assertion still passes (deflection text + no tool fired);
+    // the run does not fail just because one reset bucket glitched.
+    expect(result.cases[0].passed).toBe(true);
   });
 
   it('spend-cap reset restores original value when one was present', async () => {
@@ -366,20 +454,23 @@ describe('runCat2', () => {
         tags: ['spend-cap', 'synthetic'],
       },
     ]);
-    // Pre-existing spend value of 42
-    redisGetMock.mockResolvedValue(42);
+    // Pre-existing spend value of 42 in the current-hour bucket (index 0);
+    // remaining 23 buckets empty. After test, current-hour bucket restored to
+    // 42 via SET; remaining 23 buckets DEL'd (they were null originally).
+    const originals: (number | null)[] = Array.from({ length: 24 }, (_, i) => (i === 0 ? 42 : null));
+    redisMgetMock.mockResolvedValue(originals);
     const deflection = "I'm taking a breather for the day — email Joe directly.";
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(fetchOk(ssTextStream(deflection)));
 
     const { runCat2 } = await import('@/lib/eval/cats/cat2');
     await runCat2('http://localhost:3000', 'run_test_10');
-    const today = new Date().toISOString().slice(0, 10);
-    const expectedKey = `resume-agent:spend:${today}`;
-    // Sets 350 first (synthetic threshold), then sets back to 42 in finally
-    expect(redisSetMock).toHaveBeenCalledWith(expectedKey, 350);
-    expect(redisSetMock).toHaveBeenCalledWith(expectedKey, 42);
-    // Should NOT delete since originalSpend was present
-    expect(redisDelMock).not.toHaveBeenCalled();
+    const currentHourIso = new Date().toISOString().slice(0, 13);
+    const expectedHourKey = `resume-agent:spend:${currentHourIso}`;
+    // Sets 350 first (synthetic threshold), then restores to 42 in finally
+    expect(redisSetMock).toHaveBeenCalledWith(expectedHourKey, 350);
+    expect(redisSetMock).toHaveBeenCalledWith(expectedHourKey, 42);
+    // 23 other buckets were null → DEL'd in finally (current-hour was restored via SET)
+    expect(redisDelMock).toHaveBeenCalledTimes(23);
   });
 
   // ---- Behavior 7: writes one eval_cases row per case

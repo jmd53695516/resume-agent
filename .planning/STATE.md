@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: ready
-stopped_at: "Phase 05.2 fully closed — VERIFICATION green (14/14 must-haves); HUMAN-UAT items 1-6 approved by user (2026-05-11); item 7 (npm run eval cat6) deferred to Plan 05-12 LAUNCH-05 pre-flight. Stale Phase 01 .continue-here.md removed; chat-stream-design todo moved to completed/. Only Plan 05-12 (LAUNCH, autonomous:false) remains."
-last_updated: "2026-05-11T18:00:00.000Z"
-last_activity: 2026-05-11
+status: executing
+stopped_at: "Plan 05-13 (gap-closure) complete. UAT Test 1 gap CLOSED — parseEvalArgs + EVAL_CATS_VALID + resolveTargetUrl exported from scripts/run-evals.ts; 24 new tests pass; 5/5 CLI smokes verified. deferred-items Item #12 RESOLVED. Plan IS post-launch gap-closure (NOT in v1.0 12-plan count)."
+last_updated: "2026-05-12T01:41:07.230Z"
+last_activity: 2026-05-12
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 40
-  completed_plans: 39
+  total_plans: 41
+  completed_plans: 40
   percent: 98
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** A recruiter in under five minutes walks away with a distinctive, specific impression of Joe — grounded in real projects, free of fabrication, and delivered by an agent they can see was engineered (not just prompted) with cost, abuse, and hallucination controls.
-**Current focus:** Phase 05.2 — implement-chat-stream-design-from-anthropic-design-system
+**Current focus:** Phase 05 — eval-gates-launch
 
 ## Current Position
 
-Phase: 05 (Eval Gates & Launch)
-Plan: 05-12 (LAUNCH) — last remaining plan in the milestone
-Status: Ready to execute Plan 05-12 (autonomous:false; Joe-time-heavy)
-Last activity: 2026-05-11
+Phase: 05 (eval-gates-launch) — EXECUTING
+Plan: 2 of 13
+Status: Ready to execute
+Last activity: 2026-05-12 - Completed quick task 260511-u9d: WR-01 classifier banner false-green fix
 
-Progress: [█████████░] 39/40 plans (98%). Phase 05.2 fully closed — VERIFICATION 14/14 must-haves; HUMAN-UAT items 1-6 approved by user; item 7 (npm run eval cat6 end-to-end) deferred to Plan 05-12 LAUNCH-05 pre-flight. cat-06-admin-403 (3 tests) + chat-six-gate-order parallel flake remain documented in 05.2 deferred-items.md as pre-existing, NOT caused by Phase 05.2.
+Progress: [█████████░] 39/40 plans + Plan 05-12 functionally complete (code/data shipped, prod verified, gates green). Plan 05-12 awaits ONLY friend-test responses (Google Form https://forms.gle/yovqkpe3QVnNpVTP7 sent to 3 testers 2026-05-11) before sign-off + verifier + mark-complete. Phase 05.2 fully closed — VERIFICATION 14/14 must-haves; HUMAN-UAT items 1-6 approved by user; item 7 (npm run eval cat6 end-to-end) deferred to Plan 05-12 LAUNCH-05 pre-flight (resolved via cat6 documented baseline 17/20 with 3 pre-existing admin-403 spec failures filed in 05.2 deferred-items).
 
 ## Performance Metrics
 
@@ -85,6 +85,7 @@ Progress: [█████████░] 39/40 plans (98%). Phase 05.2 fully c
 | Phase 05.2 P06 | 12min | 3 tasks | 3 files |
 | Phase 05.2 P04 | 3min | 2 tasks | 2 files |
 | Phase 05.2 P05 | 4min | 2 tasks | 2 files |
+| Phase 05-eval-gates-launch P13 | 8min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -194,6 +195,10 @@ Recent decisions affecting current work:
 - [Phase 05.2]: Plan 05.2-06: cat6 Playwright re-baseline — chat-happy-path.spec.ts gets a single view-toggle visibility assertion appended to the empty-state test (3 pre-existing CHAT-14 starter-prompt tests preserved verbatim); new cat-06-view-toggle.spec.ts ships 5 tests (pill + initial aria-selected, dark-click → body.matrix-mode + matrix-canvas mount, light-click → strip + unmount, framing-page (/) absence, Pitfall-2 cleanup-on-navigation via expect.poll). All 9 plan acceptance grep checks pass on the live specs. tsc green at close-out.
 - [Phase 05.2]: Plan 05.2-06 scope boundary: pre-existing cat-06-admin-403.spec.ts (3 failures) + chat-six-gate-order.test.ts parallel-execution flake filed in 05.2/deferred-items.md. cat-06-admin-403 root cause: src/proxy.ts redirect matcher short-circuits the `(authed)/layout` NotAuthorized render path BEFORE the test's heading assertion can fire — verified pre-existing at commit 664a227. Two fix options documented (update spec to assert /admin/login redirect, OR adjust proxy matcher). Out of scope for Plan 05.2-06 (only modifies chat-happy-path + new view-toggle spec); deferred to Plan 05-12 LAUNCH-* pre-flight.
 - [Phase 05.2]: Plan 05.2-06 close-out recovery: two prior executor agents timed out on full Playwright runs (`npx playwright test` is slow + heavy). First agent finished Tasks 1 + 2 (fac4b3d + 64a9cc2) + wrote the deferred-items.md investigation; second agent timed out during inline verification. Third executor (close-out) accepted deferred-items.md as authoritative, re-ran only `npx tsc --noEmit` (exit 0), wrote SUMMARY + STATE + ROADMAP inline. Recovery pattern: when verification re-runs would not catch new regressions (because no application code changed since the last green build/test), trust the prior green state and complete metadata writes inline.
+- [Phase 05-eval-gates-launch]: Plan 05-13 (gap-closure): node:util.parseArgs over commander/yargs — Node 22 built-in, no new dep; matches gap_summary rule. Plural --cats matches UAT + EVAL_CATS env-var; --cat singular mis-paste loud-fails via strict:true.
+- [Phase 05-eval-gates-launch]: Plan 05-13 (gap-closure): Direct-run guard added to scripts/run-evals.ts (Rule 2 deviation) — script body fires main() only when invoked directly (import.meta.url === pathToFileURL(argv[1]).href). Mirrors scripts/generate-fallback.ts WR-06 pattern. Required to satisfy plan's <behavior> 'no child process, no network' test contract.
+- [Phase 05-eval-gates-launch]: Plan 05-13 (gap-closure): EVAL_CATS_VALID exported as single source of truth shared between argv + env validators in scripts/run-evals.ts — was a private 'known' Set in env block before. Drift hazard removed (T-05-13-03 mitigation).
+- [Phase 05-eval-gates-launch]: Plan 05-13 (gap-closure): Parser does NOT validate --cats values (separation of concerns); main() validates against EVAL_CATS_VALID and exits 2 with eval_cats_invalid log. Keeps parseEvalArgs unit-testable as pure transform. resolveTargetUrl exported as separate pure precedence resolver.
 
 ### Roadmap Evolution
 
@@ -221,10 +226,16 @@ Recent decisions affecting current work:
 - Phase 5 NEW deferred-item #11 (NEW 2026-05-10, from 05.1-01 close-out): MEDIUM. Classifier over-flags eval prompts as injection/sensitive/offtopic. Was hidden pre-Item-#7 by deflection-as-fabrication mis-grading. cat1 = 3-6 deflection-skips per local run; cat3 = 6/6 deflection-skips. Investigation deferred to Plan 05-12 (assess prod URL behavior first).
 - Phase 5 Plan 05-11 deferred-item (cron-job.org schedule): LOW. /api/cron/run-eval route + 5th alarm code shipped 2026-05-10 (commits 6406221, 69f63f7, 1949592). GH PAT + Vercel envs (GH_DISPATCH_TOKEN, GH_REPO_SLUG) confirmed set. cron-job.org weekly Mon 03:00 ET schedule deferred into Plan 05-12 because it needs a stable prod URL — pointing it at preview alias would require re-pointing after the LAUNCH-01 CNAME flip. Estimate 10-15 min once chat.joedollinger.com is live. Handoff doc: 05-11-SUMMARY.md `deferred:` block.
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260511-u9d | WR-01 classifier banner false-green: extract classifyUserMessageOrThrow throwing variant; heartbeat caller now reports classifier=degraded truthfully during Anthropic outages | 2026-05-12 | 6a5a8b0 | [260511-u9d-fix-wr-01-classifier-banner-false-green-](./quick/260511-u9d-fix-wr-01-classifier-banner-false-green-/) |
+
 ## Session Continuity
 
-Last session: 2026-05-11T18:00:00.000Z
-Stopped at: Phase 05.2 fully closed. HUMAN-UAT items 1-6 user-approved; item 7 deferred to LAUNCH-05 pre-flight. Stale `.continue-here.md` (Phase 01, dated 2026-04-28) removed; chat-stream-design pending-todo moved to `todos/completed/`. STATE.md status flipped from `verifying` to `ready`. Only Plan 05-12 (LAUNCH) remains in the v1.0 milestone — autonomous:false, Joe-time-heavy.
+Last session: 2026-05-12T01:41:07.225Z
+Stopped at: Plan 05-13 (gap-closure) complete. UAT Test 1 gap CLOSED — parseEvalArgs + EVAL_CATS_VALID + resolveTargetUrl exported from scripts/run-evals.ts; 24 new tests pass; 5/5 CLI smokes verified. deferred-items Item #12 RESOLVED. Plan IS post-launch gap-closure (NOT in v1.0 12-plan count).
 Resume file: None
 
 Resumed: 2026-05-11 — completed /gsd-execute-phase 5.2 Wave 5 close-out inline after two executor timeouts on full Playwright runs.

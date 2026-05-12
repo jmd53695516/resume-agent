@@ -17,7 +17,11 @@ const mocks = vi.hoisted(() => ({
   log: vi.fn(),
   // Plan 05-12 launch fix: heartbeat route now makes a real classifier call
   // (replaces the chicken-and-egg pingClassifier-reads-stale-key check).
-  classifyUserMessage: vi.fn(async () => ({ verdict: 'allow', confidence: 0.9 })),
+  // WR-01 fix: heartbeat consumes the throwing variant so a real Anthropic
+  // outage propagates as an exception (caught here, banner -> 'degraded').
+  // The previous sentinel-shape inspection is gone; mock returns the REAL
+  // ClassifierVerdict on success and rejects on simulated outage.
+  classifyUserMessageOrThrow: vi.fn(async () => ({ label: 'normal', confidence: 0.9 })),
 }));
 
 vi.mock('@/lib/env', () => ({
@@ -58,10 +62,12 @@ vi.mock('@/lib/anthropic', () => ({
 
 vi.mock('@/lib/logger', () => ({ log: mocks.log }));
 
-// Plan 05-12 launch fix: heartbeat route now calls classifyUserMessage directly
-// to verify classifier health (replaces chicken-and-egg pingClassifier read).
+// Plan 05-12 launch fix: heartbeat route calls the classifier directly to verify
+// classifier health (replaces chicken-and-egg pingClassifier read).
+// WR-01: route consumes the throwing variant so Anthropic outages propagate to
+// the heartbeat try/catch and the banner reports classifier=degraded truthfully.
 vi.mock('@/lib/classifier', () => ({
-  classifyUserMessage: mocks.classifyUserMessage,
+  classifyUserMessageOrThrow: mocks.classifyUserMessageOrThrow,
 }));
 
 import { POST } from '@/app/api/cron/heartbeat/route';
@@ -79,7 +85,7 @@ beforeEach(() => {
   mocks.messagesCreate.mockReset();
   mocks.redisSet.mockReset();
   mocks.log.mockReset();
-  mocks.classifyUserMessage.mockReset();
+  mocks.classifyUserMessageOrThrow.mockReset();
   mocks.HEARTBEAT_LLM_PREWARM = 'true';
   // Reset ping defaults to 'ok'
   mocks.pingAnthropic.mockResolvedValue('ok');
@@ -88,7 +94,8 @@ beforeEach(() => {
   mocks.pingUpstash.mockResolvedValue('ok');
   mocks.pingExa.mockResolvedValue('ok');
   // Default: live classifier call succeeds (Plan 05-12 launch fix).
-  mocks.classifyUserMessage.mockResolvedValue({ verdict: 'allow', confidence: 0.9 });
+  // WR-01: throwing variant resolves with real ClassifierVerdict on success.
+  mocks.classifyUserMessageOrThrow.mockResolvedValue({ label: 'normal', confidence: 0.9 });
 });
 
 describe('POST /api/cron/heartbeat', () => {
@@ -238,7 +245,7 @@ describe('POST /api/cron/heartbeat', () => {
     // The classifier-call replaces the chicken-and-egg pingClassifier check
     // (which previously read a stale heartbeat:classifier and could never
     // recover). When the actual call throws, the heartbeat key is not refreshed.
-    mocks.classifyUserMessage.mockRejectedValue(new Error('classifier down'));
+    mocks.classifyUserMessageOrThrow.mockRejectedValue(new Error('classifier down'));
 
     await POST(makeReq({ auth: `Bearer ${mocks.CRON_SECRET}` }));
 
@@ -250,6 +257,35 @@ describe('POST /api/cron/heartbeat', () => {
     expect(mocks.log).toHaveBeenCalledWith(
       expect.objectContaining({ event: 'heartbeat_classifier_failed' }),
       'warn',
+    );
+  });
+
+  // WR-01: the prior WR-03 fail-closed-sentinel branch is GONE. The throwing
+  // variant either resolves (heartbeat:classifier refreshed, banner ok) or
+  // throws (try/catch fires, banner degraded). A legitimate offtopic+1.0
+  // Haiku response must no longer false-flag the classifier as degraded.
+  it('treats legitimate offtopic+1.0 verdict as classifier-ok (WR-01 — no sentinel-shape special-casing)', async () => {
+    mocks.messagesCreate.mockResolvedValue({
+      usage: { cache_read_input_tokens: 0, cache_creation_input_tokens: 0, input_tokens: 1, output_tokens: 1 },
+    });
+    mocks.redisSet.mockResolvedValue('OK');
+    // A real (not sentinel) offtopic-1.0 verdict — e.g. Haiku confidently
+    // classifying a weather question. The route must NOT special-case this
+    // shape: classifier responded successfully -> heartbeat:classifier ok.
+    mocks.classifyUserMessageOrThrow.mockResolvedValue({ label: 'offtopic', confidence: 1.0 });
+
+    await POST(makeReq({ auth: `Bearer ${mocks.CRON_SECRET}` }));
+
+    expect(mocks.redisSet).toHaveBeenCalledWith(
+      'heartbeat:classifier',
+      expect.any(Number),
+      { ex: 120 },
+    );
+    expect(mocks.log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: 'heartbeat',
+        statuses: expect.objectContaining({ classifier: 'ok' }),
+      }),
     );
   });
 
@@ -291,7 +327,11 @@ describe('POST /api/cron/heartbeat', () => {
 
     await POST(makeReq({ auth: `Bearer ${mocks.CRON_SECRET}` }));
 
-    expect(mocks.classifyUserMessage).toHaveBeenCalledWith('health check ping');
+    // WR-01 follow-up: probe phrase changed from 'health check ping' (could
+    // legitimately classify as offtopic with confidence 1.0 → indistinguishable
+    // from the fail-closed sentinel) to a Joe-relevant phrase that anchors as
+    // 'normal' in the classifier system prompt examples.
+    expect(mocks.classifyUserMessageOrThrow).toHaveBeenCalledWith("Tell me about Joe's PM experience");
     expect(mocks.log).toHaveBeenCalledWith(
       expect.objectContaining({
         event: 'heartbeat',

@@ -25,7 +25,7 @@ import { buildSystemPrompt } from '@/lib/system-prompt';
 import { MODELS } from '@/lib/anthropic';
 import { env } from '@/lib/env';
 import { log } from '@/lib/logger';
-import { classifyUserMessage } from '@/lib/classifier';
+import { classifyUserMessageOrThrow } from '@/lib/classifier';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -120,9 +120,16 @@ export async function POST(req: Request): Promise<Response> {
   // actual classifier call (~1 Haiku call per heartbeat fire, ~$0.0001 each).
   // The chat route (route.ts onFinish) still refreshes the same key on real
   // traffic — this cron-side call just covers low/no-traffic windows.
+  //
+  // WR-01 fix: classifyUserMessageOrThrow re-throws on Anthropic outage, so
+  // this try/catch is the SINGLE source of truth for classifier health. The
+  // chat route still uses fail-closed classifyUserMessage — only this cron
+  // caller wants errors to propagate so the banner can go yellow. The previous
+  // sentinel-shape inspection ({label:'offtopic',confidence:1.0}) is removed:
+  // a legitimate offtopic-1.0 response no longer false-flags the banner.
   let classifierLiveOk = false;
   try {
-    await classifyUserMessage('health check ping');
+    await classifyUserMessageOrThrow("Tell me about Joe's PM experience");
     classifierLiveOk = true;
     await redis.set('heartbeat:classifier', Date.now(), { ex: 120 });
   } catch (err) {
@@ -137,21 +144,29 @@ export async function POST(req: Request): Promise<Response> {
   // has no root endpoint), so the banner showed 'Pitch tool offline right now'
   // permanently. Switched to heartbeat-trust pattern; the cron-side write keeps
   // the banner clean. Real Exa outages still surface via the deflection log in
-  // tools/research-company.ts + the Plan 04-06 alarm system.
+  // tools/research-company.ts (no current alarm watches research_company error
+  // rate — tracked as WR-01 follow-up alongside the classifier banner gap).
+  let exaLiveOk = false;
   try {
     await redis.set('heartbeat:exa', Date.now(), { ex: 120 });
+    exaLiveOk = true;
   } catch (err) {
     log(
       { event: 'heartbeat_exa_write_failed', error_message: (err as Error).message },
       'warn',
     );
   }
-  // Also refresh heartbeat:anthropic from the live ping when prompt-cache
-  // prewarm is disabled — otherwise that key is never written and the
-  // dashboard goes yellow during business hours despite the ping being green.
-  if (!llmPrewarmEnabled && anthropicPing.value === 'ok') {
+  // Also refresh heartbeat:anthropic when prompt-cache prewarm is disabled —
+  // otherwise that key is never written and the dashboard goes yellow.
+  // Previously guarded on `anthropicPing.value === 'ok'`, but pingAnthropic
+  // just reads the same heartbeat:anthropic key it gates — once expired, the
+  // guard never reopens. Drop the guard so the write happens unconditionally,
+  // matching the exa write pattern above.
+  let anthropicWriteOk = false;
+  if (!llmPrewarmEnabled) {
     try {
       await redis.set('heartbeat:anthropic', Date.now(), { ex: 120 });
+      anthropicWriteOk = true;
     } catch (err) {
       log(
         { event: 'heartbeat_anthropic_write_failed', error_message: (err as Error).message },
@@ -165,11 +180,16 @@ export async function POST(req: Request): Promise<Response> {
   // which warmPromptCache is about to write — reading-before-writing produced
   // statuses.anthropic='degraded' in the heartbeat event payload even on a
   // healthy prewarm. Prefer the post-write state (prewarm.ok) over the stale
-  // pre-write read. When prewarm is disabled, fall back to the ping (then the
-  // dashboard refresh path at line 132-141 keeps the key warm via the live ping).
+  // pre-write read.
+  //
+  // WR-02 fix: when prewarm is disabled the same read-before-write trap
+  // existed for the prewarm-disabled branch — anthropicPing.value was set at
+  // line 101-108 BEFORE the heartbeat:anthropic write at line 175, so a fresh
+  // write produced statuses.anthropic='degraded'. Mirror the exa/classifier
+  // heartbeat-trust pattern: report 'ok' iff the write succeeded.
   const anthropicStatus = llmPrewarmEnabled
     ? (prewarm.ok ? 'ok' : 'degraded')
-    : anthropicPing.value;
+    : (anthropicWriteOk ? 'ok' : 'degraded');
 
   log({
     event: 'heartbeat',
@@ -185,9 +205,9 @@ export async function POST(req: Request): Promise<Response> {
       supabase: supabasePing.value,
       upstash: upstashPing.value,
       // Plan 05-12: exa now uses heartbeat-trust; the cron-side write above is
-      // authoritative. Prefer 'ok' (we just wrote the key) over the pre-write
-      // ping read (which may have been 'degraded' from stale state).
-      exa: 'ok',
+      // authoritative. Reflect actual write success — hardcoding 'ok' produced
+      // incoherent rows like {upstash:'down', exa:'ok'} during Upstash outages.
+      exa: exaLiveOk ? 'ok' : 'degraded',
       anthropic: anthropicStatus,
       // Plan 05-12: classifier reflects the live classifier call result, not
       // the stale pre-write pingClassifier read (BL-13 / WR-04 pattern).

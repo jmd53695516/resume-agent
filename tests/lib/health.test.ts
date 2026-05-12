@@ -136,6 +136,33 @@ describe('pingSupabase (W6: .then() chain materialization + 5s timeout)', () => 
     expect(await pingSupabase()).toBe('degraded');
   });
 
+  // WR-05: PGRST codes signal "PostgREST handled the request, the server is
+  // healthy" — discriminate them from real infrastructure errors. Mirrors the
+  // BL-17 fix in src/app/api/chat/route.ts:134-149.
+  it('returns ok when error code starts with PGRST (PostgREST-validated, server healthy)', async () => {
+    supabaseAdmin = makeSupabaseMock({
+      error: { code: 'PGRST116', message: 'no rows found' },
+    });
+    const { pingSupabase } = await import('../../src/lib/health');
+    expect(await pingSupabase()).toBe('ok');
+  });
+
+  it('returns ok for arbitrary PGRST-prefix codes (e.g. PGRST301)', async () => {
+    supabaseAdmin = makeSupabaseMock({
+      error: { code: 'PGRST301', message: 'gateway timeout' },
+    });
+    const { pingSupabase } = await import('../../src/lib/health');
+    expect(await pingSupabase()).toBe('ok');
+  });
+
+  it('returns degraded for non-PGRST error codes (real infra failure)', async () => {
+    supabaseAdmin = makeSupabaseMock({
+      error: { code: '08006', message: 'connection failure' },
+    });
+    const { pingSupabase } = await import('../../src/lib/health');
+    expect(await pingSupabase()).toBe('degraded');
+  });
+
   it('returns down when chain throws', async () => {
     supabaseAdmin = {
       from: vi.fn(() => ({
