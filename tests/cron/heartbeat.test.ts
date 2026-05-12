@@ -17,12 +17,11 @@ const mocks = vi.hoisted(() => ({
   log: vi.fn(),
   // Plan 05-12 launch fix: heartbeat route now makes a real classifier call
   // (replaces the chicken-and-egg pingClassifier-reads-stale-key check).
-  // WR-03 fix: mock returns the REAL ClassifierVerdict shape — { label,
-  // confidence }, not { verdict, ... }. The heartbeat route reads
-  // `verdict.label`, so a `{verdict: 'allow'}` mock made `.label`
-  // undefined and the fail-closed-sentinel detection branch
-  // (label === 'offtopic' && confidence === 1.0) was never exercised.
-  classifyUserMessage: vi.fn(async () => ({ label: 'normal', confidence: 0.9 })),
+  // WR-01 fix: heartbeat consumes the throwing variant so a real Anthropic
+  // outage propagates as an exception (caught here, banner -> 'degraded').
+  // The previous sentinel-shape inspection is gone; mock returns the REAL
+  // ClassifierVerdict on success and rejects on simulated outage.
+  classifyUserMessageOrThrow: vi.fn(async () => ({ label: 'normal', confidence: 0.9 })),
 }));
 
 vi.mock('@/lib/env', () => ({
@@ -63,10 +62,12 @@ vi.mock('@/lib/anthropic', () => ({
 
 vi.mock('@/lib/logger', () => ({ log: mocks.log }));
 
-// Plan 05-12 launch fix: heartbeat route now calls classifyUserMessage directly
-// to verify classifier health (replaces chicken-and-egg pingClassifier read).
+// Plan 05-12 launch fix: heartbeat route calls the classifier directly to verify
+// classifier health (replaces chicken-and-egg pingClassifier read).
+// WR-01: route consumes the throwing variant so Anthropic outages propagate to
+// the heartbeat try/catch and the banner reports classifier=degraded truthfully.
 vi.mock('@/lib/classifier', () => ({
-  classifyUserMessage: mocks.classifyUserMessage,
+  classifyUserMessageOrThrow: mocks.classifyUserMessageOrThrow,
 }));
 
 import { POST } from '@/app/api/cron/heartbeat/route';
@@ -84,7 +85,7 @@ beforeEach(() => {
   mocks.messagesCreate.mockReset();
   mocks.redisSet.mockReset();
   mocks.log.mockReset();
-  mocks.classifyUserMessage.mockReset();
+  mocks.classifyUserMessageOrThrow.mockReset();
   mocks.HEARTBEAT_LLM_PREWARM = 'true';
   // Reset ping defaults to 'ok'
   mocks.pingAnthropic.mockResolvedValue('ok');
@@ -93,8 +94,8 @@ beforeEach(() => {
   mocks.pingUpstash.mockResolvedValue('ok');
   mocks.pingExa.mockResolvedValue('ok');
   // Default: live classifier call succeeds (Plan 05-12 launch fix).
-  // WR-03: real ClassifierVerdict shape — { label, confidence }.
-  mocks.classifyUserMessage.mockResolvedValue({ label: 'normal', confidence: 0.9 });
+  // WR-01: throwing variant resolves with real ClassifierVerdict on success.
+  mocks.classifyUserMessageOrThrow.mockResolvedValue({ label: 'normal', confidence: 0.9 });
 });
 
 describe('POST /api/cron/heartbeat', () => {
@@ -244,7 +245,7 @@ describe('POST /api/cron/heartbeat', () => {
     // The classifier-call replaces the chicken-and-egg pingClassifier check
     // (which previously read a stale heartbeat:classifier and could never
     // recover). When the actual call throws, the heartbeat key is not refreshed.
-    mocks.classifyUserMessage.mockRejectedValue(new Error('classifier down'));
+    mocks.classifyUserMessageOrThrow.mockRejectedValue(new Error('classifier down'));
 
     await POST(makeReq({ auth: `Bearer ${mocks.CRON_SECRET}` }));
 
@@ -259,46 +260,31 @@ describe('POST /api/cron/heartbeat', () => {
     );
   });
 
-  // WR-03: explicit test for the fail-closed-sentinel branch. classifyUserMessage
-  // is fail-closed (returns { label: 'offtopic', confidence: 1.0 } on any error
-  // per classifier.ts:92-96) — it never throws. The catch branch alone does NOT
-  // prove the fail-closed-sentinel branch works; the previous mock returned a
-  // wrong-shape `{ verdict: 'allow' }` so `verdict.label === 'offtopic'` was
-  // never even compared correctly. This test exercises the sentinel branch
-  // with the correct ClassifierVerdict shape.
-  it('logs warning and skips heartbeat:classifier write when live call returns fail-closed sentinel (WR-03)', async () => {
+  // WR-01: the prior WR-03 fail-closed-sentinel branch is GONE. The throwing
+  // variant either resolves (heartbeat:classifier refreshed, banner ok) or
+  // throws (try/catch fires, banner degraded). A legitimate offtopic+1.0
+  // Haiku response must no longer false-flag the classifier as degraded.
+  it('treats legitimate offtopic+1.0 verdict as classifier-ok (WR-01 — no sentinel-shape special-casing)', async () => {
     mocks.messagesCreate.mockResolvedValue({
       usage: { cache_read_input_tokens: 0, cache_creation_input_tokens: 0, input_tokens: 1, output_tokens: 1 },
     });
     mocks.redisSet.mockResolvedValue('OK');
-    // Fail-closed sentinel: { label: 'offtopic', confidence: 1.0 } —
-    // indistinguishable from a real-thrown-error classifier failure but
-    // returned through the normal control path (no throw).
-    mocks.classifyUserMessage.mockResolvedValue({ label: 'offtopic', confidence: 1.0 });
+    // A real (not sentinel) offtopic-1.0 verdict — e.g. Haiku confidently
+    // classifying a weather question. The route must NOT special-case this
+    // shape: classifier responded successfully -> heartbeat:classifier ok.
+    mocks.classifyUserMessageOrThrow.mockResolvedValue({ label: 'offtopic', confidence: 1.0 });
 
     await POST(makeReq({ auth: `Bearer ${mocks.CRON_SECRET}` }));
 
-    // heartbeat:classifier MUST NOT be written when the sentinel is returned —
-    // otherwise the chicken-and-egg trap re-emerges (writing a stale-OK key
-    // while the classifier is actually fail-closing on every call).
-    expect(mocks.redisSet).not.toHaveBeenCalledWith(
+    expect(mocks.redisSet).toHaveBeenCalledWith(
       'heartbeat:classifier',
       expect.any(Number),
-      expect.anything(),
+      { ex: 120 },
     );
-    expect(mocks.log).toHaveBeenCalledWith(
-      expect.objectContaining({
-        event: 'heartbeat_classifier_failed',
-        error_message: 'fail-closed sentinel returned',
-      }),
-      'warn',
-    );
-    // statuses.classifier should be 'degraded' since the live call never
-    // resolved to a non-sentinel verdict.
     expect(mocks.log).toHaveBeenCalledWith(
       expect.objectContaining({
         event: 'heartbeat',
-        statuses: expect.objectContaining({ classifier: 'degraded' }),
+        statuses: expect.objectContaining({ classifier: 'ok' }),
       }),
     );
   });
@@ -345,7 +331,7 @@ describe('POST /api/cron/heartbeat', () => {
     // legitimately classify as offtopic with confidence 1.0 → indistinguishable
     // from the fail-closed sentinel) to a Joe-relevant phrase that anchors as
     // 'normal' in the classifier system prompt examples.
-    expect(mocks.classifyUserMessage).toHaveBeenCalledWith("Tell me about Joe's PM experience");
+    expect(mocks.classifyUserMessageOrThrow).toHaveBeenCalledWith("Tell me about Joe's PM experience");
     expect(mocks.log).toHaveBeenCalledWith(
       expect.objectContaining({
         event: 'heartbeat',

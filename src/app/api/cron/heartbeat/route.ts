@@ -25,7 +25,7 @@ import { buildSystemPrompt } from '@/lib/system-prompt';
 import { MODELS } from '@/lib/anthropic';
 import { env } from '@/lib/env';
 import { log } from '@/lib/logger';
-import { classifyUserMessage } from '@/lib/classifier';
+import { classifyUserMessageOrThrow } from '@/lib/classifier';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -121,26 +121,17 @@ export async function POST(req: Request): Promise<Response> {
   // The chat route (route.ts onFinish) still refreshes the same key on real
   // traffic — this cron-side call just covers low/no-traffic windows.
   //
-  // WR-01 follow-up: classifyUserMessage fail-closes internally (returns the
-  // exact sentinel { label: 'offtopic', confidence: 1.0 } on any error per
-  // classifier.ts:92-96) — it never throws, so the catch below was unreachable
-  // and classifierLiveOk was unconditionally true during a real Haiku outage.
-  // Probe with a phrase that aligns with the 'normal' examples in the
-  // classifier system prompt + inspect for the fail-closed sentinel to
-  // distinguish 'classifier responded' from 'classifier rejected'.
+  // WR-01 fix: classifyUserMessageOrThrow re-throws on Anthropic outage, so
+  // this try/catch is the SINGLE source of truth for classifier health. The
+  // chat route still uses fail-closed classifyUserMessage — only this cron
+  // caller wants errors to propagate so the banner can go yellow. The previous
+  // sentinel-shape inspection ({label:'offtopic',confidence:1.0}) is removed:
+  // a legitimate offtopic-1.0 response no longer false-flags the banner.
   let classifierLiveOk = false;
   try {
-    const verdict = await classifyUserMessage("Tell me about Joe's PM experience");
-    const looksFailClosed = verdict.label === 'offtopic' && verdict.confidence === 1.0;
-    if (looksFailClosed) {
-      log(
-        { event: 'heartbeat_classifier_failed', error_message: 'fail-closed sentinel returned' },
-        'warn',
-      );
-    } else {
-      classifierLiveOk = true;
-      await redis.set('heartbeat:classifier', Date.now(), { ex: 120 });
-    }
+    await classifyUserMessageOrThrow("Tell me about Joe's PM experience");
+    classifierLiveOk = true;
+    await redis.set('heartbeat:classifier', Date.now(), { ex: 120 });
   } catch (err) {
     log(
       { event: 'heartbeat_classifier_failed', error_message: (err as Error).message },
