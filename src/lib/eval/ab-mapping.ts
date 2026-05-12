@@ -207,9 +207,44 @@ export async function validateAndScoreAbSession(args: {
   const pct = correctAi / 5;
   const passed = pct < 0.70;
 
-  // Write eval_runs row tagged cat4-blind-ab. judge_model is recorded for
-  // run-table consistency even though no judge actually fires here — the
-  // identification_pct is deterministic.
+  // WR-06 fix: atomically claim the AB session as submitted BEFORE writing
+  // the eval_runs row. Previously the order was reversed (createRun →
+  // writeCase → updateRunStatus → THEN mark session submitted), so a crash
+  // between createRun and the session-marked-submitted UPDATE produced an
+  // orphan eval_runs row AND left submitted_at=NULL, allowing the next
+  // submission with the same sessionId to re-score and write a duplicate
+  // run. Mirrors the claimAndSendSessionEmail pattern (atomic
+  // UPDATE...WHERE first_email_sent_at IS NULL).
+  //
+  // The eval_run_id link is populated in a second update AFTER createRun;
+  // a crash between the two leaves a submitted session with a NULL
+  // eval_run_id, which is safe to replay (writeCase is idempotent on
+  // case_id derived from sessionId).
+  const submittedAt = new Date().toISOString();
+  const { data: claimed, error: claimError } = await supabaseAdmin
+    .from('eval_ab_sessions')
+    .update({
+      identifications: args.identifications,
+      submitted_at: submittedAt,
+      tester_role: args.testerRole,
+    })
+    .eq('id', args.sessionId)
+    .is('submitted_at', null)
+    .select('id')
+    .single();
+  if (claimError || !claimed) {
+    // Lost the race or session already submitted. The .single() above will
+    // return PGRST116 ("no rows") when the WHERE submitted_at IS NULL
+    // condition matches zero rows.
+    throw new Error(
+      `validateAndScoreAbSession: session already submitted (${args.sessionId})`,
+    );
+  }
+
+  // Now that we've atomically claimed the session, write the eval_runs row
+  // tagged cat4-blind-ab. judge_model is recorded for run-table consistency
+  // even though no judge actually fires here — the identification_pct is
+  // deterministic.
   const runId = await createRun({
     targetUrl: args.targetUrl,
     judgeModel: JUDGE_MODEL,
@@ -250,25 +285,19 @@ export async function validateAndScoreAbSession(args: {
     },
   });
 
-  // Mark eval_ab_session as submitted and link to the eval_run row.
-  // Audit fields populated: identifications + submitted_at + tester_role +
-  // eval_run_id. T-05-08-06 (repudiation) mitigation: full record retained.
-  const { error: updateError } = await supabaseAdmin
+  // Backfill the eval_run_id link on the (already-claimed) session row so the
+  // /admin/evals trace can navigate from the session to the run. A crash
+  // between the run-write and this update leaves eval_run_id=NULL, which is
+  // a documented soft-fail — the run row is still discoverable by
+  // case_id=`cat4-blind-ab-${sessionId}`.
+  const { error: linkError } = await supabaseAdmin
     .from('eval_ab_sessions')
-    .update({
-      identifications: args.identifications,
-      submitted_at: new Date().toISOString(),
-      tester_role: args.testerRole,
-      eval_run_id: runId,
-    })
+    .update({ eval_run_id: runId })
     .eq('id', args.sessionId);
-  if (updateError) {
-    // The eval_runs row is already written — log but don't throw, since the
-    // primary scoring path succeeded. The session row will eventually be
-    // cleaned up by the daily TTL cron (Plan 05-08 follow-up).
+  if (linkError) {
     log.warn(
-      { sessionId: args.sessionId, runId, error: updateError.message },
-      'eval_ab_session_update_failed',
+      { sessionId: args.sessionId, runId, error: linkError.message },
+      'eval_ab_session_run_link_failed',
     );
   }
 

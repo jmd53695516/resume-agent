@@ -30,6 +30,16 @@ vi.mock('@/lib/env', () => {
 const insertMock = vi.fn();
 const singleMock = vi.fn();
 const updateEqMock = vi.fn();
+// WR-06 fix: validateAndScoreAbSession now does an atomic claim:
+//   .from('eval_ab_sessions')
+//     .update({...})
+//     .eq('id', sessionId)
+//     .is('submitted_at', null)
+//     .select('id')
+//     .single()
+// Returns { data, error }. The chain captures the call args and resolves
+// to whatever this mock returns. Tests can override per-test.
+const updateClaimSingleMock = vi.fn();
 
 const fromMock = vi.fn((_table: string) => ({
   insert: (row: Record<string, unknown>) => insertMock(_table, row),
@@ -39,7 +49,25 @@ const fromMock = vi.fn((_table: string) => ({
     }),
   }),
   update: (vals: Record<string, unknown>) => ({
-    eq: (col: string, val: unknown) => updateEqMock(_table, vals, col, val),
+    // The chain `.update().eq()` is a terminal awaitable (returns { error }),
+    // mirroring the original "simple update" backfill path. The same `.eq()`
+    // can be extended with `.is(...).select(...).single()` for the atomic
+    // claim (WR-06). Both shapes resolve via the underlying mocks; whichever
+    // chain the caller follows determines which mock is invoked.
+    eq: (col: string, val: unknown) => {
+      const terminal: Record<string, unknown> = {
+        // Make the .eq() result a thenable so `await update().eq()` works.
+        then: (resolve: (v: unknown) => unknown) =>
+          Promise.resolve(updateEqMock(_table, vals, col, val)).then(resolve),
+        // Chain extension for WR-06 atomic claim.
+        is: (_isCol: string, _isVal: unknown) => ({
+          select: (_selCols: string) => ({
+            single: () => updateClaimSingleMock(_table, vals, col, val),
+          }),
+        }),
+      };
+      return terminal;
+    },
   }),
 }));
 
@@ -65,11 +93,14 @@ beforeEach(() => {
   insertMock.mockReset();
   singleMock.mockReset();
   updateEqMock.mockReset();
+  updateClaimSingleMock.mockReset();
   createRunMock.mockReset();
   writeCaseMock.mockReset();
   updateRunStatusMock.mockReset();
   insertMock.mockResolvedValue({ error: null });
   updateEqMock.mockResolvedValue({ error: null });
+  // WR-06: default atomic-claim success — returns the claimed row id.
+  updateClaimSingleMock.mockResolvedValue({ data: { id: 'sess_claimed' }, error: null });
   writeCaseMock.mockResolvedValue(undefined);
   updateRunStatusMock.mockResolvedValue(undefined);
   createRunMock.mockResolvedValue('run_test_123');
@@ -370,18 +401,30 @@ describe('validateAndScoreAbSession', () => {
     expect(updateArgs.runId).toBe('run_test_123');
     expect(updateArgs.summary.status).toBe('passed');
 
-    // Marks eval_ab_session as submitted
-    const updateAbCall = updateEqMock.mock.calls.find(
-      (c) => c[0] === 'eval_ab_sessions',
-    );
-    expect(updateAbCall).toBeDefined();
-    const updateAbVals = updateAbCall![1] as Record<string, unknown>;
-    expect(updateAbVals.submitted_at).toBeDefined();
-    expect(updateAbVals.tester_role).toBe('non-pm');
-    expect(updateAbVals.eval_run_id).toBe('run_test_123');
-    expect(updateAbVals.identifications).toEqual([
+    // WR-06: atomic claim is the FIRST eval_ab_sessions update — it sets
+    // identifications + submitted_at + tester_role (NOT eval_run_id, since
+    // the run hasn't been written yet).
+    const claimCall = updateClaimSingleMock.mock.calls[0] as [
+      string,
+      Record<string, unknown>,
+      string,
+      unknown,
+    ];
+    expect(claimCall[0]).toBe('eval_ab_sessions');
+    expect(claimCall[1].submitted_at).toBeDefined();
+    expect(claimCall[1].tester_role).toBe('non-pm');
+    expect(claimCall[1].identifications).toEqual([
       false, false, false, false, false, false, false, false, false, false,
     ]);
+    expect(claimCall[1].eval_run_id).toBeUndefined();
+
+    // WR-06: backfill UPDATE is the second eval_ab_sessions update — fills
+    // eval_run_id after createRun returns.
+    const backfillCall = updateEqMock.mock.calls.find(
+      (c) => c[0] === 'eval_ab_sessions',
+    );
+    expect(backfillCall).toBeDefined();
+    expect(backfillCall![1]).toEqual({ eval_run_id: 'run_test_123' });
   });
 
   // ---- Test 6: rejects expired sessions
@@ -431,6 +474,74 @@ describe('validateAndScoreAbSession', () => {
     ).rejects.toThrow(/already submitted/);
 
     expect(createRunMock).not.toHaveBeenCalled();
+  });
+
+  // ---- WR-06: atomic claim ordering — session must be claimed BEFORE
+  //               the eval_runs row is written. This prevents orphan runs
+  //               with no audit-link if a crash happens mid-sequence.
+  it('WR-06: marks session submitted BEFORE writing eval_runs (atomic claim ordering)', async () => {
+    singleMock.mockResolvedValueOnce({
+      data: {
+        shuffled_snippets: buildMapping(),
+        expires_at: futureExpiresAt(),
+        submitted_at: null,
+      },
+      error: null,
+    });
+
+    // Track invocation order via timestamps; ensure the atomic claim's
+    // update().eq().is().select().single() fires BEFORE createRun().
+    const order: string[] = [];
+    updateClaimSingleMock.mockImplementation(async () => {
+      order.push('claim');
+      return { data: { id: 'sess_wr06' }, error: null };
+    });
+    createRunMock.mockImplementation(async () => {
+      order.push('createRun');
+      return 'run_wr06';
+    });
+
+    const { validateAndScoreAbSession } = await import('@/lib/eval/ab-mapping');
+    await validateAndScoreAbSession({
+      sessionId: 'sess_wr06',
+      identifications: new Array(10).fill(false),
+      testerRole: 'pm',
+      targetUrl: 'http://localhost:3000',
+    });
+
+    expect(order).toEqual(['claim', 'createRun']);
+  });
+
+  it('WR-06: throws when atomic claim returns no rows (lost the race)', async () => {
+    singleMock.mockResolvedValueOnce({
+      data: {
+        shuffled_snippets: buildMapping(),
+        expires_at: futureExpiresAt(),
+        submitted_at: null,
+      },
+      error: null,
+    });
+    // Atomic claim returns no rows (PGRST116 equivalent — submitted_at IS NULL
+    // matched zero rows because a concurrent request beat us to it).
+    updateClaimSingleMock.mockResolvedValueOnce({
+      data: null,
+      error: { code: 'PGRST116', message: 'no rows' },
+    });
+
+    const { validateAndScoreAbSession } = await import('@/lib/eval/ab-mapping');
+    await expect(
+      validateAndScoreAbSession({
+        sessionId: 'sess_race',
+        identifications: new Array(10).fill(false),
+        testerRole: 'pm',
+        targetUrl: 'http://localhost:3000',
+      }),
+    ).rejects.toThrow(/already submitted/);
+
+    // createRun MUST NOT have been called — no orphan eval_runs row.
+    expect(createRunMock).not.toHaveBeenCalled();
+    expect(writeCaseMock).not.toHaveBeenCalled();
+    expect(updateRunStatusMock).not.toHaveBeenCalled();
   });
 
   // ---- Edge: rejects non-10 identifications array
