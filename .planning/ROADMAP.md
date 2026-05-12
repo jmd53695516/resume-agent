@@ -158,3 +158,13 @@ Plans:
 
 Plans:
 - [x] 05.1-01-PLAN.md — Item #8 system-prompt premise-smuggling rule + KB counter_facts (commit `78f4f8c`); Item #6 scripts/reset-eval-rate-limits.ts (commit `699c294` + bug fix `4281c3b`); Item #7 transient data-deflection chunk + eval-CLI consumer (commit `d286b74`); SUMMARY at `.planning/phases/05.1-eval-content-trust-restoration/05.1-01-SUMMARY.md`. **CLOSED PARTIAL** — deferred-items #6/#7/#8 RESOLVED; cat1=15/15 D-B-01 hard gate deferred to Plan 05-12 due to NEW Item #11 (classifier over-flagging surfaced by Item #7's clean signal).
+
+### Phase 6: KB enrichment: about-me hardening
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 5
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 6 to break down)
