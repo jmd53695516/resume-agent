@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: paused
-stopped_at: "Plan 05-12 LAUNCH — v1.0 LIVE on prod at https://joe-dollinger-chat.com. All code/data work done (Tasks 0-3 + banner fix + LAUNCH-06 transcript verify on prod). Both LAUNCH-05 hard gates green: cat1=15/15 (runId sWLys5bpVsiHAfwvoln04), cat4=5/5 avg 4.40 (runId OPoI0ljuwE4GlbT_LFh4u). cat3=2/6 baseline (D-12-C-05 informational MET). Banner: all 5 deps green; cron-job.org schedule live. Code review: 1 warning (WR-01 classifier banner false-green) + 4 info, all deferred to follow-ups. Schema drift + regression gates green. Phase 05 PAUSED awaiting friend-test (Task 4): Google Form https://forms.gle/yovqkpe3QVnNpVTP7 sent to 3 testers (non-PM-non-tech, PM-with-some-tech, recruiter); responses 1-3 days async. Resume on response arrival for sign-off + paper print + verifier + phase mark-complete."
-last_updated: "2026-05-12T01:30:00.000Z"
-last_activity: 2026-05-11 -- v1.0 launched on prod; Plan 05-12 paused awaiting friend-test responses
+status: executing
+stopped_at: "Phase 05.2 fully closed. HUMAN-UAT items 1-6 user-approved; item 7 deferred to LAUNCH-05 pre-flight. Stale `.continue-here.md` (Phase 01, dated 2026-04-28) removed; chat-stream-design pending-todo moved to `todos/completed/`. STATE.md status flipped from `verifying` to `ready`. Only Plan 05-12 (LAUNCH) remains in the v1.0 milestone — autonomous:false, Joe-time-heavy."
+last_updated: "2026-05-12T01:29:52.085Z"
+last_activity: 2026-05-12 -- Phase 05 execution started
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 40
+  total_plans: 41
   completed_plans: 39
-  percent: 98
+  percent: 95
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 
 ## Current Position
 
-Phase: 05 (eval-gates-launch) — PAUSED awaiting friend-test responses
-Plan: 12 of 12 (LAUNCH; functionally complete on prod)
-Status: Paused — v1.0 LIVE; awaiting Task 4 friend-test responses (1-3 days async) for sign-off
-Last activity: 2026-05-11 -- v1.0 launched on prod at https://joe-dollinger-chat.com
+Phase: 05 (eval-gates-launch) — EXECUTING
+Plan: 1 of 13
+Status: Executing Phase 05
+Last activity: 2026-05-12 -- Phase 05 execution started
 
 Progress: [█████████░] 39/40 plans + Plan 05-12 functionally complete (code/data shipped, prod verified, gates green). Plan 05-12 awaits ONLY friend-test responses (Google Form https://forms.gle/yovqkpe3QVnNpVTP7 sent to 3 testers 2026-05-11) before sign-off + verifier + mark-complete. Phase 05.2 fully closed — VERIFICATION 14/14 must-haves; HUMAN-UAT items 1-6 approved by user; item 7 (npm run eval cat6 end-to-end) deferred to Plan 05-12 LAUNCH-05 pre-flight (resolved via cat6 documented baseline 17/20 with 3 pre-existing admin-403 spec failures filed in 05.2 deferred-items).
 
