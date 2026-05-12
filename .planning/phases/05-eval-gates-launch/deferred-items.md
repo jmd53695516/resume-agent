@@ -559,3 +559,33 @@ Both auto-deploy on every push to main (2x build minutes). Vercel-side deploy UR
 
 **Recommended:** spawn a quick task per category once Plan 05-10 ships. cat3 (full sweep failure) is highest priority — likely a single root cause unblocks all 6.
 
+---
+
+## Item #12 (NEW 2026-05-12, from Phase 05 UAT close-out): Eval CLI lacks --target / --cats argv flags
+
+**Status:** RESOLVED 2026-05-12 — Plan 05-13 (this gap-closure plan). commit `5c9cf26` added `parseEvalArgs` + `EVAL_CATS_VALID` + `resolveTargetUrl` to scripts/run-evals.ts with node:util.parseArgs (no new dep). argv-first / env-fallback precedence: `--target` / `-t` overrides EVAL_TARGET_URL; `--cats` / `-c` overrides EVAL_CATS; `--help` / `-h` prints usage. Unknown flags (e.g., the CONTEXT-ADDENDUM D-12-C-02 `--cat=1` singular mis-paste) loud-fail via strict:true. Non-http(s) `--target` values exit 2 with shape-validation error. tests/scripts/run-evals.test.ts ships 24 tests covering parser (4 target + 5 cats + 3 help + 1 combined), strict-mode failures (2), resolveTargetUrl precedence (7), and EVAL_CATS_VALID roster lock (2).
+
+**Severity:** MINOR — CLI ergonomics only. Underlying phase deliverable (cat1=15/15 + cat4=5/5 on prod) was already verified per LAUNCH-CHECKLIST runIds `sWLys5bpVsiHAfwvoln04` (cat1) + `OPoI0ljuwE4GlbT_LFh4u` (cat4). This fix does NOT re-verify the gate; it makes targeted re-runs ergonomic for ongoing operational use (post-launch eval iteration, future hiring-cycle re-runs against prod).
+
+**First observed:** 2026-05-12, Phase 05 UAT Test 1 (see [05-UAT.md](./05-UAT.md) §Tests §1).
+
+**Symptom:** `npm run eval -- --target=https://joe-dollinger-chat.com --cats=cat1,cat4-judge` silently ignored both flags; CLI ran against `http://localhost:3000` default (EVAL_TARGET_URL fallback); mintEvalSession fetch failed (no dev server); run abended with `status='error'`, `totalCostCents=0`.
+
+**Root cause:** scripts/run-evals.ts read only `process.env.EVAL_TARGET_URL` (line 40) and `process.env.EVAL_CATS` (lines 75-92); no argv parser existed. The CONTEXT-ADDENDUM D-12-B-01 runbook + Plan 05-12 LAUNCH-CHECKLIST prescribed `npm run eval -- --cats=...` invocations that never worked end-to-end.
+
+**Verification:**
+- `npm run eval -- --help` → exits 0, prints HELP_TEXT ✓
+- `npm run eval -- --target=foo --cats=cat1` → exits 2 with `eval_target_invalid` + `must be an http(s) URL` stderr ✓
+- `npm run eval -- --cat=1` → exits 2 with strict-mode `Unknown option '--cat'` stderr ✓
+- argv-overrides-env smoke (EVAL_TARGET_URL=wrong + --target=right) → resolved URL = right; `source:'argv'` logged ✓
+- env-fallback smoke (EVAL_CATS=cat1 no argv) → `filter:[cat1], source:'env'` logged ✓
+- 24/24 new tests pass; full plan-level tsc + suite still green (zero new failures vs pre-change baseline)
+
+**Cross-references:**
+- [05-12-CONTEXT-ADDENDUM.md §D-12-B-01](./05-12-CONTEXT-ADDENDUM.md) — addendum that prescribed the narrowed-gate invocation
+- [05-12-CONTEXT-ADDENDUM.md §D-12-C-02](./05-12-CONTEXT-ADDENDUM.md) — addendum that referenced `--cat=1` (singular) syntax; this fix uses plural `--cats=cat1` and loud-fails on `--cat`
+- [05-UAT.md §Gaps](./05-UAT.md) — the structured gap entry this plan closed
+- scripts/run-evals.ts — the file that got the fix
+- tests/scripts/run-evals.test.ts — new coverage
+
+**Follow-up observation (Plan 05-13 scope boundary):** During Task 1 verification, the `eval_cats_invalid` error path was found to exit 0 instead of 2 — verified pre-existing on the un-modified HEAD via `git stash` (same EVAL_CATS=cat99 invocation exits 0 on the pre-change `scripts/run-evals.ts` too). Likely Windows-specific Node/tsx interaction with `process.exit` mid-async-flush. The logging contract (`eval_cats_invalid` + finalized status='error') is intact; only the OS-level exit code is wrong. Out of scope for Plan 05-13; track separately if cron-job.org schedule (Plan 05-11) ever needs to react to a bad EVAL_CATS env-var value. The same exit-code path used by `--target` shape-validation (which runs before async createRun) DOES exit 2 correctly.
