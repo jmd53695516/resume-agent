@@ -17,7 +17,12 @@ const mocks = vi.hoisted(() => ({
   log: vi.fn(),
   // Plan 05-12 launch fix: heartbeat route now makes a real classifier call
   // (replaces the chicken-and-egg pingClassifier-reads-stale-key check).
-  classifyUserMessage: vi.fn(async () => ({ verdict: 'allow', confidence: 0.9 })),
+  // WR-03 fix: mock returns the REAL ClassifierVerdict shape — { label,
+  // confidence }, not { verdict, ... }. The heartbeat route reads
+  // `verdict.label`, so a `{verdict: 'allow'}` mock made `.label`
+  // undefined and the fail-closed-sentinel detection branch
+  // (label === 'offtopic' && confidence === 1.0) was never exercised.
+  classifyUserMessage: vi.fn(async () => ({ label: 'normal', confidence: 0.9 })),
 }));
 
 vi.mock('@/lib/env', () => ({
@@ -88,7 +93,8 @@ beforeEach(() => {
   mocks.pingUpstash.mockResolvedValue('ok');
   mocks.pingExa.mockResolvedValue('ok');
   // Default: live classifier call succeeds (Plan 05-12 launch fix).
-  mocks.classifyUserMessage.mockResolvedValue({ verdict: 'allow', confidence: 0.9 });
+  // WR-03: real ClassifierVerdict shape — { label, confidence }.
+  mocks.classifyUserMessage.mockResolvedValue({ label: 'normal', confidence: 0.9 });
 });
 
 describe('POST /api/cron/heartbeat', () => {
@@ -250,6 +256,50 @@ describe('POST /api/cron/heartbeat', () => {
     expect(mocks.log).toHaveBeenCalledWith(
       expect.objectContaining({ event: 'heartbeat_classifier_failed' }),
       'warn',
+    );
+  });
+
+  // WR-03: explicit test for the fail-closed-sentinel branch. classifyUserMessage
+  // is fail-closed (returns { label: 'offtopic', confidence: 1.0 } on any error
+  // per classifier.ts:92-96) — it never throws. The catch branch alone does NOT
+  // prove the fail-closed-sentinel branch works; the previous mock returned a
+  // wrong-shape `{ verdict: 'allow' }` so `verdict.label === 'offtopic'` was
+  // never even compared correctly. This test exercises the sentinel branch
+  // with the correct ClassifierVerdict shape.
+  it('logs warning and skips heartbeat:classifier write when live call returns fail-closed sentinel (WR-03)', async () => {
+    mocks.messagesCreate.mockResolvedValue({
+      usage: { cache_read_input_tokens: 0, cache_creation_input_tokens: 0, input_tokens: 1, output_tokens: 1 },
+    });
+    mocks.redisSet.mockResolvedValue('OK');
+    // Fail-closed sentinel: { label: 'offtopic', confidence: 1.0 } —
+    // indistinguishable from a real-thrown-error classifier failure but
+    // returned through the normal control path (no throw).
+    mocks.classifyUserMessage.mockResolvedValue({ label: 'offtopic', confidence: 1.0 });
+
+    await POST(makeReq({ auth: `Bearer ${mocks.CRON_SECRET}` }));
+
+    // heartbeat:classifier MUST NOT be written when the sentinel is returned —
+    // otherwise the chicken-and-egg trap re-emerges (writing a stale-OK key
+    // while the classifier is actually fail-closing on every call).
+    expect(mocks.redisSet).not.toHaveBeenCalledWith(
+      'heartbeat:classifier',
+      expect.any(Number),
+      expect.anything(),
+    );
+    expect(mocks.log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: 'heartbeat_classifier_failed',
+        error_message: 'fail-closed sentinel returned',
+      }),
+      'warn',
+    );
+    // statuses.classifier should be 'degraded' since the live call never
+    // resolved to a non-sentinel verdict.
+    expect(mocks.log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: 'heartbeat',
+        statuses: expect.objectContaining({ classifier: 'degraded' }),
+      }),
     );
   });
 

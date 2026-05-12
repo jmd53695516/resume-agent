@@ -171,9 +171,11 @@ export async function POST(req: Request): Promise<Response> {
   // just reads the same heartbeat:anthropic key it gates — once expired, the
   // guard never reopens. Drop the guard so the write happens unconditionally,
   // matching the exa write pattern above.
+  let anthropicWriteOk = false;
   if (!llmPrewarmEnabled) {
     try {
       await redis.set('heartbeat:anthropic', Date.now(), { ex: 120 });
+      anthropicWriteOk = true;
     } catch (err) {
       log(
         { event: 'heartbeat_anthropic_write_failed', error_message: (err as Error).message },
@@ -187,11 +189,16 @@ export async function POST(req: Request): Promise<Response> {
   // which warmPromptCache is about to write — reading-before-writing produced
   // statuses.anthropic='degraded' in the heartbeat event payload even on a
   // healthy prewarm. Prefer the post-write state (prewarm.ok) over the stale
-  // pre-write read. When prewarm is disabled, fall back to the ping (then the
-  // dashboard refresh path at line 132-141 keeps the key warm via the live ping).
+  // pre-write read.
+  //
+  // WR-02 fix: when prewarm is disabled the same read-before-write trap
+  // existed for the prewarm-disabled branch — anthropicPing.value was set at
+  // line 101-108 BEFORE the heartbeat:anthropic write at line 175, so a fresh
+  // write produced statuses.anthropic='degraded'. Mirror the exa/classifier
+  // heartbeat-trust pattern: report 'ok' iff the write succeeded.
   const anthropicStatus = llmPrewarmEnabled
     ? (prewarm.ok ? 'ok' : 'degraded')
-    : anthropicPing.value;
+    : (anthropicWriteOk ? 'ok' : 'degraded');
 
   log({
     event: 'heartbeat',
