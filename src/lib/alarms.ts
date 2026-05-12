@@ -36,7 +36,13 @@ export type AlarmCondition =
   | 'error-rate'
   | 'dep-down'
   | 'rate-limit-abuse'
-  | 'weekly-eval-failure';
+  | 'weekly-eval-failure'
+  // WR-01 follow-up: heartbeat:exa heartbeat-trust pattern (cron-side
+  // unconditional write) means pingExa returns 'ok' even when Exa is down,
+  // so the dep-down alarm cannot surface a real Exa outage. This separate
+  // condition watches research_company tool error ratio over the last hour
+  // and fires when Exa-side failures actually cause deflections.
+  | 'research-company-error-rate';
 
 /**
  * Per-condition Redis NX suppression TTL (seconds). Default = 3600 (1h);
@@ -231,6 +237,61 @@ export async function checkWeeklyEvalFailure(): Promise<CheckResult> {
   };
 }
 
+/**
+ * WR-01 follow-up. Watches research_company tool error ratio in the last
+ * `windowHours`. Fires when the tool's deflect rate is high — the real
+ * failure mode when Exa is down (the tool catches errors and returns
+ * `{ error: TOOL_FAILURE_COPY.research_company }` so the recruiter sees an
+ * in-character apology, but Joe gets no alarm signal from the dep-down path
+ * because heartbeat:exa is unconditionally written by the cron).
+ *
+ * Tripped iff sample >= `minSample` AND error ratio > `threshold`.
+ * Defaults (windowHours=1, minSample=3, threshold=0.5) match the realistic
+ * volume of tool calls — research_company fires only when a recruiter
+ * actively pitches a company, so even 3 calls in an hour is meaningful.
+ *
+ * Reads `messages` table rows where role='tool', tool_name='research_company'
+ * (`persistToolCallTurn` schema). Errors are detected by inspecting
+ * `tool_result.error` (the structured return from research-company.ts:74).
+ */
+export async function checkResearchCompanyErrorRate(
+  windowHours = 1,
+  minSample = 3,
+  threshold = 0.5,
+): Promise<CheckResult> {
+  const since = new Date(Date.now() - windowHours * 3600_000).toISOString();
+  const { data, error } = await supabaseAdmin
+    .from('messages')
+    .select('tool_result')
+    .eq('role', 'tool')
+    .eq('tool_name', 'research_company')
+    .gte('created_at', since);
+
+  if (error || !data) {
+    return {
+      tripped: false,
+      summary: `Research-company-error-rate check: query failed (${error?.message ?? 'no data'}).`,
+    };
+  }
+
+  const rows = data as Array<{ tool_result: Record<string, unknown> | null }>;
+  const total = rows.length;
+  const errors = rows.filter((r) => r.tool_result != null && 'error' in r.tool_result).length;
+
+  if (total < minSample) {
+    return {
+      tripped: false,
+      summary: `Research-company error-rate window has ${total} calls (<${minSample}); skipping.`,
+    };
+  }
+
+  const ratio = errors / total;
+  return {
+    tripped: ratio > threshold,
+    summary: `Research-company error-rate ${(ratio * 100).toFixed(1)}% (${errors}/${total} calls in last ${windowHours}h; threshold ${(threshold * 100).toFixed(0)}%).`,
+  };
+}
+
 export type AlarmDispatchResult = {
   condition: AlarmCondition;
   tripped: boolean;
@@ -245,15 +306,19 @@ export type AlarmDispatchResult = {
  * "Recent alarms" widget — Plan 04-04).
  */
 export async function runAllAlarms(): Promise<AlarmDispatchResult[]> {
-  // Run the 5 checks in parallel — they share no state, and serialising would
-  // add ~5x latency for no benefit.
-  const [spend, errorRate, deps, rateLimit, weeklyEvalFailure] = await Promise.all([
-    checkSpendCap(),
-    checkErrorRate(),
-    checkDependencies(),
-    checkRateLimitAbuse(),
-    checkWeeklyEvalFailure(),
-  ]);
+  // Run the 6 checks in parallel — they share no state, and serialising would
+  // add ~6x latency for no benefit. WR-01 follow-up added the 6th check
+  // (research-company-error-rate) so Exa outages surface even though the
+  // dep-down path is now heartbeat-trust-only for Exa.
+  const [spend, errorRate, deps, rateLimit, weeklyEvalFailure, researchCompanyErr] =
+    await Promise.all([
+      checkSpendCap(),
+      checkErrorRate(),
+      checkDependencies(),
+      checkRateLimitAbuse(),
+      checkWeeklyEvalFailure(),
+      checkResearchCompanyErrorRate(),
+    ]);
 
   const checks: Array<[AlarmCondition, CheckResult]> = [
     ['spend-cap', spend],
@@ -261,6 +326,7 @@ export async function runAllAlarms(): Promise<AlarmDispatchResult[]> {
     ['dep-down', deps],
     ['rate-limit-abuse', rateLimit],
     ['weekly-eval-failure', weeklyEvalFailure],
+    ['research-company-error-rate', researchCompanyErr],
   ];
 
   const results: AlarmDispatchResult[] = [];
