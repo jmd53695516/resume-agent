@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 Phase: 05 (eval-gates-launch) — EXECUTING
 Plan: 2 of 13
 Status: Ready to execute
-Last activity: 2026-05-12
+Last activity: 2026-05-12 - Completed quick task 260511-u9d: WR-01 classifier banner false-green fix
 
 Progress: [█████████░] 39/40 plans + Plan 05-12 functionally complete (code/data shipped, prod verified, gates green). Plan 05-12 awaits ONLY friend-test responses (Google Form https://forms.gle/yovqkpe3QVnNpVTP7 sent to 3 testers 2026-05-11) before sign-off + verifier + mark-complete. Phase 05.2 fully closed — VERIFICATION 14/14 must-haves; HUMAN-UAT items 1-6 approved by user; item 7 (npm run eval cat6 end-to-end) deferred to Plan 05-12 LAUNCH-05 pre-flight (resolved via cat6 documented baseline 17/20 with 3 pre-existing admin-403 spec failures filed in 05.2 deferred-items).
 
@@ -225,6 +225,12 @@ Recent decisions affecting current work:
 - Phase 5 deferred-item #8 (Sonnet quantitative-claim hallucination caught by cat1-fab-005): RESOLVED 2026-05-10 — Phase 05.1-01 commit `78f4f8c`. HALLUCINATION_RULES extended with premise-smuggling rule; kb/profile.yml extended with counter_facts: section (10 entries). cat1-fab-005 passed in every post-Task-1 verification run. cat1=15/15 D-B-01 hard gate NOT met due to NEWLY-VISIBLE classifier deflections (Item #11 below); investigation deferred to Plan 05-12.
 - Phase 5 NEW deferred-item #11 (NEW 2026-05-10, from 05.1-01 close-out): MEDIUM. Classifier over-flags eval prompts as injection/sensitive/offtopic. Was hidden pre-Item-#7 by deflection-as-fabrication mis-grading. cat1 = 3-6 deflection-skips per local run; cat3 = 6/6 deflection-skips. Investigation deferred to Plan 05-12 (assess prod URL behavior first).
 - Phase 5 Plan 05-11 deferred-item (cron-job.org schedule): LOW. /api/cron/run-eval route + 5th alarm code shipped 2026-05-10 (commits 6406221, 69f63f7, 1949592). GH PAT + Vercel envs (GH_DISPATCH_TOKEN, GH_REPO_SLUG) confirmed set. cron-job.org weekly Mon 03:00 ET schedule deferred into Plan 05-12 because it needs a stable prod URL — pointing it at preview alias would require re-pointing after the LAUNCH-01 CNAME flip. Estimate 10-15 min once chat.joedollinger.com is live. Handoff doc: 05-11-SUMMARY.md `deferred:` block.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260511-u9d | WR-01 classifier banner false-green: extract classifyUserMessageOrThrow throwing variant; heartbeat caller now reports classifier=degraded truthfully during Anthropic outages | 2026-05-12 | 6a5a8b0 | [260511-u9d-fix-wr-01-classifier-banner-false-green-](./quick/260511-u9d-fix-wr-01-classifier-banner-false-green-/) |
 
 ## Session Continuity
 
