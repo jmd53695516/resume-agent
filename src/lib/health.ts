@@ -73,6 +73,12 @@ export async function pingSupabase(): Promise<DepStatus> {
   // Without .then(), the supabase-js builder is a thenable that can hang in
   // mocks when test setup forgets to resolve the deepest level — under a 5s
   // testTimeout this fails fast rather than hanging vitest indefinitely.
+  //
+  // IMPORTANT: The `.then((r) => r)` below looks like a no-op but is doing
+  // real work — it coerces the supabase-js PromiseLike (thenable) into a real
+  // Promise so withTimeout() can race it. If anyone refactors this thinking
+  // it's a no-op, withTimeout silently stops working because Promise.race
+  // doesn't time out a thenable that never resolves. DO NOT REMOVE.
   try {
     // W6: explicit .then() callback — the supabase-js builder returns a
     // PromiseLike (thenable), not a real Promise. Wrap with Promise.resolve()
@@ -87,6 +93,13 @@ export async function pingSupabase(): Promise<DepStatus> {
       ),
     );
     if (result && typeof result === 'object' && 'error' in result && result.error) {
+      // WR-05: discriminate PGRST codes (PostgREST-validated request, server
+      // is healthy) from real infrastructure errors. Mirrors the BL-17 fix in
+      // src/app/api/chat/route.ts:134-149 — PGRST116 ("no rows" from
+      // .single()) is a normal query outcome, not a Supabase-is-down signal.
+      // Only network / auth / non-PGRST errors should mark the dep degraded.
+      const code = (result.error as { code?: string }).code;
+      if (code?.startsWith('PGRST')) return 'ok';
       return 'degraded';
     }
     return 'ok';
