@@ -16,6 +16,10 @@ vi.mock('@/lib/env', () => ({
 const mocks = vi.hoisted(() => ({
   sendMock: vi.fn(),
   updateMock: vi.fn(),
+  // CR-02: claimAndSendSessionEmail now performs a pre-check SELECT before
+  // the atomic UPDATE claim to short-circuit synthetic eval-CLI sessions
+  // (email ending in `@joedollinger.dev`).
+  selectMock: vi.fn(),
   logMock: vi.fn(),
 }));
 
@@ -28,11 +32,20 @@ vi.mock('resend', () => ({
   },
 }));
 
-// Mock supabase admin update chain
+// Mock supabase admin update + select chain.
+// CR-02: claimAndSendSessionEmail does:
+//   .from('sessions').select(...).eq('id', sessionId).single()       — pre-check
+//   .from('sessions').update(...).eq(...).is(...).select(...).single() — atomic claim
+// Route via top-level `from` mock that returns either select or update chain.
 vi.mock('@/lib/supabase-server', () => ({
   supabaseAdmin: {
     from: vi.fn(() => ({
       update: mocks.updateMock,
+      select: (_cols: string) => ({
+        eq: (_col: string, _val: unknown) => ({
+          single: () => mocks.selectMock(),
+        }),
+      }),
     })),
   },
 }));
@@ -61,7 +74,14 @@ function chainResolve(value: unknown) {
 beforeEach(() => {
   mocks.sendMock.mockReset();
   mocks.updateMock.mockReset();
+  mocks.selectMock.mockReset();
   mocks.logMock.mockReset();
+  // Default pre-check: real recruiter session (not synthetic eval CLI),
+  // first_email_sent_at null so the claim proceeds.
+  mocks.selectMock.mockResolvedValue({
+    data: { email: 'r@example.com', first_email_sent_at: null },
+    error: null,
+  });
 });
 
 describe('sendSessionNotification', () => {
@@ -194,6 +214,71 @@ describe('claimAndSendSessionEmail (idempotency)', () => {
     ).resolves.toBeUndefined();
     // No send happened (claim returned no row).
     expect(mocks.sendMock).not.toHaveBeenCalled();
+  });
+
+  // CR-02: synthetic eval-CLI sessions (email ending @joedollinger.dev) must
+  // NOT trigger session-notification emails, AND must NOT consume the
+  // first_email_sent_at claim slot. A weekly drift run hits 5 cats × ~9
+  // cases = ~9 sessions per fire — without this guard, Joe gets ~9 emails
+  // per cron and the once-per-session email contract is silently burned.
+  it('skips synthetic eval-CLI sessions (email ends @joedollinger.dev) without claiming first_email_sent_at', async () => {
+    mocks.selectMock.mockResolvedValue({
+      data: { email: 'eval-cli@joedollinger.dev', first_email_sent_at: null },
+      error: null,
+    });
+    await claimAndSendSessionEmail({
+      session_id: 'eval-session-id',
+      last_user_text: 'Pitch me on Anthropic',
+      classifier_verdict: 'normal',
+      classifier_confidence: 0.95,
+    });
+    // No update call: the synthetic-email guard short-circuits BEFORE the
+    // atomic UPDATE so the first_email_sent_at slot stays NULL.
+    expect(mocks.updateMock).not.toHaveBeenCalled();
+    // No email send.
+    expect(mocks.sendMock).not.toHaveBeenCalled();
+    // Structured log so /admin can surface the skip.
+    expect(mocks.logMock).toHaveBeenCalledWith(
+      expect.objectContaining({ event: 'session_email_skipped_eval' }),
+    );
+  });
+
+  it('skips silently when pre-check shows session already claimed', async () => {
+    mocks.selectMock.mockResolvedValue({
+      data: {
+        email: 'r@acmecorp.com',
+        first_email_sent_at: new Date().toISOString(),
+      },
+      error: null,
+    });
+    await claimAndSendSessionEmail({
+      session_id: 's-already-sent',
+      last_user_text: 'hi',
+      classifier_verdict: 'normal',
+      classifier_confidence: 0.92,
+    });
+    expect(mocks.updateMock).not.toHaveBeenCalled();
+    expect(mocks.sendMock).not.toHaveBeenCalled();
+  });
+
+  it('silently returns when pre-check fails with PGRST116 (no rows) — no error log', async () => {
+    mocks.selectMock.mockResolvedValue({
+      data: null,
+      error: { code: 'PGRST116', message: 'no rows' },
+    });
+    await claimAndSendSessionEmail({
+      session_id: 'missing-id',
+      last_user_text: 'hi',
+      classifier_verdict: 'normal',
+      classifier_confidence: 0.92,
+    });
+    expect(mocks.updateMock).not.toHaveBeenCalled();
+    expect(mocks.sendMock).not.toHaveBeenCalled();
+    // No error log for the expected race condition (PGRST116 = no rows yet).
+    expect(mocks.logMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({ where: 'claimAndSendSessionEmail.preCheck' }),
+      'error',
+    );
   });
 });
 
