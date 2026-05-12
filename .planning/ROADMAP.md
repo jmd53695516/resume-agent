@@ -119,7 +119,7 @@ Plans:
 - [x] 05-10-PLAN.md — Real eval workflow body + branch protection + Vercel Deployment Checks + A7 spot-test (EVAL-09, EVAL-13)
 - [x] 05-11-PLAN.md — /api/cron/run-eval + 5th alarm condition (weekly_eval_failure 24h NX) + cron-job.org schedule (EVAL-11)
 - [ ] 05-12-PLAN.md — Launch: domain CNAME + PDF + QR + LinkedIn/PDF/site URL + SAFE-12 evidence + friend-test + LAUNCH-CHECKLIST signed (LAUNCH-01..07, SAFE-12)
-- [ ] 05-13-PLAN.md — Gap closure (UAT Test 1): add --target / --cats argv flags to eval CLI; back-compat env-fallback preserved (EVAL-09, EVAL-13)
+- [x] 05-13-PLAN.md — Gap closure (UAT Test 1): add --target / --cats argv flags to eval CLI; back-compat env-fallback preserved (EVAL-09, EVAL-13)
 
 ## Progress
 
@@ -139,7 +139,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 **Goal:** Close the visual gap between the Anthropic Chat Stream design bundle (delivered 2026-05-01, partially ported on 2026-04-30) and the live recruiter-facing chat surface BEFORE Plan 05-12 LAUNCH-05. Visual-only port of the four remaining bundle features: bubble grouping with iMessage tail-corner radii (D-A-01), inter-group timestamps with the 5-minute rule (D-A-02 + AMENDED — fully client-side, no /api/chat changes), top-right "Light Mode / Dark Mode" toggle pill (D-B-01..03), and the matrix-mode easter egg view with canvas digital-rain backdrop + green-monospace terminal restyle (D-A-04). Re-baseline cat6 Playwright e2e suite at close-out per D-C-03. Strict preservation of Phase 02 D-G byte-identical /api/chat contract and all existing data-testids (D-C-03).
 **Requirements**: None (decimal phase — design polish before LAUNCH-05; CONTEXT D-* IDs serve as the requirement surface)
 **Depends on:** Phase 5
-**Plans:** 6/6 plans complete
+**Plans:** 12/13 plans executed
 
 Plans:
 - [x] 05.2-01-PLAN.md — Foundation: install date-fns@^4, register Share Tech Mono via next/font/google as --font-matrix, create src/lib/chat-types.ts (ResumeAgentUIMessage + BubblePosition) and src/lib/chat-format.ts (computePositions + shouldShowTimestampBefore pure helpers + Vitest coverage)
