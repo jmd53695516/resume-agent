@@ -6,7 +6,9 @@ planted_during: v1.0 / Phase 05 (eval-gates-launch) — Plan 05-12 LAUNCH (prod 
 trigger_when: v1.1 milestone start OR Phase 6 (post-launch eval calibration) planning
 scope: Small
 resolved_on: 2026-05-12
-resolved_by: 260512-r4s
+resolved_by:
+  - 260512-r4s  # rate-limit half (per-email 150/day window bypass)
+  - 260512-ro4  # spend-cap half (SAFE-04 300¢/24h global counter bypass + invisible-to-counter via incrementSpend skip)
 ---
 
 # SEED-001: Exempt eval-cli email from per-email rate limiter
@@ -58,6 +60,18 @@ Concrete implementation sketch (subject to revalidation at planning time):
 - Tests demonstrate that arbitrary OTHER emails do NOT bypass the email rate limiter (the allowlist is exact-match, not pattern-based)
 - Vercel Deployment Checks gate flips to auto-passing for routine code PRs that don't break cat1 semantics
 - 05-12-LAUNCH-CHECKLIST.md follow-ups section updated to mark this resolved
+
+## Resolution Notes
+
+**Both halves resolved on 2026-05-12 in two quick tasks:**
+
+1. **Rate-limit half (`260512-r4s`, commit `e3dbfae`)** — `EVAL_CLI_RATELIMIT_ALLOWLIST` Set + `isEmailRatelimitAllowlisted` helper in `src/lib/redis.ts`; `checkRateLimits` skips `emailLimiterDay.limit()` for allowlisted emails. Per-IP / spend-cap / session checks fully preserved. 12 unit + 4 integration tests; STRIDE T-r4s-01..07 mitigated; route.ts byte-identical.
+
+2. **Spend-cap half (`260512-ro4`, commits `5c19fa1` + `423c984`)** — Today's EOD incident (272¢ single-hour eval spike filled the rolling 300¢/24h cap and dead-locked the prod agent for ~24h) made the rate-limit-only fix insufficient because the Acceptance Criterion above ("Spend cap (SAFE-04, 300¢/day) still applies") was the WRONG security posture for eval-cli traffic — letting the eval CLI accumulate global spend creates the silent-lockout failure mode that bit the prod agent today. Extended the unified allowlist to also bypass SAFE-04: renamed `EVAL_CLI_RATELIMIT_ALLOWLIST` → `EVAL_CLI_ALLOWLIST` (single Set, both helpers consult it); added `isEmailSpendCapAllowlisted` helper; `incrementSpend(cents, { email })` short-circuits for allowlisted emails (D-A-01 full invisibility — eval-cli traffic neither reads nor writes the global counter); gate 4 in `/api/chat/route.ts` short-circuits `isOverCap()` for allowlisted emails. Per-IP cost cap (SAFE-08, 150¢/day per IP) is the new last-line cost backstop; per-IP rate limits (ip10m, ipday) still throttle attack volume from any single source. STRIDE T-ro4-01..07 mitigated; six-gate ORDER unchanged (gate 4 still fires 4th).
+
+**Combined effect:** eval-cli traffic is fully invisible to both the per-email window and the global spend cap. A recruiter spending the day chatting cannot be locked out by an eval verification spike. An attacker who learns the eval-cli email is still bounded by per-IP rate limits (60 msgs/day per IP) and per-IP cost (150¢/day per IP) — a distributed-IP attack would need many IPs and burns 150¢ per IP independently. No new exposure surface beyond what was already accepted for the rate-limit-half threat-model.
+
+**Acceptance Criteria revision (post-resolution):** The third bullet above ("Spend cap (SAFE-04, 300¢/day) still applies to the eval-cli email") is HISTORICALLY ACCURATE for the rate-limit-half landing but was SUPERSEDED on 2026-05-12 by the spend-cap-half quick task. Post-260512-ro4 the canonical statement is: per-IP cost cap (SAFE-08, 150¢/day per IP) and per-IP rate limits (ip10m/ipday) are the cost backstops for eval-cli traffic; SAFE-04 no longer applies. Original bullet preserved for historical traceability.
 
 ## Out of Scope (handled separately at Phase 6 planning time)
 
