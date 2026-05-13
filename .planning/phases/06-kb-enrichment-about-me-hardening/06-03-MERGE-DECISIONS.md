@@ -745,21 +745,28 @@ Stripped `## Case Studies` has 10 compressed case-study stories: Supply Chain Wa
 
 ---
 
-## Post-Joe-walk summary (filled in after Task 2 completion)
+## Post-Joe-walk summary (Task 2 sign-off)
 
-Joe to fill in when Task 2 dispositions are locked:
+**Joe-walk:** 2026-05-13 — planner defaults accepted as-is, no per-section overrides.
 
 ```
 total_sections: 23
-keep: <N>
-augment: <N>
-replace: <N>
-keep-as-net-new: <N>
-strip-net-new: <N>
+keep: 4                 # S1, S2, S4, S5
+augment: 1              # S3 (What Energizes — adds 5 product examples + "ghost models")
+replace: 0
+keep-as-net-new: 5      # S6 Differentiator+UA-War-Room, S7 Personal-Traits+questions, S8 Comm-Style (incl. credibility-based), S9 Leadership-Style, S10 Core-Positioning+roles-to-avoid
+strip-net-new: 13       # S11-S23 (tech/process/case-study detail — better-served by kb/profile.yml / kb/resume.md / kb/case_studies/*)
 
-projected_final_word_count: <N>
-projected_final_token_count: <N>
+projected_final_word_count: ~870 words (current 592 + ~278 new across S3 augment + 5 net-new)
+projected_final_token_count: ~1160 tokens (well within CHAT-03 <50k kb-token budget)
 
-flagged_for_06-04_voice_rewrite: <list of section IDs with new content>
-flagged_for_post-phase-followup: <list of kb/profile.yml / kb/case_studies / kb/resume.md updates surfaced by this merge>
+flagged_for_06-04_voice_rewrite: S3-augment-paragraph, S6, S7, S8, S9, S10 (6 new chunks — all currently stripped 3rd-person; Plan 06-04 converts to 1st-person Joe-prose)
+flagged_for_post-phase-followup:
+  - kb/profile.yml target_roles[] update from 3 → 9 (per S4 note + 06-01-CLAIM-MATRIX Top-5 finding #1)
+  - cross-check kb/case_studies/*.md coverage of all 10 stripped case studies (per S23 note)
+  - kb/profile.yml industries[] expansion to 6-industry list (per S19 note)
+  - confirm SQL 7/10 + DDL-gap surfaced in kb/profile.yml (per S11 note)
+  - audit kb/case_studies/snowflake-marketplace-datashare.md for expanded FS/PE 12-domain list (per S21 note)
 ```
+
+**Resume signal:** Merge decisions locked: 23 sections (keep=4, augment=1, keep-as-net-new=5, strip-net-new=13, replace=0); projected kb/about_me.md word count ~870.
