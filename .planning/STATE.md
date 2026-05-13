@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: "Plan 05-13 (gap-closure) complete. UAT Test 1 gap CLOSED — parseEvalArgs + EVAL_CATS_VALID + resolveTargetUrl exported from scripts/run-evals.ts; 24 new tests pass; 5/5 CLI smokes verified. deferred-items Item #12 RESOLVED. Plan IS post-launch gap-closure (NOT in v1.0 12-plan count)."
-last_updated: "2026-05-13T00:20:00.000Z"
-last_activity: 2026-05-12 -- Completed quick task 260512-ro4: SEED-001 spend-cap half shipped (both halves now complete)
+last_updated: "2026-05-13T01:00:00.000Z"
+last_activity: 2026-05-13 -- Completed quick task 260512-sne: SEED-001 ip-rate-limit half shipped (all 3 halves now complete; PR #4 CI re-triggered)
 progress:
   total_phases: 8
   completed_phases: 6
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 Phase: 05 (eval-gates-launch) — EXECUTING
 Plan: 2 of 13
 Status: Ready to execute
-Last activity: 2026-05-12 -- Completed quick task 260512-ro4: SEED-001 spend-cap half shipped (both halves of SEED-001 now complete; Phase 6 unblocked once 24h cap rolls off)
+Last activity: 2026-05-13 -- Completed quick task 260512-sne: SEED-001 ip-rate-limit half shipped (all 3 halves complete; CI eval should now pass without ratelimit deflections)
 
 Progress: [█████████░] 39/40 plans + Plan 05-12 functionally complete (code/data shipped, prod verified, gates green). Plan 05-12 awaits ONLY friend-test responses (Google Form https://forms.gle/yovqkpe3QVnNpVTP7 sent to 3 testers 2026-05-11) before sign-off + verifier + mark-complete. Phase 05.2 fully closed — VERIFICATION 14/14 must-haves; HUMAN-UAT items 1-6 approved by user; item 7 (npm run eval cat6 end-to-end) deferred to Plan 05-12 LAUNCH-05 pre-flight (resolved via cat6 documented baseline 17/20 with 3 pre-existing admin-403 spec failures filed in 05.2 deferred-items).
 
@@ -234,6 +234,7 @@ Recent decisions affecting current work:
 | 260511-u9d | WR-01 classifier banner false-green: extract classifyUserMessageOrThrow throwing variant; heartbeat caller now reports classifier=degraded truthfully during Anthropic outages | 2026-05-12 | 6a5a8b0 | [260511-u9d-fix-wr-01-classifier-banner-false-green-](./quick/260511-u9d-fix-wr-01-classifier-banner-false-green-/) |
 | 260512-r4s | SEED-001 rate-limit exemption: EVAL_CLI_RATELIMIT_ALLOWLIST Set + checkRateLimits skip for eval-cli@joedollinger.dev; per-IP + spend-cap still apply (exact-match, 12 new tests, STRIDE T-r4s-01..07 mitigated, route.ts byte-identical). NOTE: spend-cap half of EOD incident scope deferred to follow-up quick task. | 2026-05-12 | e3dbfae | [260512-r4s-exempt-eval-cli-email-from-per-email-rat](./quick/260512-r4s-exempt-eval-cli-email-from-per-email-rat/) |
 | 260512-ro4 | SEED-001 spend-cap half: unified EVAL_CLI_ALLOWLIST (renamed from EVAL_CLI_RATELIMIT_ALLOWLIST) + isEmailSpendCapAllowlisted helper + gate-4 short-circuit + incrementSpend email-gated skip (full bypass per D-A-01). Per-IP cost cap SAFE-08 is the new last-line backstop (deliberately NOT gated; T-ro4-07 mitigation comments + regression test). 16 new tests, STRIDE T-ro4-01..07 mitigated, six-gate order preserved. SEED-001 fully resolved. | 2026-05-12 | 5c19fa1 | [260512-ro4-exempt-eval-cli-joedollinger-dev-from-sa](./quick/260512-ro4-exempt-eval-cli-joedollinger-dev-from-sa/) |
+| 260512-sne | SEED-001 ip-rate-limit half: isEmailIpRatelimitAllowlisted helper (third sibling) + checkRateLimits ip10m/ipday skip for allowlisted emails. D-A-01 exempts ip10m+ipday only — session limiter stays as safety net. D-A-03 SAFE-08 (150¢/day/IP) accepted as the new ONLY cost backstop. 18 new tests, STRIDE T-sne-01..09 mitigated, route.ts byte-identical, six-gate order preserved. Driven by PR #4 CI failure cat1-fab-013..015 at ip10m=20/10min from single GH Actions runner IP. SEED-001 all three halves complete. | 2026-05-13 | 97e4a65 | [260512-sne-exempt-eval-cli-joedollinger-dev-from-pe](./quick/260512-sne-exempt-eval-cli-joedollinger-dev-from-pe/) |
 
 ## Session Continuity
 
