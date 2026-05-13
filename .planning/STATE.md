@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Plan 05-13 (gap-closure) complete. UAT Test 1 gap CLOSED — parseEvalArgs + EVAL_CATS_VALID + resolveTargetUrl exported from scripts/run-evals.ts; 24 new tests pass; 5/5 CLI smokes verified. deferred-items Item #12 RESOLVED. Plan IS post-launch gap-closure (NOT in v1.0 12-plan count)."
-last_updated: "2026-05-13T01:50:00.000Z"
-last_activity: 2026-05-13 -- Completed quick task 260512-tku: SAFETY_GATES_ENABLED kill-switch (gates 4+5 disabled by default; SEED-002 planted for re-enable)
+stopped_at: "Plan 06-03 complete — section-by-section merge applied to kb/about_me.md (592 → 1027 words). 6 new content chunks (S3 augment + S6-S10 keep-as-net-new) in stripped 3rd-person voice awaiting Plan 06-04 voice-rewrite to 1st-person Joe-prose. Existing T1/T2/T4/T5 byte-identical. SAFE-11 determinism preserved (17/17 system-prompt tests pass). 5 follow-up items flagged for post-Phase-6 backlog."
+last_updated: "2026-05-13T07:05:00.000Z"
+last_activity: 2026-05-13 -- Plan 06-03 complete; Plan 06-04 (voice rewrite) is next
 progress:
   total_phases: 8
   completed_phases: 6
   total_plans: 47
-  completed_plans: 40
-  percent: 85
+  completed_plans: 43
+  percent: 91
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** A recruiter in under five minutes walks away with a distinctive, specific impression of Joe — grounded in real projects, free of fabrication, and delivered by an agent they can see was engineered (not just prompted) with cost, abuse, and hallucination controls.
-**Current focus:** Phase 05 — eval-gates-launch
+**Current focus:** Phase 06 — kb-enrichment-about-me-hardening
 
 ## Current Position
 
-Phase: 05 (eval-gates-launch) — EXECUTING
-Plan: 2 of 13
-Status: Ready to execute
-Last activity: 2026-05-13 -- Completed quick task 260512-tku: SAFETY_GATES_ENABLED kill-switch (gates 4+5 disabled by default; SEED-002 planted; security exposure window starts at merge)
+Phase: 06 (kb-enrichment-about-me-hardening) — EXECUTING
+Plan: 3 of 6 complete; Plan 06-04 (voice rewrite) is next
+Status: Executing Phase 06 — Wave 2 partial (06-03 ✓; 06-04 pending)
+Last activity: 2026-05-13 -- Plan 06-03 complete (section-by-section merge applied; kb/about_me.md 592 → 1027 words; SAFE-11 17/17 green)
 
-Progress: [█████████░] 39/40 plans + Plan 05-12 functionally complete (code/data shipped, prod verified, gates green). Plan 05-12 awaits ONLY friend-test responses (Google Form https://forms.gle/yovqkpe3QVnNpVTP7 sent to 3 testers 2026-05-11) before sign-off + verifier + mark-complete. Phase 05.2 fully closed — VERIFICATION 14/14 must-haves; HUMAN-UAT items 1-6 approved by user; item 7 (npm run eval cat6 end-to-end) deferred to Plan 05-12 LAUNCH-05 pre-flight (resolved via cat6 documented baseline 17/20 with 3 pre-existing admin-403 spec failures filed in 05.2 deferred-items).
+Progress: [█████████░] Phase 06: 3/6 plans done (06-01 claim matrix, 06-02 strip, 06-03 merge — all committed). 06-04 voice rewrite is Wave 2 Plan 2; 06-05 cat1 ground_truth_facts expansion + 06-06 preview→promote→prod verification are Wave 3. Plan 05-12 functionally complete (code/data shipped, prod verified, gates green) — friend-test responses re-collected on post-Phase-6 enriched artifact per OQ-04 Option A. Phase 05.2 fully closed (VERIFICATION 14/14, HUMAN-UAT 1-6 approved).
 
 ## Performance Metrics
 
@@ -199,6 +199,8 @@ Recent decisions affecting current work:
 - [Phase 05-eval-gates-launch]: Plan 05-13 (gap-closure): Direct-run guard added to scripts/run-evals.ts (Rule 2 deviation) — script body fires main() only when invoked directly (import.meta.url === pathToFileURL(argv[1]).href). Mirrors scripts/generate-fallback.ts WR-06 pattern. Required to satisfy plan's <behavior> 'no child process, no network' test contract.
 - [Phase 05-eval-gates-launch]: Plan 05-13 (gap-closure): EVAL_CATS_VALID exported as single source of truth shared between argv + env validators in scripts/run-evals.ts — was a private 'known' Set in env block before. Drift hazard removed (T-05-13-03 mitigation).
 - [Phase 05-eval-gates-launch]: Plan 05-13 (gap-closure): Parser does NOT validate --cats values (separation of concerns); main() validates against EVAL_CATS_VALID and exits 2 with eval_cats_invalid log. Keeps parseEvalArgs unit-testable as pure transform. resolveTargetUrl exported as separate pure precedence resolver.
+- [Phase 06-kb-enrichment-about-me-hardening]: Plan 06-03: Planner-default scheme accepted as-is by Joe across all 23 sections (no per-section overrides). 4 keep + 1 augment (S3 What-Energizes) + 5 keep-as-net-new (S6 Differentiator+UA-War-Room, S7 Personal-Traits+questions, S8 Comm-Style incl. credibility-based, S9 Leadership-Style, S10 Core-Positioning+roles-to-avoid) + 13 strip-net-new (S11-S23 tech/process/case-study detail better-served by kb/profile.yml / kb/resume.md / kb/case_studies/*). kb/about_me.md 592 → 1027 words; existing T1/T2/T4/T5 byte-identical; 6 new chunks in stripped 3rd-person voice awaiting 06-04 voice-rewrite. SAFE-11 determinism 17/17 green on merge commit `9e58675`. Durable audit trail: .planning/phases/06-kb-enrichment-about-me-hardening/06-03-MERGE-DECISIONS.md.
+- [Phase 06-kb-enrichment-about-me-hardening]: Plan 06-03 follow-up items deferred to post-Phase-6 backlog: (1) kb/profile.yml target_roles[] expansion 3→9 (per S4 + claim-matrix Top-5 finding #1); (2) kb/profile.yml industries[] expansion to 6-industry list (per S19); (3) kb/case_studies/*.md coverage audit for all 10 stripped case studies (per S23); (4) kb/profile.yml SQL 7/10 + DDL-gap surface (per S11); (5) kb/case_studies/snowflake-marketplace-datashare.md FS/PE 12-domain audit (per S21). Out of scope for Plan 06-03 per files_modified guard (D-C-01..03).
 
 ### Roadmap Evolution
 
@@ -245,6 +247,7 @@ Resume file: None
 
 Resumed: 2026-05-11 — completed /gsd-execute-phase 5.2 Wave 5 close-out inline after two executor timeouts on full Playwright runs.
 Resumed: 2026-05-11 — /gsd-resume-work cleanup pass; STATE.md, stale checkpoint, and pending-todo reconciled to reflect Phase 05.2 closure.
+Resumed: 2026-05-13 — /gsd-resume-work after Phase 06-02 close-out; next action selected: execute Plan 06-03 (section-by-section merge, Joe-driven).
 
 ## Quick Tasks Completed
 
