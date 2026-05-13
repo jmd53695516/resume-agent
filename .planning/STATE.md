@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06 COMPLETE — kb-enrichment-about-me-hardening. All 5 D-F hard gates MET on both preview AND prod (cat1=15/15 preview, cat1=15/15 prod, cat4 agg 4.20 5/5 preview, cat4 agg 4.52 5/5 prod, SAFE-11 determinism 17/17 green). 4 eval_runs row IDs captured. kb/about_me.md live at https://joe-dollinger-chat.com (1030 words; 16 paragraphs; +11 cat1 ground_truth_facts entries; ~$2.30 spend across phase). 7 deferred items captured for post-Phase-6 backlog (none launch-blocking). OQ-04 surfaced: re-DM friend-testers on enriched prod artifact (Option A recommended). v1.0 milestone next action: Plan 05-12 friend-test sign-off → broad distribution unlock."
-last_updated: "2026-05-13T23:00:00.000Z"
-last_activity: 2026-05-13 -- Phase 06 COMPLETE (all 5 D-F hard gates MET preview+prod; ~$2.30 spend across phase; v1.0 milestone now gated only on Plan 05-12 friend-test sign-off)
+stopped_at: "Phase 7 (add-test-yml-github-actions-workflow-for-determinism) promoted from 999.2 backlog 2026-05-13 — flagged pre-Phase-7 priority during Phase 06 close-out triage. Ready for /gsd-plan-phase 7. Does NOT block v1.0 launch — v1.0 close still gated only on Plan 05-12 friend-test sign-off (Joe-time outreach). Phase 06 close-out + 7-item backlog triage all committed earlier today."
+last_updated: "2026-05-13T23:30:00.000Z"
+last_activity: 2026-05-13 -- Phase 7 promoted from 999.2 backlog (test.yml CI workflow for SAFE-11 determinism); ROADMAP + STATE updated; 6 other backlog items remain in 999.x parking lot
 progress:
-  total_phases: 8
+  total_phases: 9
   completed_phases: 7
   total_plans: 47
   completed_plans: 46
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 
 ## Current Position
 
-Phase: 06 (kb-enrichment-about-me-hardening) — **COMPLETE 2026-05-13**
-Plan: 6 of 6 complete
-Status: Phase 06 closed; all 5 D-F hard gates MET preview+prod; ~$2.30 phase spend total
-Last activity: 2026-05-13 -- Phase 06 close-out committed (06-06-SUMMARY.md; ROADMAP + STATE updated via gsd-tools phase complete)
+Phase: 07 (add-test-yml-github-actions-workflow-for-determinism) — **PROMOTED 2026-05-13, awaiting planning**
+Plan: 0 of TBD (no plans written yet — next action: `/gsd-plan-phase 7`)
+Status: Promoted from 999.2 backlog parking lot. Closes Plan 06-06 Task 8 instrumentation gap. Scope: automated test.yml workflow running 17 SAFE-11 system-prompt determinism tests on every PR + main push, plus branch protection check parity with existing eval gate.
+Last activity: 2026-05-13 -- Phase 7 promoted from 999.2 backlog (test.yml CI workflow); ROADMAP + STATE updated; 6 other backlog items (999.1, 999.3-999.7) remain in parking lot
 
-Progress: [██████████] Phase 06: 6/6 plans complete. Phase 06 kb/about_me.md enrichment live on prod (https://joe-dollinger-chat.com); cat1 = 15/15 preview + 15/15 prod; cat4 = 4.20 preview + 4.52 prod (both per_case all pass); SAFE-11 17/17 green; 11 new cat1 ground_truth_facts entries; D-F-08 audit trail complete (4 eval_runs row IDs). Plan 05-12 functionally complete (code/data shipped, prod verified, gates green) — friend-test responses now re-collected on post-Phase-6 enriched artifact per OQ-04 Option A recommendation. Phase 05.2 fully closed. v1.0 milestone close gated only on Plan 05-12 friend-test sign-off.
+Progress: [██████████] Phase 06: 6/6 plans complete (CLOSED). Phase 06 kb/about_me.md enrichment live on prod (https://joe-dollinger-chat.com); cat1 = 15/15 preview + 15/15 prod; cat4 = 4.20 preview + 4.52 prod (both per_case all pass); SAFE-11 17/17 green; 11 new cat1 ground_truth_facts entries; D-F-08 audit trail complete (4 eval_runs row IDs). Plan 05-12 functionally complete (code/data shipped, prod verified, gates green) — friend-test responses now re-collected on post-Phase-6 enriched artifact per OQ-04 Option A recommendation. Phase 05.2 fully closed. **v1.0 milestone close still gated only on Plan 05-12 friend-test sign-off — Phase 7 is parallel CI-hardening, does NOT block launch.**
 
 ## Performance Metrics
 

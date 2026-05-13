@@ -180,6 +180,19 @@ Plans:
 - [x] 06-06-PLAN.md — Verification closure: preview eval gate → prod promote → prod eval gate; 5/5 D-F hard gates MET preview+prod; 4 `eval_runs` row IDs captured; 7 deferred items → 999.1-999.7 backlog (durable: `06-06-VERIFICATION-LOG.md` + `06-06-SUMMARY.md`)
 **UI hint**: no
 
+### Phase 7: Add test.yml GitHub Actions workflow for determinism
+
+**Goal:** Add an automated `test.yml` GitHub Actions workflow so SAFE-11 determinism (17/17 system-prompt tests) runs on every PR — not just manually. D-F-06 is currently verified locally only, leaving every future system-prompt or KB change unguarded in CI. Promoted from 999.2 backlog on 2026-05-13 (flagged pre-Phase-7 priority during Phase 06 close-out triage). Highest-priority of the 7 Phase-06 deferred items.
+**Depends on:** Phase 6
+**Requirements**: None (decimal-equivalent CI-instrumentation phase closing 06-06 Task 8 gap)
+**Success Criteria** (what must be TRUE):
+  1. A `.github/workflows/test.yml` workflow exists and runs on every PR + push to main
+  2. The workflow runs the 17 SAFE-11 system-prompt determinism tests and fails the check on any regression
+  3. Branch protection on `main` requires the new check to pass before merge (parity with existing eval gate posture)
+  4. A representative PR demonstrates the gate catching an induced determinism break (synthetic violation reverted before merge)
+**Plans:** TBD (run `/gsd-plan-phase 7` to break down)
+**UI hint**: no
+
 ## Backlog
 
 Unsequenced parking lot (999.x). Items captured during Phase 06 close-out triage (2026-05-13) from `.planning/phases/06-kb-enrichment-about-me-hardening/06-06-SUMMARY.md` "Phase 06 deferred items." None are launch-blocking. Promote with `/gsd-review-backlog`.
@@ -188,16 +201,6 @@ Unsequenced parking lot (999.x). Items captured during Phase 06 close-out triage
 
 **Goal:** Resolve cat4-prompt-003 ("What's a stance you hold that other PMs disagree with?") cold-cache flake — 5/7 PASS across N=7 runs with aggregate always ≥4.20. Fix options: (a) refine the prompt; (b) add stance-register voice sample to `kb/voice.md`; (c) relax per_case threshold from 4.0 → 3.8 in `evals/cat-04-voice.yaml`.
 **Source:** 06-06-SUMMARY.md deferred item #1; 06-06-VERIFICATION-LOG.md N=7 variance map.
-**Requirements**: TBD
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (promote with /gsd-review-backlog when ready)
-
-### Phase 999.2: Add test.yml GitHub Actions workflow for determinism (BACKLOG — pre-Phase-7 priority)
-
-**Goal:** Add automated `test.yml` GitHub Actions workflow so SAFE-11 determinism (17/17 system-prompt tests) runs on every PR, not just manually. D-F-06 currently verified locally only. Highest-priority of the 7 Phase-06 deferred items because every future system-prompt or KB change is currently unguarded in CI.
-**Source:** 06-06-SUMMARY.md deferred item #2; 06-06 Task 8 instrumentation gap.
 **Requirements**: TBD
 **Plans:** 0 plans
 
