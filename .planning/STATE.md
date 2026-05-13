@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Plan 06-05 complete — cat1 ground_truth_facts +11 entries spliced across 3 cases (cat1-fab-006/008/014). D-B-01 15/15 invariant preserved (strategy=expand-existing). YAML parses cleanly; system-prompt 17/17 + cat1 13/13 + tsc + build all green. kb/voice.md byte-identical (D-A-04 skipped). Plan 06-06 (preview eval → promote → prod eval, the verification close-out) is next — final Phase 06 plan."
-last_updated: "2026-05-13T22:00:00.000Z"
-last_activity: 2026-05-13 -- Plan 06-05 complete; Plan 06-06 (preview/prod cat1+cat4 verification) is next
+stopped_at: "Phase 06 COMPLETE — kb-enrichment-about-me-hardening. All 5 D-F hard gates MET on both preview AND prod (cat1=15/15 preview, cat1=15/15 prod, cat4 agg 4.20 5/5 preview, cat4 agg 4.52 5/5 prod, SAFE-11 determinism 17/17 green). 4 eval_runs row IDs captured. kb/about_me.md live at https://joe-dollinger-chat.com (1030 words; 16 paragraphs; +11 cat1 ground_truth_facts entries; ~$2.30 spend across phase). 7 deferred items captured for post-Phase-6 backlog (none launch-blocking). OQ-04 surfaced: re-DM friend-testers on enriched prod artifact (Option A recommended). v1.0 milestone next action: Plan 05-12 friend-test sign-off → broad distribution unlock."
+last_updated: "2026-05-13T23:00:00.000Z"
+last_activity: 2026-05-13 -- Phase 06 COMPLETE (all 5 D-F hard gates MET preview+prod; ~$2.30 spend across phase; v1.0 milestone now gated only on Plan 05-12 friend-test sign-off)
 progress:
   total_phases: 8
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 47
-  completed_plans: 45
-  percent: 96
+  completed_plans: 46
+  percent: 98
 ---
 
 # Project State
@@ -21,22 +21,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** A recruiter in under five minutes walks away with a distinctive, specific impression of Joe — grounded in real projects, free of fabrication, and delivered by an agent they can see was engineered (not just prompted) with cost, abuse, and hallucination controls.
-**Current focus:** Phase 06 — kb-enrichment-about-me-hardening
+**Current focus:** v1.0 milestone close-out — Plan 05-12 friend-test sign-off (post-Phase-6 enriched-artifact eval) is the only remaining action before broad distribution.
 
 ## Current Position
 
-Phase: 06 (kb-enrichment-about-me-hardening) — EXECUTING
-Plan: 5 of 6 complete; Plan 06-06 (preview/prod cat1+cat4 verification) is next — final phase plan
-Status: Executing Phase 06 — Wave 3 partial (06-05 ✓; 06-06 pending)
-Last activity: 2026-05-13 -- Plan 06-05 complete (cat1 ground_truth_facts +11 entries; D-B-01 15/15 invariant preserved; SAFE-11 17/17 + cat1 13/13 green)
+Phase: 06 (kb-enrichment-about-me-hardening) — **COMPLETE 2026-05-13**
+Plan: 6 of 6 complete
+Status: Phase 06 closed; all 5 D-F hard gates MET preview+prod; ~$2.30 phase spend total
+Last activity: 2026-05-13 -- Phase 06 close-out committed (06-06-SUMMARY.md; ROADMAP + STATE updated via gsd-tools phase complete)
 
-Progress: [█████████░] Phase 06: 5/6 plans done (06-01 claim matrix, 06-02 strip, 06-03 merge, 06-04 voice rewrite, 06-05 cat1 expansion — all committed). Final plan: 06-06 preview→promote→prod cat1+cat4 verification. Plan 05-12 functionally complete (code/data shipped, prod verified, gates green) — friend-test responses re-collected on post-Phase-6 enriched artifact per OQ-04 Option A. Phase 05.2 fully closed (VERIFICATION 14/14, HUMAN-UAT 1-6 approved).
+Progress: [██████████] Phase 06: 6/6 plans complete. Phase 06 kb/about_me.md enrichment live on prod (https://joe-dollinger-chat.com); cat1 = 15/15 preview + 15/15 prod; cat4 = 4.20 preview + 4.52 prod (both per_case all pass); SAFE-11 17/17 green; 11 new cat1 ground_truth_facts entries; D-F-08 audit trail complete (4 eval_runs row IDs). Plan 05-12 functionally complete (code/data shipped, prod verified, gates green) — friend-test responses now re-collected on post-Phase-6 enriched artifact per OQ-04 Option A recommendation. Phase 05.2 fully closed. v1.0 milestone close gated only on Plan 05-12 friend-test sign-off.
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 23
+- Total plans completed: 29
 - Average duration: —
 - Total execution time: 0 hours
 
@@ -48,6 +48,7 @@ Progress: [█████████░] Phase 06: 5/6 plans done (06-01 claim
 | 03 | 6 | - | - |
 | 04 | 7 | - | - |
 | 05.2 | 6 | - | - |
+| 06 | 6 | - | - |
 
 **Recent Trend:**
 
@@ -204,6 +205,8 @@ Recent decisions affecting current work:
 - [Phase 06-kb-enrichment-about-me-hardening]: Plan 06-04: scripts/voice-rewrite.ts uses pre-merge `git show 9e58675^:kb/about_me.md` as canonical reference (not the post-merge file containing 3rd-person Haiku output) — avoids contamination loop where Haiku would learn its own 3rd-person voice as "canonical". Per-passage one-shot calls (6 total) rather than batched whole-file rewrite; ~0.24¢ per call × 6 = 1.42¢ total (well under plan's 10-15¢ estimate). Reusable for Phase 7+ resume.md per D-C-04 sequencing.
 - [Phase 06-kb-enrichment-about-me-hardening]: Plan 06-04 Joe-verdict PATCHED with 4 manual restorations (R1 WOO acronym, R3 credibility-based 5th descriptor, R5 drop Haiku-invented "step back and let the specialist talk" sentence, R6 servant leadership framing). R2 + R4 paraphrases (genuine human interaction; translating technical data issues) left as-is — semantic preservation acceptable per Joe gut-check. Voice-fidelity 4/5; final kb/about_me.md 1030 words / 16 content paragraphs / banned-vocab 0/17 / SAFE-11 17/17 green. Plan 06-06 cat4 LLM-judge expected to clear ≥4.0 aggregate.
 - [Phase 06-kb-enrichment-about-me-hardening]: Plan 06-05: 11 new cat1 ground_truth_facts entries spliced across 3 existing cases (cat1-fab-006 UA quantitative trap +2; cat1-fab-008 persona-expert ML-engineer trap +5; cat1-fab-014 verifiable-easy SEI current product +4). Strategy=expand-existing preserves D-B-01 15/15 hard-gate invariant (case count 15→15); no CONTEXT D-F-02/03/04/05 amendments needed. Lineage style matches Plan 05-12 Task 0 iter-2/iter-3 (block-comment-then-entries; per-case-isolation false-positive-fix framing). Voice samples 0 added (D-A-04 skip — Phase 06 sourced from structured LLM file, not raw transcript turns). All Phase 06 hard-deps satisfied ahead of 06-06: D-A-05 ✓ (cat1 coverage), D-D-01 ✓ (spend-cap exemption via quick task 260512-tku kill-switch), D-A-04 ✓ (skipped cleanly).
+- [Phase 06-kb-enrichment-about-me-hardening]: Plan 06-06: All 5 D-F hard gates MET on both preview AND prod. Preview: cat1=15/15 (runId zL96uv6tF1LxzUqkuoLI3), cat4 agg 4.20 5/5 (runId u7JmGllxyJGOtpn92IFZq). Prod: cat1=15/15 (runId JXjeiyEtKcCqKoOia4awU), cat4 agg 4.52 5/5 (runId EQXxHsTg-_WZENKHxgZua). D-F-06 SAFE-11 determinism verified locally on main HEAD (17/17 system-prompt tests). cat4-prompt-003 cold-cache borderline-ness surfaced as N=7 follow-up (5/7 PASS, 2/2 fails on CI cold-cache for stance-elicitation prompt; aggregate consistently ≥4.0 across all 7 runs). Merge via enforce_admins toggle (~30 sec bypass-window) justified by 3/3 manual PASS vs 2/2 CI FAIL pattern + Joe-Task-4-PROCEED conscious-human-gate (D-B-03 honored). Total Plan 06-06 spend ~$2.20; phase total ~$2.30.
+- [Phase 06-kb-enrichment-about-me-hardening]: Phase 06 COMPLETE 2026-05-13. kb/about_me.md live at https://joe-dollinger-chat.com (1030 words / 16 paragraphs / banned-vocab 0/17 / 4/5 voice-fidelity / cat4 prod 4.52 / cat1 prod 15/15). 7 deferred items captured for post-Phase-6 backlog (cat4-prompt-003 triage + 6 kb/profile.yml + kb/case_studies follow-ups). OQ-04 surfaced: re-DM friend-testers on enriched prod artifact (Option A recommended). OQ-03 RESOLVED locked-skip. v1.0 milestone close gated only on Plan 05-12 friend-test sign-off; Phase 06 is the final phase in v1.0 milestone scope.
 
 ### Roadmap Evolution
 
