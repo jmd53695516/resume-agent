@@ -47,6 +47,14 @@ const EnvSchema = z.object({
   EVAL_JUDGE_MODEL: z.string().optional(),
   EVAL_TARGET_URL: z.url().optional(),
   GH_DISPATCH_TOKEN: z.string().min(10).optional(),
+
+  // Quick task 260512-tku: temporary kill-switch wrapping gates 4 (spend-cap)
+  // and 5 (rate-limits) in /api/chat. Default OFF (unset / anything other than
+  // literal 'true' = gates SKIPPED). Set to 'true' in Vercel preview + prod
+  // environments to re-activate both gates with zero code change. See SEED-002
+  // for re-enable criteria. SECURITY RISK while off: only Anthropic org-level
+  // $100/mo cap remains as cost backstop.
+  SAFETY_GATES_ENABLED: z.string().optional(),
 });
 
 export const env = EnvSchema.parse(process.env);

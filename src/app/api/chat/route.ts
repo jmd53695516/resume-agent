@@ -12,6 +12,12 @@
 //   6. Classifier (SAFE-01..03 — Haiku verdict; <0.7 -> borderline)
 // Then streamText(Sonnet) with cached system prompt and onFinish persistence.
 //
+// QUICK TASK 260512-tku (2026-05-13): Gates 4 + 5 are wrapped behind the
+// SAFETY_GATES_ENABLED env-var feature flag (default OFF). When flag is OFF
+// (the current production state), gates 4 + 5 are SKIPPED at runtime — only
+// the Anthropic org-level $100/mo spend cap remains as cost backstop.
+// Re-enable: set SAFETY_GATES_ENABLED='true' in Vercel envs. See SEED-002.
+//
 // Deviations from RESEARCH.md template (deliberate, see Plan 02-02 Task 1 §Adjustments):
 //  - All deflection-path persistDeflectionTurn calls wrapped in try/catch (D-G-05).
 //    Persistence failures don't block the user-visible deflection.
@@ -109,6 +115,19 @@ function deflectionResponse(reason: DeflectionReason): Response {
 export async function POST(req: Request): Promise<Response> {
   const started = Date.now();
 
+  // Quick task 260512-tku: temporary kill-switch for gates 4 (spend-cap) and 5
+  // (rate-limits). Default OFF (unset / anything other than literal 'true' = gates
+  // SKIPPED). Re-enable by setting SAFETY_GATES_ENABLED='true' in Vercel envs;
+  // no code change required. SEED-002 tracks re-activation criteria. SECURITY:
+  // while OFF, only Anthropic org-level $100/mo cap is the cost backstop —
+  // public-facing agent at https://joe-dollinger-chat.com is exposed to ~$100
+  // drain if URL discovered. Joe accepted this exposure window 2026-05-13.
+  // SEED-001 helpers (EVAL_CLI_ALLOWLIST etc. in src/lib/redis.ts) BYTE-IDENTICAL
+  // — un-flagging restores SEED-001 protection unchanged. Call-time read (NOT
+  // module scope) mirrors Phase 02-04 Turnstile precedent (STATE.md line 108)
+  // so vitest can mutate the flag per-test without resetModules ceremony.
+  const SAFETY_GATES_ENABLED = process.env.SAFETY_GATES_ENABLED === 'true';
+
   // 1. body validation
   const body = await req.json().catch(() => null);
   const parsed = BodySchema.safeParse(body);
@@ -184,8 +203,11 @@ export async function POST(req: Request): Promise<Response> {
     return deflectionResponse('turncap');
   }
 
-  // 4. spend cap (SAFE-04 / SAFE-09 — must precede classifier so abusive
-  //    requests don't even pay for Haiku once cap is hit).
+  // 4. spend cap (SAFE-04 / SAFE-09) — GATED by SAFETY_GATES_ENABLED (260512-tku).
+  // When flag is OFF, gate is skipped entirely: isEmailSpendCapAllowlisted is
+  // never consulted, isOverCap() is never called, no deflection fires. Counters
+  // still increment in onFinish (observability preserved). SEED-001 / D-A-01
+  // allowlist helpers remain present in src/lib/redis.ts for un-flagging.
   //
   // SEED-001 / D-A-01 / quick task 260512-ro4 (per .planning/quick/
   // 260512-ro4-exempt-eval-cli-joedollinger-dev-from-sa/260512-ro4-PLAN.md):
@@ -194,59 +216,67 @@ export async function POST(req: Request): Promise<Response> {
   // cap (SAFE-08) below at gate 5 is the new last-line cost backstop for
   // eval-cli traffic. An attacker spoofing the email is still capped at
   // 150¢/day per source IP and 60 msgs/day per IP (ip10m + ipday).
-  if (!isEmailSpendCapAllowlisted(session.email) && (await isOverCap())) {
-    try {
-      await persistDeflectionTurn({
-        session_id,
-        user_text: lastUser,
-        verdict: null,
-        deflection_text: DEFLECTIONS.spendcap,
-        reason: 'spendcap',
-      });
-    } catch (e) {
-      log(
-        {
-          event: 'persistence_failed',
-          where: 'persistDeflectionTurn(spendcap)',
-          error_class: (e as Error).name ?? 'Error',
-          error_message: (e as Error).message,
+  if (SAFETY_GATES_ENABLED) {
+    if (!isEmailSpendCapAllowlisted(session.email) && (await isOverCap())) {
+      try {
+        await persistDeflectionTurn({
           session_id,
-        },
-        'error',
-      );
+          user_text: lastUser,
+          verdict: null,
+          deflection_text: DEFLECTIONS.spendcap,
+          reason: 'spendcap',
+        });
+      } catch (e) {
+        log(
+          {
+            event: 'persistence_failed',
+            where: 'persistDeflectionTurn(spendcap)',
+            error_class: (e as Error).name ?? 'Error',
+            error_message: (e as Error).message,
+            session_id,
+          },
+          'error',
+        );
+      }
+      log({ event: 'deflect', reason: 'spendcap', session_id });
+      return deflectionResponse('spendcap');
     }
-    log({ event: 'deflect', reason: 'spendcap', session_id });
-    return deflectionResponse('spendcap');
   }
 
-  // 5. rate limits (SAFE-05..08) — IP via @vercel/functions, fallback chain
-  //    for local dev and edge cases (Pitfall E).
+  // 5. rate limits (SAFE-05..08) — GATED by SAFETY_GATES_ENABLED (260512-tku).
+  // When flag is OFF, gate is skipped entirely: checkRateLimits() is never
+  // called, no deflection fires. Note: ipKey is ALSO consumed by
+  // incrementIpCost in onFinish (per-IP cost observability) — therefore the
+  // ipKey computation lives OUTSIDE this conditional. The conditional wraps
+  // only the limiter call + deflection branch.
   const ipKey =
     ipAddress(req) ?? req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'dev';
-  const rl = await checkRateLimits(ipKey, session.email, session_id);
-  if (!rl.ok) {
-    try {
-      await persistDeflectionTurn({
-        session_id,
-        user_text: lastUser,
-        verdict: null,
-        deflection_text: DEFLECTIONS.ratelimit,
-        reason: 'ratelimit',
-      });
-    } catch (e) {
-      log(
-        {
-          event: 'persistence_failed',
-          where: 'persistDeflectionTurn(ratelimit)',
-          error_class: (e as Error).name ?? 'Error',
-          error_message: (e as Error).message,
+  if (SAFETY_GATES_ENABLED) {
+    const rl = await checkRateLimits(ipKey, session.email, session_id);
+    if (!rl.ok) {
+      try {
+        await persistDeflectionTurn({
           session_id,
-        },
-        'error',
-      );
+          user_text: lastUser,
+          verdict: null,
+          deflection_text: DEFLECTIONS.ratelimit,
+          reason: 'ratelimit',
+        });
+      } catch (e) {
+        log(
+          {
+            event: 'persistence_failed',
+            where: 'persistDeflectionTurn(ratelimit)',
+            error_class: (e as Error).name ?? 'Error',
+            error_message: (e as Error).message,
+            session_id,
+          },
+          'error',
+        );
+      }
+      log({ event: 'deflect', reason: 'ratelimit', which: rl.which, session_id });
+      return deflectionResponse('ratelimit');
     }
-    log({ event: 'deflect', reason: 'ratelimit', which: rl.which, session_id });
-    return deflectionResponse('ratelimit');
   }
 
   // 6. classifier (SAFE-01..03)
