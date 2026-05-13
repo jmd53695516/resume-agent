@@ -257,13 +257,25 @@ After consolidated-resume.md was staged 2026-05-13, the matrix was re-graded. 13
 | claim-120 (retail/e-com areas: POS + loyalty specifically) | verify-with-joe | keep | consolidated-resume.md line 221 ("Point-of-sale technology and small-business retail operations" — explicit) + line 295 ("loyalty analytics work that contributed to a 6% increase in Net Promoter Score") |
 | claim-124 (additional FS/PE domains: capital activity, commitments, distributions, fund metadata) | verify-with-joe | keep | consolidated-resume.md positioning of SEI Data Cloud (lines 228-245) supports the expanded data-domain list as consistent with Joe's NAV/ILPA work; not contradicted |
 
-## Joe-review block (post-re-grade)
+## Joe-review block (post-re-grade) — RESOLVED 2026-05-13
 
-Items still flagged `verify-with-joe`:
+Items previously flagged `verify-with-joe`, now answered:
 
-- claim-009 ("Joe has technical fluency and sales engineering experience, but those are supporting strengths rather than his core identity") → Joe: 
-- claim-035 (style descriptor: "credibility-based" — consolidated resume has the credibility *frame*, but is it Joe's communication-style label?) → Joe: 
-- claim-052 (Joe asks: "What decision are we actually trying to make?" — third question; not in transcript and not in either resume; LLM-added) → Joe: 
+- claim-009 ("Joe has technical fluency and sales engineering experience, but those are supporting strengths rather than his core identity") → **Joe: Yes-keep** (accurate framing; tech fluency + sales-eng both real, both support PM/analytics-leader core identity)
+- claim-035 (style descriptor: "credibility-based") → **Joe: Yes-keep** ("credibility-based" captures the underlying behavior; consolidated-resume.md line 403 frame is the canonical support)
+- claim-052 (Joe asks: "What decision are we actually trying to make?") → **Joe: Yes-keep** (Joe does ask this; LLM picked up a real pattern not captured in the transcript)
+
+**Final disposition counts (after Joe-review):** keep=75 (+3 from this resolution), strip=49, verify-with-joe=0, meta=9 → total 133 claims fully graded.
+
+## OQ-04 Friend-test sequencing
+
+Decision: **Option A — Re-DM friend-testers AFTER Phase 6 ships (enriched artifact gets the eval)**
+Rationale: The friends should evaluate v1.0 in its intended state, not a pre-enrichment snapshot. Plan 05-12 sign-off is therefore BLOCKED until Phase 6 completes — current Google Form responses (if any arrive) are early-signal / informational only, not the official launch eval. After Phase 6 ships, re-send the form to the same 3 testers (or expand the tester list) for the canonical pre-distribution evaluation.
+
+**Implications for Plan 05-12 / v1.0 milestone close:**
+- Plan 05-12 cannot sign off until Phase 6 ships AND friend-testers respond on enriched artifact
+- The 1-3 day async window for friend-test responses (memory) extends by Phase 6 duration
+- Phase 6 verification (Plan 06-06) gets the new cat1 + cat4 evaluation; friend-tester re-DM is a separate post-Phase-6 step (recorded in Plan 06-06 follow-ups)
 
 ## Coverage assertion
 
