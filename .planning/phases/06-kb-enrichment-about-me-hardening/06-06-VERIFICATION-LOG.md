@@ -114,7 +114,11 @@ reset-eval-rate-limits: cleared 1/4 keys.
 
 ## Task 4 — Preview gate decision
 
-(pending — awaiting Joe's PROCEED-vs-HALT verdict)
+**Decision:** PROCEED to Task 5 (promote-to-prod)
+
+**Rationale:** cat1 = 15/15 (D-B-01 hard-gate met — all 15 cases including the 3 Plan 06-05 expansion-receivers passed); cat4 aggregate = 4.20 ≥ 4.0 (D-B-02 hard-gate met); per-case all pass (5/5 cat4 cases). Preview-spot-check not required — gate criteria are objective and both cleared cleanly. LLM-judge 4.20 aligns with Joe's 4/5 voice-fidelity gut-check from Plan 06-04 — convergent validation across two independent metrics.
+
+**Signed:** Joe Dollinger, 2026-05-13
 
 ## Task 5 — Promote to prod
 
