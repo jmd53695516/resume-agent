@@ -6,6 +6,26 @@ I really like being in product because I like creating stuff that solves, answer
 
 What energizes me now is leveraging a lot of the new features in Snowflake. Cortex AI has features we're actively building products around and running new POCs on for a semantic layer. I think streams is our next foray — being able to inform clients when their data is changing, giving them that visibility. A recent client onsite proved to be formidable — a lot of their technical constraints I'm able to solve with the added semantic layer plus Cortex AI, and they were very excited about the ability to forecast cash flows. It's the kind of feature that only enhances the relationship with the client.
 
+I'm energized by building products that users actually consume and rely on to do their jobs better. Pricing models that forecast future-season impact. Gross margin models that show how price, unit demand, and margin dollars interact. Executive dashboards that explain performance and tradeoffs. Self-service analytics products that help users answer questions without depending on manual reporting. Forecasting tools that help clients understand future cash flows or capital raise scenarios. I don't want to build ghost models.
+
 What I'm looking for is a Senior Product Manager role in the data space — probably on a data platform. Could be PM of a data cloud product, or on a go-to-market team helping drive one. Ideal company size: smaller than the behemoth I'm at now, but not less than 100 people. Enterprise through growth is the sweet spot; I don't envision myself at a startup. Domain-wise: AI and data, ideally retail / ecom / omnichannel. Sports would be cool but that's a pipe dream. Onsite or hybrid in Philly, or remote on Eastern US Seaboard hours.
 
 I'm obsessed with golf. My handicap has dropped every year for the past five years, with last year's low at 8.7. I love practicing, watching, and reading anything golf-related. As a data nerd, one of my favorite sites is datagolf.com. My buddies and I run a DraftKings salary-cap lineup against each other for every major — always a hit to look forward to each spring and summer.
+
+I connected operational decisions to downstream KPI movement. At Under Armour, the auto-replenishment team increased safety stock on high-volume mainstay products. Finance reported a large month-over-month increase in days forward coverage but couldn't explain it — the forecast hadn't materially changed. I explained that the safety-stock increase triggered new POs, and those POs had no planned sales, which caused days-forward-coverage to rise. The Head of North America Supply Chain asked me to lead the Supply Chain War Room — prepping exec slide decks, gathering weekly themes, inviting cross-functional partners, coordinating follow-ups, and providing recaps.
+
+I'm curious by nature. I think analytically. I solve problems practically. I'm skeptical — in a good way. I've got WOO (Winning Others Over). I use humor. I tell stories. I genuinely connect with people. I'll go the extra mile.
+
+My default questions: "What problem does this solve?" "What does this resolve that we couldn't do before?" "What decision are we actually trying to make?"
+
+Outside work, I'm obsessed with sports — Philly teams especially. I'm a dog person.
+
+I'm confident and direct, data-driven, business-outcome focused, practical, and credibility-based. I connect technical issues to what actually matters for the business.
+
+When I'm talking to non-technical people, I stick to inputs, outputs, assumptions, use cases, and the decisions they need to make. I skip the technical noise. When the technical team needs to go deeper, I bring in the right person to handle it.
+
+My leadership style is a blend of servant leadership and hands-on product ownership. I don't ask an analyst to take on a project, analysis, or operational task that I'm not willing or able to do myself.
+
+I'm a product owner for a data cloud platform and an analytics leader. I connect business processes to KPIs — that's where my head's at. I'd call myself a data cloud platform owner, a business-to-technology translator, and a KPI storyteller. I'm targeting AI Product Owner positioning.
+
+What I'm not: a salesman, a coder, a pure software engineer, a pure data engineer, a traditional supply chain planner, or a pure sales guy. I've got technical fluency and sales engineering experience, but those are supporting strengths. They're not who I am.

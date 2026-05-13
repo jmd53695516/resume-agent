@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Plan 05-13 (gap-closure) complete. UAT Test 1 gap CLOSED — parseEvalArgs + EVAL_CATS_VALID + resolveTargetUrl exported from scripts/run-evals.ts; 24 new tests pass; 5/5 CLI smokes verified. deferred-items Item #12 RESOLVED. Plan IS post-launch gap-closure (NOT in v1.0 12-plan count)."
-last_updated: "2026-05-12T01:41:07.230Z"
-last_activity: 2026-05-12
+stopped_at: "Plan 06-05 complete — cat1 ground_truth_facts +11 entries spliced across 3 cases (cat1-fab-006/008/014). D-B-01 15/15 invariant preserved (strategy=expand-existing). YAML parses cleanly; system-prompt 17/17 + cat1 13/13 + tsc + build all green. kb/voice.md byte-identical (D-A-04 skipped). Plan 06-06 (preview eval → promote → prod eval, the verification close-out) is next — final Phase 06 plan."
+last_updated: "2026-05-13T22:00:00.000Z"
+last_activity: 2026-05-13 -- Plan 06-05 complete; Plan 06-06 (preview/prod cat1+cat4 verification) is next
 progress:
-  total_phases: 7
+  total_phases: 8
   completed_phases: 6
-  total_plans: 41
-  completed_plans: 40
-  percent: 98
+  total_plans: 47
+  completed_plans: 45
+  percent: 96
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** A recruiter in under five minutes walks away with a distinctive, specific impression of Joe — grounded in real projects, free of fabrication, and delivered by an agent they can see was engineered (not just prompted) with cost, abuse, and hallucination controls.
-**Current focus:** Phase 05 — eval-gates-launch
+**Current focus:** Phase 06 — kb-enrichment-about-me-hardening
 
 ## Current Position
 
-Phase: 05 (eval-gates-launch) — EXECUTING
-Plan: 2 of 13
-Status: Ready to execute
-Last activity: 2026-05-12 - Completed quick task 260511-u9d: WR-01 classifier banner false-green fix
+Phase: 06 (kb-enrichment-about-me-hardening) — EXECUTING
+Plan: 5 of 6 complete; Plan 06-06 (preview/prod cat1+cat4 verification) is next — final phase plan
+Status: Executing Phase 06 — Wave 3 partial (06-05 ✓; 06-06 pending)
+Last activity: 2026-05-13 -- Plan 06-05 complete (cat1 ground_truth_facts +11 entries; D-B-01 15/15 invariant preserved; SAFE-11 17/17 + cat1 13/13 green)
 
-Progress: [█████████░] 39/40 plans + Plan 05-12 functionally complete (code/data shipped, prod verified, gates green). Plan 05-12 awaits ONLY friend-test responses (Google Form https://forms.gle/yovqkpe3QVnNpVTP7 sent to 3 testers 2026-05-11) before sign-off + verifier + mark-complete. Phase 05.2 fully closed — VERIFICATION 14/14 must-haves; HUMAN-UAT items 1-6 approved by user; item 7 (npm run eval cat6 end-to-end) deferred to Plan 05-12 LAUNCH-05 pre-flight (resolved via cat6 documented baseline 17/20 with 3 pre-existing admin-403 spec failures filed in 05.2 deferred-items).
+Progress: [█████████░] Phase 06: 5/6 plans done (06-01 claim matrix, 06-02 strip, 06-03 merge, 06-04 voice rewrite, 06-05 cat1 expansion — all committed). Final plan: 06-06 preview→promote→prod cat1+cat4 verification. Plan 05-12 functionally complete (code/data shipped, prod verified, gates green) — friend-test responses re-collected on post-Phase-6 enriched artifact per OQ-04 Option A. Phase 05.2 fully closed (VERIFICATION 14/14, HUMAN-UAT 1-6 approved).
 
 ## Performance Metrics
 
@@ -199,12 +199,18 @@ Recent decisions affecting current work:
 - [Phase 05-eval-gates-launch]: Plan 05-13 (gap-closure): Direct-run guard added to scripts/run-evals.ts (Rule 2 deviation) — script body fires main() only when invoked directly (import.meta.url === pathToFileURL(argv[1]).href). Mirrors scripts/generate-fallback.ts WR-06 pattern. Required to satisfy plan's <behavior> 'no child process, no network' test contract.
 - [Phase 05-eval-gates-launch]: Plan 05-13 (gap-closure): EVAL_CATS_VALID exported as single source of truth shared between argv + env validators in scripts/run-evals.ts — was a private 'known' Set in env block before. Drift hazard removed (T-05-13-03 mitigation).
 - [Phase 05-eval-gates-launch]: Plan 05-13 (gap-closure): Parser does NOT validate --cats values (separation of concerns); main() validates against EVAL_CATS_VALID and exits 2 with eval_cats_invalid log. Keeps parseEvalArgs unit-testable as pure transform. resolveTargetUrl exported as separate pure precedence resolver.
+- [Phase 06-kb-enrichment-about-me-hardening]: Plan 06-03: Planner-default scheme accepted as-is by Joe across all 23 sections (no per-section overrides). 4 keep + 1 augment (S3 What-Energizes) + 5 keep-as-net-new (S6 Differentiator+UA-War-Room, S7 Personal-Traits+questions, S8 Comm-Style incl. credibility-based, S9 Leadership-Style, S10 Core-Positioning+roles-to-avoid) + 13 strip-net-new (S11-S23 tech/process/case-study detail better-served by kb/profile.yml / kb/resume.md / kb/case_studies/*). kb/about_me.md 592 → 1027 words; existing T1/T2/T4/T5 byte-identical; 6 new chunks in stripped 3rd-person voice awaiting 06-04 voice-rewrite. SAFE-11 determinism 17/17 green on merge commit `9e58675`. Durable audit trail: .planning/phases/06-kb-enrichment-about-me-hardening/06-03-MERGE-DECISIONS.md.
+- [Phase 06-kb-enrichment-about-me-hardening]: Plan 06-03 follow-up items deferred to post-Phase-6 backlog: (1) kb/profile.yml target_roles[] expansion 3→9 (per S4 + claim-matrix Top-5 finding #1); (2) kb/profile.yml industries[] expansion to 6-industry list (per S19); (3) kb/case_studies/*.md coverage audit for all 10 stripped case studies (per S23); (4) kb/profile.yml SQL 7/10 + DDL-gap surface (per S11); (5) kb/case_studies/snowflake-marketplace-datashare.md FS/PE 12-domain audit (per S21). Out of scope for Plan 06-03 per files_modified guard (D-C-01..03).
+- [Phase 06-kb-enrichment-about-me-hardening]: Plan 06-04: scripts/voice-rewrite.ts uses pre-merge `git show 9e58675^:kb/about_me.md` as canonical reference (not the post-merge file containing 3rd-person Haiku output) — avoids contamination loop where Haiku would learn its own 3rd-person voice as "canonical". Per-passage one-shot calls (6 total) rather than batched whole-file rewrite; ~0.24¢ per call × 6 = 1.42¢ total (well under plan's 10-15¢ estimate). Reusable for Phase 7+ resume.md per D-C-04 sequencing.
+- [Phase 06-kb-enrichment-about-me-hardening]: Plan 06-04 Joe-verdict PATCHED with 4 manual restorations (R1 WOO acronym, R3 credibility-based 5th descriptor, R5 drop Haiku-invented "step back and let the specialist talk" sentence, R6 servant leadership framing). R2 + R4 paraphrases (genuine human interaction; translating technical data issues) left as-is — semantic preservation acceptable per Joe gut-check. Voice-fidelity 4/5; final kb/about_me.md 1030 words / 16 content paragraphs / banned-vocab 0/17 / SAFE-11 17/17 green. Plan 06-06 cat4 LLM-judge expected to clear ≥4.0 aggregate.
+- [Phase 06-kb-enrichment-about-me-hardening]: Plan 06-05: 11 new cat1 ground_truth_facts entries spliced across 3 existing cases (cat1-fab-006 UA quantitative trap +2; cat1-fab-008 persona-expert ML-engineer trap +5; cat1-fab-014 verifiable-easy SEI current product +4). Strategy=expand-existing preserves D-B-01 15/15 hard-gate invariant (case count 15→15); no CONTEXT D-F-02/03/04/05 amendments needed. Lineage style matches Plan 05-12 Task 0 iter-2/iter-3 (block-comment-then-entries; per-case-isolation false-positive-fix framing). Voice samples 0 added (D-A-04 skip — Phase 06 sourced from structured LLM file, not raw transcript turns). All Phase 06 hard-deps satisfied ahead of 06-06: D-A-05 ✓ (cat1 coverage), D-D-01 ✓ (spend-cap exemption via quick task 260512-tku kill-switch), D-A-04 ✓ (skipped cleanly).
 
 ### Roadmap Evolution
 
 - 2026-05-10: Phase 05.1 (Eval Content Trust Restoration) inserted after Phase 5 — URGENT decimal phase to fix eval failing on real signal (Items #6/#7/#8) before Plan 05-12 LAUNCH-05 hard-gate. Bundles Sonnet hallucination fix (system-prompt rule + KB counter-facts), local ipLimiter friction, deflection-vs-real disambiguation in eval CLI.
 - 2026-05-10: Phase 05.1 (Eval Content Trust Restoration) CLOSED PARTIAL. Four feature/fix commits: Item #8 = `78f4f8c`, Item #6 = `699c294`, Item #7 = `d286b74`, Item #6 sliding-window-key bug fix = `4281c3b`. Local cat1 hit 8-13/15 across 3 runs (D-B-01 NOT met) — failures are now classifier-deflections (Item #7 made them visible) NOT real fabrications; cat1-fab-005 (the original Item #8 trigger) passed in every post-Task-1 run. Local cat3 hit 0/6 vs pinned pre-Task-1 baseline 1/6 — the pre-baseline was deflection-grading-as-warmth noise, NOT a real cat3 baseline. Production /api/chat byte-identical to pre-phase SHA `8be227b` (D-E-03 verified via pinned $PRE_SHA, not HEAD~N). Plan 05-12 LAUNCH-05 partially unblocked; classifier-over-flagging finding promoted to NEW deferred-item #11. Item #6/#7/#8 marked RESOLVED in deferred-items.md.
 - 2026-05-11: Phase 05.2 (Implement Chat Stream design from Anthropic design system) inserted after Phase 5 — UI-polish decimal phase to port relevant aspects of the Anthropic Chat Stream design bundle into the recruiter-facing chat surface BEFORE Plan 05-12 LAUNCH-05, so v1.0 ships with an intentionally-designed UI rather than generic Tailwind defaults. Visual-only — no changes to useChat wiring, prompt caching, six-gate order, email gate, or PlainHtmlFallback. Source: todo `2026-05-11-implement-chat-stream-design-from-anthropic-design-system.md`. Discuss + plan to follow.
+- 2026-05-12: Phase 6 (KB enrichment: about-me hardening) added to end of v1.0 milestone — Integer phase (not decimal). Joe's call after brainstorm: this is planned next-step work BEFORE broad distribution, not an urgent insertion (decimal pattern is reserved for reactive insertions per ROADMAP.md:13-14 convention). v1.0 milestone scope stays open until broad distribution (QR paper print + LinkedIn push); Phase 6 is pre-distribution polish. Workflow: ingest LLM-written about-me .md (interview-derived, highest-risk class same as 775-line resume), ground-truth claims against interview transcript, strip agent expansion, voice-rewrite to match kb/voice.md, section-by-section merge into existing kb/about_me.md, expand cat1 ground_truth_facts, verify cat1=15/15 + cat4>=4.0 on preview then promote then verify on prod. 6 plans across 3 waves. **Hard dependency:** tomorrow's eval-cli spend-cap exemption fix (incident follow-up) must land first — Phase 6 verification spend would otherwise re-trip the 24h-rolling cap and re-create today's silent-lockout incident. Out of scope: 775-line resume.md (sequenced — may become Phase 7 or move to v1.1). Plan 05-12 friend-test sign-off happens on the post-Phase-6 enriched artifact. Brainstorm + design done 2026-05-12 EOD; design doc at .planning/phases/06-kb-enrichment-about-me-hardening/06-CONTEXT.md. Source: external interview + LLM-generated about-me .md held by Joe locally.
 
 ### Pending Todos
 
@@ -231,6 +237,10 @@ Recent decisions affecting current work:
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260511-u9d | WR-01 classifier banner false-green: extract classifyUserMessageOrThrow throwing variant; heartbeat caller now reports classifier=degraded truthfully during Anthropic outages | 2026-05-12 | 6a5a8b0 | [260511-u9d-fix-wr-01-classifier-banner-false-green-](./quick/260511-u9d-fix-wr-01-classifier-banner-false-green-/) |
+| 260512-r4s | SEED-001 rate-limit exemption: EVAL_CLI_RATELIMIT_ALLOWLIST Set + checkRateLimits skip for eval-cli@joedollinger.dev; per-IP + spend-cap still apply (exact-match, 12 new tests, STRIDE T-r4s-01..07 mitigated, route.ts byte-identical). NOTE: spend-cap half of EOD incident scope deferred to follow-up quick task. | 2026-05-12 | e3dbfae | [260512-r4s-exempt-eval-cli-email-from-per-email-rat](./quick/260512-r4s-exempt-eval-cli-email-from-per-email-rat/) |
+| 260512-ro4 | SEED-001 spend-cap half: unified EVAL_CLI_ALLOWLIST (renamed from EVAL_CLI_RATELIMIT_ALLOWLIST) + isEmailSpendCapAllowlisted helper + gate-4 short-circuit + incrementSpend email-gated skip (full bypass per D-A-01). Per-IP cost cap SAFE-08 is the new last-line backstop (deliberately NOT gated; T-ro4-07 mitigation comments + regression test). 16 new tests, STRIDE T-ro4-01..07 mitigated, six-gate order preserved. SEED-001 fully resolved. | 2026-05-12 | 5c19fa1 | [260512-ro4-exempt-eval-cli-joedollinger-dev-from-sa](./quick/260512-ro4-exempt-eval-cli-joedollinger-dev-from-sa/) |
+| 260512-sne | SEED-001 ip-rate-limit half: isEmailIpRatelimitAllowlisted helper (third sibling) + checkRateLimits ip10m/ipday skip for allowlisted emails. D-A-01 exempts ip10m+ipday only — session limiter stays as safety net. D-A-03 SAFE-08 (150¢/day/IP) accepted as the new ONLY cost backstop. 18 new tests, STRIDE T-sne-01..09 mitigated, route.ts byte-identical, six-gate order preserved. Driven by PR #4 CI failure cat1-fab-013..015 at ip10m=20/10min from single GH Actions runner IP. SEED-001 all three halves complete. | 2026-05-13 | 97e4a65 | [260512-sne-exempt-eval-cli-joedollinger-dev-from-pe](./quick/260512-sne-exempt-eval-cli-joedollinger-dev-from-pe/) |
+| 260512-tku | SAFETY_GATES_ENABLED kill-switch — disable gate 4 (spend-cap) + gate 5 (rate-limits) globally via single in-code feature flag. Default OFF (`=== 'true'` strict equality); env var override re-enables. SEED-001 helpers + Ratelimit constructions byte-identical in redis.ts; counter increments (incrementSpend + incrementIpCost) preserved in onFinish for observability. 3 SEED-001 contract tests `describe.skip`'d with TODO(SEED-002). chat-six-gate-order extended for flag-aware coverage. **SECURITY EXPOSURE WINDOW STARTS AT MERGE:** public agent has no per-IP/per-email throttle and no per-IP/global spend cap during OFF window; Anthropic org $100/mo cap is the only remaining backstop. SEED-002 planted with rollback steps + trigger (re-enable BEFORE broad distribution). 654 tests pass, 12 skipped. Driven by exhausting cycle of SEED-001 r4s/ro4/sne fixes revealing successive gates (final trip = incrementIpCost server-side cost 150¢/run hitting SAFE-08 on a single eval run). | 2026-05-13 | 5aacbb5 | [260512-tku-disable-rate-limit-spend-cap-gates-globa](./quick/260512-tku-disable-rate-limit-spend-cap-gates-globa/) |
 
 ## Session Continuity
 
@@ -240,6 +250,7 @@ Resume file: None
 
 Resumed: 2026-05-11 — completed /gsd-execute-phase 5.2 Wave 5 close-out inline after two executor timeouts on full Playwright runs.
 Resumed: 2026-05-11 — /gsd-resume-work cleanup pass; STATE.md, stale checkpoint, and pending-todo reconciled to reflect Phase 05.2 closure.
+Resumed: 2026-05-13 — /gsd-resume-work after Phase 06-02 close-out; next action selected: execute Plan 06-03 (section-by-section merge, Joe-driven).
 
 ## Quick Tasks Completed
 

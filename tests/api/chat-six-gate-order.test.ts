@@ -83,6 +83,15 @@ vi.mock('@/lib/redis', () => ({
   isOverCap,
   incrementSpend,
   incrementIpCost,
+  // SEED-001 spend-cap half (quick task 260512-ro4): route imports this
+  // helper. Default to "not allowlisted" so the six-gate order test's
+  // r@x.com email still triggers isOverCap (gate 4 still records the
+  // 'over_cap_check' entry — six-gate canonical sequence preserved).
+  isEmailSpendCapAllowlisted: () => false,
+  // SEED-001 ip-rl half (quick task 260512-sne): route module load resolves.
+  // Happy-path uses r@x.com (not allowlisted) so gate 5 still records
+  // 'rate_limit_check' via the mocked checkRateLimits.
+  isEmailIpRatelimitAllowlisted: () => false,
 }));
 vi.mock('@/lib/supabase-server', () => ({ supabaseAdmin }));
 vi.mock('@/lib/classifier', () => ({ classifyUserMessage }));
@@ -138,6 +147,17 @@ function makeRequest(body: unknown): Request {
   });
 }
 
+// 260512-tku: gates 4 + 5 are now behind SAFETY_GATES_ENABLED env flag.
+// Default OFF. Per-test enablement via process.env mutation; afterEach restores.
+function withGatesEnabled<T>(fn: () => Promise<T>): Promise<T> {
+  const prev = process.env.SAFETY_GATES_ENABLED;
+  process.env.SAFETY_GATES_ENABLED = 'true';
+  return fn().finally(() => {
+    if (prev === undefined) delete process.env.SAFETY_GATES_ENABLED;
+    else process.env.SAFETY_GATES_ENABLED = prev;
+  });
+}
+
 const HAPPY_BODY = {
   session_id: 'sess_1234567890',
   messages: [{ role: 'user', parts: [{ type: 'text', text: 'hi' }] }],
@@ -178,6 +198,11 @@ beforeEach(() => {
 
 afterEach(() => {
   Request.prototype.json = originalJson;
+  // 260512-tku: paranoid cleanup — never let SAFETY_GATES_ENABLED leak between
+  // tests. The withGatesEnabled helper does its own restoration, but if a test
+  // throws before the finally block runs (or if a future test sets the env
+  // var directly), this guarantees the next test sees the default-OFF state.
+  delete process.env.SAFETY_GATES_ENABLED;
 });
 
 async function postChat(body: unknown = HAPPY_BODY): Promise<Response> {
@@ -185,9 +210,24 @@ async function postChat(body: unknown = HAPPY_BODY): Promise<Response> {
   return POST(makeRequest(body));
 }
 
-describe('/api/chat six-gate canonical order (W7 — durable defense)', () => {
-  it('fires gates in exact canonical order on a happy-path request', async () => {
+describe('/api/chat six-gate canonical order (W7 — durable defense; 260512-tku flag-aware)', () => {
+  it('fires gates 1/2/3/6 in canonical order on happy-path with SAFETY_GATES_ENABLED unset (default — 260512-tku flag-off)', async () => {
     await postChat();
+    expect(gateOrderRecorder).toEqual([
+      'body_parse',
+      'session_lookup',
+      'turnRows_check',
+      'classifier',
+    ]);
+    // Gates 4 + 5 must NOT have fired — kill-switch is off by default.
+    expect(isOverCap).not.toHaveBeenCalled();
+    expect(checkRateLimits).not.toHaveBeenCalled();
+  });
+
+  it('fires ALL six gates in canonical order on happy-path when SAFETY_GATES_ENABLED=true (260512-tku flag-on)', async () => {
+    await withGatesEnabled(async () => {
+      await postChat();
+    });
     expect(gateOrderRecorder).toEqual([
       'body_parse',
       'session_lookup',
@@ -219,12 +259,14 @@ describe('/api/chat six-gate canonical order (W7 — durable defense)', () => {
     expect(gateOrderRecorder).toEqual(['body_parse', 'session_lookup', 'turnRows_check']);
   });
 
-  it('stops at over_cap_check when isOverCap returns true', async () => {
+  it('stops at over_cap_check when isOverCap returns true AND SAFETY_GATES_ENABLED=true (legacy six-gate behavior; 260512-tku flag-on)', async () => {
     isOverCap.mockImplementationOnce(async () => {
       gateOrderRecorder.push('over_cap_check');
       return true;
     });
-    await postChat();
+    await withGatesEnabled(async () => {
+      await postChat();
+    });
     expect(gateOrderRecorder).toEqual([
       'body_parse',
       'session_lookup',
@@ -233,12 +275,14 @@ describe('/api/chat six-gate canonical order (W7 — durable defense)', () => {
     ]);
   });
 
-  it('stops at rate_limit_check when checkRateLimits returns ok:false', async () => {
+  it('stops at rate_limit_check when checkRateLimits returns ok:false AND SAFETY_GATES_ENABLED=true (legacy six-gate behavior; 260512-tku flag-on)', async () => {
     checkRateLimits.mockImplementationOnce(async () => {
       gateOrderRecorder.push('rate_limit_check');
       return { ok: false, which: 'ip10m' as const };
     });
-    await postChat();
+    await withGatesEnabled(async () => {
+      await postChat();
+    });
     expect(gateOrderRecorder).toEqual([
       'body_parse',
       'session_lookup',
@@ -246,5 +290,29 @@ describe('/api/chat six-gate canonical order (W7 — durable defense)', () => {
       'over_cap_check',
       'rate_limit_check',
     ]);
+  });
+
+  it('SAFETY_GATES_ENABLED unset (default): isOverCap=true does NOT trigger spendcap deflection — gate 4 is fully skipped (260512-tku regression trap)', async () => {
+    isOverCap.mockImplementation(async () => {
+      gateOrderRecorder.push('over_cap_check'); // would record if called
+      return true;
+    });
+    await postChat();
+    // Gate 4 NEVER consulted — over_cap_check absent from recorder.
+    expect(gateOrderRecorder).not.toContain('over_cap_check');
+    expect(isOverCap).not.toHaveBeenCalled();
+    // Route reached classifier (gate 6).
+    expect(gateOrderRecorder).toContain('classifier');
+  });
+
+  it('SAFETY_GATES_ENABLED unset (default): checkRateLimits returning ok:false does NOT trigger ratelimit deflection — gate 5 is fully skipped (260512-tku regression trap)', async () => {
+    checkRateLimits.mockImplementation(async () => {
+      gateOrderRecorder.push('rate_limit_check'); // would record if called
+      return { ok: false, which: 'ip10m' as const };
+    });
+    await postChat();
+    expect(gateOrderRecorder).not.toContain('rate_limit_check');
+    expect(checkRateLimits).not.toHaveBeenCalled();
+    expect(gateOrderRecorder).toContain('classifier');
   });
 });

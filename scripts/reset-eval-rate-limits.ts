@@ -23,6 +23,18 @@
 // run at script-execution time only, never at request time (CONTEXT.md
 // D-E-01: 'MUST NOT add a runtime read in production code paths').
 //
+// SEED-001 (2026-05-12): The per-email allowlist in src/lib/redis.ts
+// (EVAL_CLI_RATELIMIT_ALLOWLIST) now exempts `eval-cli@joedollinger.dev`
+// from the per-email 150/day limiter entirely. The emailday-key clearing
+// below is now a no-op for the eval-cli email (no keys ever accumulate
+// because emailLimiterDay.limit() is never called for that address). The
+// call is preserved here for two reasons:
+//   - Backward compatibility with any pre-SEED-001 keys still in Upstash
+//     (one-shot cleanup; they'll expire in 1 day anyway).
+//   - Future eval personas added to the allowlist via env-var (if ever
+//     introduced) might not be in the hardcoded Set yet — the script
+//     stays usable as a manual escape hatch.
+//
 // Run via:   npx tsx scripts/reset-eval-rate-limits.ts
 //   or:      npm run eval:reset-rl
 import { redis } from '../src/lib/redis';
