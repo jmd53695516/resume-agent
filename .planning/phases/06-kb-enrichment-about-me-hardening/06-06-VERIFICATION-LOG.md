@@ -47,15 +47,74 @@ The 2026-05-12 spend-cap incident class is structurally prevented for Plan 06-06
 
 ## Task 2 — Pre-merge baseline reset
 
-(pending)
+**Commands run:**
+
+`npm run eval:reset-spend`:
+```
+reset-eval-spend-cap: window = last 24h (UTC, rolling)
+reset-eval-spend-cap: cumulative spend before reset = 201¢ (cap = 300¢)
+reset-eval-spend-cap: populated hourly buckets:
+  - 2026-05-13T18  50¢
+  - 2026-05-13T17  9¢
+  - 2026-05-13T12  25¢
+  - 2026-05-13T02  77¢
+  - 2026-05-13T00  40¢
+reset-eval-spend-cap: cleared 5/24 buckets (201¢ removed).
+reset-eval-spend-cap: cap is now 0¢/300¢. Future Sonnet calls will accumulate normally.
+```
+
+`npm run eval:reset-rl`:
+```
+reset-eval-rate-limits: cleared 1/4 keys.
+```
+
+**Spendcap state pre-reset:** 201¢/300¢ (67% utilized — accumulated across earlier today's CI runs + Plan 06-04 Haiku voice-rewrite work)
+**Spendcap state post-reset:** 0¢/300¢ (clean baseline)
+
+**Headroom for verification:** clean baseline — full 300¢ available for the four Plan 06-06 eval runs (~$2-3 actual spend projected).
+
+**Action:** Proceeding to Task 3 (preview eval).
 
 ## Task 3 — Preview eval invocation
 
-(pending)
+**Preview URL:** https://resume-agent-eyap-4351mcx1b-joey-d-resume-agent.vercel.app
+**Resolution method:** Path C — Joe-provided fallback (URL pasted into session after `git push origin gsd/05-12-task-0-classifier-tune`)
+**Branch at run time:** `gsd/05-12-task-0-classifier-tune`
+**HEAD SHA at run time:** `e912372` (Task 1 preflight commit)
+**Preview reachability check:** HTTP/1.1 200 OK
+
+### cat1 on preview
+
+- **Command:** `npm run eval -- --target=https://resume-agent-eyap-4351mcx1b-joey-d-resume-agent.vercel.app --cats=cat1`
+- **runId (eval_runs row id):** `zL96uv6tF1LxzUqkuoLI3`
+- **Result:** 15 / 15 (D-B-01 hard-gate = 15/15 case count from expand-existing strategy in Plan 06-05)
+- **Status:** **passed**
+- **Cost (cents):** 40
+- **Duration (ms):** 166872 (~2m47s)
+- **Per-case detail:** all 15 cases (cat1-fab-001 through cat1-fab-015) returned `passed: true`. Notably the 3 cases that received Plan 06-05 ground_truth_facts expansion (cat1-fab-006 +2 entries, cat1-fab-008 +5 entries, cat1-fab-014 +4 entries) all passed — the per-case-isolation false-positive bug class (Plan 05-12 Task 0 lineage) is structurally prevented.
+
+### cat4-judge on preview
+
+- **Command:** `npm run eval -- --target=https://resume-agent-eyap-4351mcx1b-joey-d-resume-agent.vercel.app --cats=cat4-judge`
+- **runId (eval_runs row id):** `u7JmGllxyJGOtpn92IFZq`
+- **Aggregate avg:** 4.20
+- **Per-case all pass:** yes (5/5)
+- **Status:** **passed** (D-B-02 hard-gate: aggregate ≥ 4.0 ✓ + per_case all pass ✓)
+- **Cost (cents):** 2
+- **Duration (ms):** 74919 (~1m15s)
+- **Voice-fidelity Joe-gut-check (Plan 06-04) vs LLM-judge score:** Joe's 4/5 gut-check predicted ≥4.0; the judge returned 4.20 — both metrics aligned. The voice rewrite + 4 Joe-patches (R1 WOO / R3 credibility-based / R5 drop invented / R6 servant leadership) landed the cadence well within target.
+
+### Preview verification totals
+
+- **Combined cost:** 42¢ across both runs (well under 266¢ projected — projection assumes worst-case judge token usage)
+- **Combined duration:** ~4m02s wall-clock (sequential)
+- **eval_runs row IDs captured:** `zL96uv6tF1LxzUqkuoLI3` (cat1) + `u7JmGllxyJGOtpn92IFZq` (cat4-judge) — both nanoid-shaped, both persisted to Supabase via createRun (D-F-08 audit trail step 1 of 2; Task 6 will capture the prod pair)
+
+**Action:** Proceeding to Task 4 (preview gate decision-point).
 
 ## Task 4 — Preview gate decision
 
-(pending)
+(pending — awaiting Joe's PROCEED-vs-HALT verdict)
 
 ## Task 5 — Promote to prod
 
