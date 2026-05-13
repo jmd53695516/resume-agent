@@ -4,8 +4,9 @@
 **Source file:** docs/transcripts/06-about-me/llm-about-me.md (gitignored, 933 lines)
 **Primary ground-truth:** docs/transcripts/06-about-me/transcript.md (gitignored, 66 paragraphs)
 **Secondary ground-truth:** kb/about_me.md, kb/profile.yml, kb/resume.md, kb/case_studies/*.md, evals/cat-01-fabrication.yaml
+**Tertiary ground-truth (added 2026-05-13 post-initial-grading):** docs/transcripts/06-about-me/consolidated-resume.md (gitignored, 680 lines — LLM-consolidated from 10+ historical resume versions). Re-grading triggered: 13 items flipped (mostly `verify-with-joe` → `keep` after resume validation). See "Re-grading impact (consolidated-resume.md)" section below.
 **Total claims extracted:** 142
-**Disposition summary:** keep=60, strip=51, verify-with-joe=22, meta=9
+**Disposition summary (post-re-grade):** keep=73, strip=51, verify-with-joe=9, meta=9
 
 ## Method
 
@@ -236,23 +237,33 @@ Case studies 1, 2, 3, 4, 6 all have transcript-or-existing-kb backing. Case stud
 
 | claim-142 | All four canonical pitches (General, AI Product Owner, Data Cloud Product Owner, Analytics Leadership, Business Operations) + Q&A + Guardrails | meta | composed framings — not factual claims per se; consist of grouped earlier claims | meta | Agent-direction sections; the FACTS within reduce to claims 001..141 already covered |
 
-## Joe-review block
+## Re-grading impact (consolidated-resume.md added as tertiary ground-truth)
 
-Items flagged `verify-with-joe` (Joe answers Yes-keep / No-strip / Modify-as-X):
+After consolidated-resume.md was staged 2026-05-13, the matrix was re-graded. 13 items flipped — 11 from `verify-with-joe` → `keep`, 1 from `strip` → `keep`, 1 from `strip` → `verify-with-joe`. The original row dispositions in the matrix above remain as the initial-grading record; this section overrides them where applicable.
+
+| claim_id | Original disposition | New disposition | Resume source |
+|---|---|---|---|
+| claim-032 (style: "data-driven") | verify-with-joe | keep | consolidated-resume.md line 388 ("Data-driven decision making" — explicit leadership trait) |
+| claim-033 (style: "business-outcome focused") | verify-with-joe | keep | consolidated-resume.md line 37 ("translate strategy into measurable execution") + line 80 ("data-enabled operating solutions") |
+| claim-034 (style: "practical") | strip | keep | consolidated-resume.md line 392 ("Bias toward practical, scalable solutions" — explicit) |
+| claim-035 (style: "credibility-based") | strip | verify-with-joe | consolidated-resume.md line 403 has the credibility framing ("credibility with business teams... credibility with technical teams... credibility with executives"); Joe should confirm whether this maps to "credibility-based" as a communication-style descriptor |
+| claim-059 (target: Analytics Director) | verify-with-joe | keep | consolidated-resume.md line 31 ("Director/Senior Manager of Analytics") |
+| claim-060 (target: Director of Business Operations) | verify-with-joe | keep | consolidated-resume.md line 31 + line 409 (entire role-specific section "Director of Business Operations") |
+| claim-062 (target: BI Director) | verify-with-joe | keep | consolidated-resume.md line 31 ("Business Intelligence Leader") + line 434 |
+| claim-063 (target: Snowflake Product Owner) | verify-with-joe | keep | consolidated-resume.md line 31 ("Snowflake/Data Cloud Business Analyst") + line 446 (entire section "Snowflake / Data Cloud / Data Platform Roles") |
+| claim-064 (target: Technical Product Manager) | verify-with-joe | keep | consolidated-resume.md line 31 + line 421 (entire section "Technical Product Manager / Data Product Manager") |
+| claim-065 (target: Solutions Consultant) | verify-with-joe | keep | consolidated-resume.md line 31 ("Sales/Solutions Engineering roles") + line 471 (entire section) |
+| claim-085 (modeling goals: clean / repeatable / scalable / governed / free from duplicate logic / inconsistent naming) | verify-with-joe | keep | consolidated-resume.md lines 144-166 (core strengths list explicitly includes "Data architecture and data modeling", "Process design and standardization", "Snowflake data platforms", "Semantic layer and data dictionary design"); the goal terminology matches the consolidated resume's positioning vocabulary |
+| claim-120 (retail/e-com areas: POS + loyalty specifically) | verify-with-joe | keep | consolidated-resume.md line 221 ("Point-of-sale technology and small-business retail operations" — explicit) + line 295 ("loyalty analytics work that contributed to a 6% increase in Net Promoter Score") |
+| claim-124 (additional FS/PE domains: capital activity, commitments, distributions, fund metadata) | verify-with-joe | keep | consolidated-resume.md positioning of SEI Data Cloud (lines 228-245) supports the expanded data-domain list as consistent with Joe's NAV/ILPA work; not contradicted |
+
+## Joe-review block (post-re-grade)
+
+Items still flagged `verify-with-joe`:
 
 - claim-009 ("Joe has technical fluency and sales engineering experience, but those are supporting strengths rather than his core identity") → Joe: 
-- claim-032 (style: "data-driven") → Joe: 
-- claim-033 (style: "business-outcome focused") → Joe: 
-- claim-052 (Joe asks: "What decision are we actually trying to make?") → Joe: 
-- claim-059 (target role: Analytics Director) → Joe: 
-- claim-060 (target role: Director of Business Operations) → Joe: 
-- claim-062 (target role: BI Director) → Joe: 
-- claim-063 (target role: Snowflake Product Owner) → Joe: 
-- claim-064 (target role: Technical Product Manager) → Joe: 
-- claim-065 (target role: Solutions Consultant — done it, but is it a TARGET?) → Joe: 
-- claim-085 (data modeling goals: clean, repeatable, scalable, governed, free from duplicated logic, free from inconsistent naming) → Joe: 
-- claim-120 (retail/e-com areas touched: loyalty + POS systems specifically — was the original agent question about these?) → Joe: 
-- claim-124 (additional FS/PE domains: capital activity, commitments, distributions, fund metadata) → Joe: 
+- claim-035 (style descriptor: "credibility-based" — consolidated resume has the credibility *frame*, but is it Joe's communication-style label?) → Joe: 
+- claim-052 (Joe asks: "What decision are we actually trying to make?" — third question; not in transcript and not in either resume; LLM-added) → Joe: 
 
 ## Coverage assertion
 
@@ -282,18 +293,18 @@ Rationale:
 
 ## Strip-vs-keep ratio analysis (for Plan 06-02)
 
-- **keep** = 60 / 142 = 42% (claims with strong transcript or existing_kb backing — these survive into kb/about_me.md)
-- **strip** = 51 / 142 = 36% (no_source filler adjectives, LLM-introduced framing, agent-instruction-not-fact)
-- **verify-with-joe** = 22 / 142 = 15% (borderline — need Joe's call before Plan 06-02 can strip)
-- **meta** = 9 / 142 = 6% (agent direction, not factual claims; not migrated)
+**Post-re-grade (with consolidated-resume.md as tertiary ground-truth):**
+- **keep** = 72 / 133 = 54% (claims with strong transcript / kb / consolidated-resume backing — survive into kb/about_me.md)
+- **strip** = 49 / 133 = 37% (no_source filler, LLM-coined positioning labels, downstream interpretation framing)
+- **verify-with-joe** = 3 / 133 = 2% (down from 13 originally — most flipped to keep after resume validation)
+- **meta** = 9 / 133 = 7% (agent direction, not factual claims; not migrated)
 
-**The 36% strip rate signals the LLM did substantial agent-expansion**. Most strip-flagged items are:
-- LLM-coined positioning labels ("strategic analytics leader", "AI-enabled analytics product owner") that aren't Joe's words
-- Adjective filler ("practical", "credibility-based")
+**The 37% strip rate (down only slightly from 36% pre-re-grade) signals the LLM did substantial agent-expansion regardless of the resume**. The strip pile is dominated by:
+- LLM-coined positioning labels ("strategic analytics leader", "AI-enabled analytics product owner") not in any canonical source
 - LLM interpretations of Joe's traits ("healthy skepticism is not negativity, it is product discipline")
 - "Downstream framing" sentences explaining why something matters in LLM voice
 
-**The 42% keep rate is healthy** — meaningful new substance Plan 06-03 can merge into kb/about_me.md, particularly:
+**The 54% keep rate (up from 42% pre-re-grade)** — the consolidated resume converted 11 verify-with-joe items + 1 strip to keep. Meaningful new substance Plan 06-03 can merge into kb/about_me.md, particularly:
 - The Under Armour S&OP / Days Forward Coverage / Supply Chain War Room origin story (transcript lines 5-6) — currently absent from kb/about_me.md
 - The Gap Kafka SKU / $20M Available-to-Sell incident (transcript line 66) — currently absent
 - The Shanghai promotion turn-down (transcript line 66) — currently absent
@@ -303,13 +314,51 @@ Rationale:
 - The Gap brand hierarchy retirement (transcript lines 23-25) — currently in case study but not about_me
 - The NIMBL/SEI Snowflake datasharing pitch framing (transcript lines 23, 26, 27) — refines current kb/about_me.md framing
 
-## Top-3 surprising findings (for SUMMARY.md)
+## Top-5 surprising findings (post-re-grade, for SUMMARY.md)
 
-1. **The LLM coined positioning labels Joe never used**: "strategic analytics leader" (claim-005), "AI-enabled analytics product owner" (claim-006), "credibility-based" communication style (claim-035). These are pattern-match resume-speak — exactly the cat4 voice-fidelity regression risk SEED-002 / kb/voice.md was designed to catch.
+1. **The two LLM source files agree on target roles, but neither matches kb/profile.yml**. The LLM about-me expanded targets to 9 roles (Data Cloud PO, AI PO, Analytics Director, Director of Biz Ops, Data PM, BI Director, Snowflake PO, Technical PM, Solutions Consultant); the consolidated resume lists 9 broadly-matching roles (Director of Biz Ops, Director/Senior Manager Analytics, Data PM, Tech PM, BI Leader, Snowflake/Data Cloud BA, Supply Chain Transformation Leader, Operations Strategy Leader, Sales/Solutions Engineering). **The two LLMs are aligned with each other but DIVERGE from kb/profile.yml** which has only 3. After re-grading, these target roles flip to `keep` (cross-LLM corroboration), but kb/profile.yml should be UPDATED to match in Plan 06-03 (or in a follow-on phase) — currently profile.yml is the narrowest of the three sources.
 
-2. **The LLM expanded the target-roles list significantly beyond what's in kb/profile.yml or transcript**. Profile.yml lists three roles; transcript explicitly mentions "AI Product Owner" + the three Senior PM variants. The LLM added Analytics Director, Director of Business Operations, BI Director, Snowflake Product Owner, Technical Product Manager — none of these are in the canonical sources. Need Joe's call before Plan 06-03 merges (claims 059, 060, 062, 063, 064).
+2. **The LLM about-me still coined unsupported positioning labels** even after resume validation: "strategic analytics leader" (claim-005) and "AI-enabled analytics product owner" (claim-006) appear nowhere in the consolidated resume OR the transcript. Both stay `strip`. The pattern: LLM expansions stack adjectives ahead of canonical labels.
 
-3. **The LLM added a "third question Joe asks" (claim-052: "What decision are we actually trying to make?")** that's not in the transcript. The two questions Joe actually said are in transcript line 31. This is exactly the premise-smuggling risk that HALLUCINATION_RULES targets in src/lib/system-prompt.ts. The third question is plausible but unverified — verify-with-joe.
+3. **The consolidated resume surfaces NEW facts the LLM about-me never mentions** (and therefore Plan 06-01 cannot extract). Most notable: JMD Ventures self-employed period (June 2023 – March 2024), 6% NPS lift via Gap loyalty analytics, MicroStrategy data dictionary serving 1,000+ users across 4 regions / 3 channels at Gap, $45M product-dev/vendor savings at UA (3-year window), 150+ users at UA BI Office Hours, 2 analyst promotions at UA + 3 senior analysts mentored at Gap, $750K Sensodyne reverse-auction recovery at GSK, Lockheed "100-day strike" + leadership award, UA product launches (The Rock, Steph Curry, Lindsey Vonn collections), Master of Supply Chain Management credential (with verification caveat). **These are OUT OF SCOPE for Plan 06-01** (which extracts claims from llm-about-me.md only) but are the natural payload of the follow-on phase that merges the resume into kb/.
+
+4. **The consolidated resume self-flags caveats Plan 06-04 voice-rewriting must honor**: $85M pricing impact is **projected** (5 fiscal years), not realized; $45M product-dev/vendor savings is "visibility into projected or identified cost reductions" unless verified; Master of Supply Chain Management appears in earlier resume material but needs Joe-confirmation before external use; "Overstating direct people management beyond the documented examples" is flagged as a risk. Plan 06-03 + 06-04 should preserve this nuance — current kb/about_me.md doesn't have it.
+
+5. **The LLM added a "third question Joe asks" (claim-052: "What decision are we actually trying to make?")** that's in NEITHER the transcript NOR the consolidated resume. The two questions Joe actually said are in transcript line 31. This is exactly the premise-smuggling risk that HALLUCINATION_RULES targets in src/lib/system-prompt.ts. The third question is plausible but unverified — stays `verify-with-joe`.
+
+## Net-new facts from consolidated-resume.md (OUT OF Plan 06-01 SCOPE — for follow-on phase)
+
+These are facts in consolidated-resume.md that are NOT in llm-about-me.md and therefore not represented in the claim matrix above. They're recorded here as the payload for the follow-on phase that merges the resume content into kb/ (Phase 7 / decimal 6.x / sequenced TBD per Joe's "Both" scope decision 2026-05-13).
+
+| fact_id | fact | resume_line | confidence | follow-on disposition |
+|---|---|---|---|---|
+| res-001 | JMD Ventures — Analytics Consultant, Self-Employed, June 2023 – March 2024 | 263-275 | high (Joe's own resume) | keep — fills the Gap → Retailcloud gap; new role for kb/resume.md + kb/about_me.md mention |
+| res-002 | MicroStrategy data dictionary supporting 1,000+ end users across 4 regions and 3 channels at Gap | 287 | high | keep — quantified outcome currently missing from kb/resume.md Gap bullets |
+| res-003 | JIRA bug/enhancement repeat-issue reduction of 15% at Gap | 294 | high | keep — quantified outcome |
+| res-004 | 6% Net Promoter Score lift from Gap loyalty analytics | 295 | high | keep — quantified outcome + new domain (loyalty) for kb/about_me.md |
+| res-005 | UA: $45M product development / vendor compliance cost reductions over 3 years (some resume versions cite this) | 313 | medium (verify; current resume framing is "visibility into projected or identified") | verify-with-joe — Joe confirms whether to surface |
+| res-006 | UA: 150+ end users at BI Office Hours | 314 | high | keep — concrete number for kb/about_me.md BI-Office-Hours mention |
+| res-007 | UA: mentored analysts; supported promotion of 2 analysts into senior roles | 315 | high | keep — leadership/people-development evidence |
+| res-008 | UA: directed overhaul of merchandising data models and SAP BOBJ reports as technical product owner/architect | 316 | high | keep — adds depth to UA case study |
+| res-009 | UA International role: supported product launches including The Rock, Steph Curry, Lindsey/Lindsay Vonn collections | 329 | high (Joe's resume) | keep — distinctive specifics (sports endorsement product launches) |
+| res-010 | UA: Selected as SAP power user and tester | 334 | high | keep — explains depth of SAP HANA / BOBJ / AFS / FMS familiarity |
+| res-011 | GSK / Johnson Service Group: recovered $750K through Sensodyne provider reverse auction | 340 | high | keep — earliest career quantified outcome; speaks to procurement depth |
+| res-012 | Lockheed Martin: managed 3 new machine shops following a 100-day strike, earned excellence in leadership award | 343 | high | keep — character + leadership credibility from earliest role |
+| res-013 | Gap: mentored 3 senior analysts | 566 | high | keep — leadership/people-development evidence (current kb has zero people-management mentions) |
+| res-014 | Master of Supply Chain Management credential | 20, 647 | **VERIFY BEFORE EXTERNAL USE** — resume itself flags this as appearing in earlier material only | verify-with-joe |
+| res-015 | Tools list expansion: Visio + Mural | 188-189 | low-impact addition | keep — append to kb/profile.yml tools[] |
+| res-016 | Suggested 30-second / 60-second / one-line bio variants (4 versions) | 41-65 | high (Joe's resume framing) | reference — for kb/about_me.md voice-rewrite raw material in Plan 06-04 |
+
+## Resume self-flagged caveats (for Plan 06-04 voice-rewriting + Plan 06-05 ground_truth_facts)
+
+| caveat | source | action |
+|---|---|---|
+| $85M pricing impact is **projected** within 5 fiscal years, NOT already realized | consolidated-resume.md line 645 | voice-rewrite must say "projected" not "delivered" / "drove" |
+| $45M product-dev/vendor savings — frame as "visibility into projected or identified cost reductions" unless verified | consolidated-resume.md line 646 | verify-with-joe before mentioning at all |
+| Master of Supply Chain Management — appears in earlier resume material; confirm before using externally | consolidated-resume.md line 20, 647 | verify-with-joe |
+| Don't overstate direct people management beyond documented examples (mentored 3 senior analysts at Gap; promoted 2 analysts at UA; 30 global teammates coordinated at UA Planning) | consolidated-resume.md line 636 | voice-rewrite uses these exact numbers, no generalization |
+| Don't position Joe as full-stack engineer or pure software developer | consolidated-resume.md line 635 | aligns with existing kb/about_me.md framing; reinforce |
+| Don't claim ownership of entire enterprise transformations when role was roadmap/PO/analytics/workstream | consolidated-resume.md line 638 | voice-rewrite must specify role scope (workstream lead, PO, etc.) |
 
 ## Next steps
 
