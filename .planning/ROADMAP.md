@@ -168,3 +168,77 @@ Plans:
 
 Plans:
 - [ ] TBD (run /gsd-plan-phase 6 to break down)
+
+## Backlog
+
+Unsequenced parking lot (999.x). Items captured during Phase 06 close-out triage (2026-05-13) from `.planning/phases/06-kb-enrichment-about-me-hardening/06-06-SUMMARY.md` "Phase 06 deferred items." None are launch-blocking. Promote with `/gsd-review-backlog`.
+
+### Phase 999.1: cat4-prompt-003 cold-cache borderline-ness fix (BACKLOG)
+
+**Goal:** Resolve cat4-prompt-003 ("What's a stance you hold that other PMs disagree with?") cold-cache flake — 5/7 PASS across N=7 runs with aggregate always ≥4.20. Fix options: (a) refine the prompt; (b) add stance-register voice sample to `kb/voice.md`; (c) relax per_case threshold from 4.0 → 3.8 in `evals/cat-04-voice.yaml`.
+**Source:** 06-06-SUMMARY.md deferred item #1; 06-06-VERIFICATION-LOG.md N=7 variance map.
+**Requirements**: TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
+### Phase 999.2: Add test.yml GitHub Actions workflow for determinism (BACKLOG — pre-Phase-7 priority)
+
+**Goal:** Add automated `test.yml` GitHub Actions workflow so SAFE-11 determinism (17/17 system-prompt tests) runs on every PR, not just manually. D-F-06 currently verified locally only. Highest-priority of the 7 Phase-06 deferred items because every future system-prompt or KB change is currently unguarded in CI.
+**Source:** 06-06-SUMMARY.md deferred item #2; 06-06 Task 8 instrumentation gap.
+**Requirements**: TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
+### Phase 999.3: kb/profile.yml target_roles[] expansion 3→9 (BACKLOG)
+
+**Goal:** Expand `kb/profile.yml` `target_roles[]` from 3 to 9 entries per Plan 06-03 finding S4 (06-01-CLAIM-MATRIX Top-5 #1). Affects role-targeted Q&A precision when recruiter probes which roles Joe is open to.
+**Source:** 06-06-SUMMARY.md deferred item #3; 06-03 S4 + 06-01-CLAIM-MATRIX #1.
+**Requirements**: TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
+### Phase 999.4: kb/profile.yml industries[] expansion to 6-industry list (BACKLOG)
+
+**Goal:** Expand `kb/profile.yml` `industries[]` to the full 6-industry list per Plan 06-03 finding S19. Pairs naturally with 999.3 (same file, same class of content depth).
+**Source:** 06-06-SUMMARY.md deferred item #4; 06-03 S19.
+**Requirements**: TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
+### Phase 999.5: kb/case_studies/*.md coverage audit (10 stripped) (BACKLOG)
+
+**Goal:** Verify each of the 10 stripped case studies has a corresponding `kb/case_studies/*.md` file per Plan 06-03 finding S23. Verification-first task; any gaps surfaced become separate items.
+**Source:** 06-06-SUMMARY.md deferred item #5; 06-03 S23.
+**Requirements**: TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
+### Phase 999.6: kb/profile.yml SQL 7/10 + DDL-gap surface (BACKLOG)
+
+**Goal:** Surface the SQL 7/10 self-rating + DDL-gap framing in `kb/profile.yml` so the agent answers technical-skill probes accurately per Plan 06-03 finding S11.
+**Source:** 06-06-SUMMARY.md deferred item #6; 06-03 S11.
+**Requirements**: TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
+
+### Phase 999.7: snowflake-marketplace-datashare.md FS/PE 12-domain audit (BACKLOG)
+
+**Goal:** Audit `kb/case_studies/snowflake-marketplace-datashare.md` against the FS/PE 12-domain framework per Plan 06-03 finding S21. Single-case-study depth check; findings may produce further items.
+**Source:** 06-06-SUMMARY.md deferred item #7; 06-03 S21.
+**Requirements**: TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
