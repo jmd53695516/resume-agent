@@ -4,6 +4,7 @@
 **Source:** kb/about_me.md @ HEAD (post Plan 06-04, commit `4bc8a02`)
 **Baseline:** kb/about_me.md @ `9e58675^` = `bd52811` (pre-Phase-6 — 592 words / 11 lines)
 **Strategy:** Expand existing cases (preserve 15/15 case count). New cases only if absolutely unavoidable.
+**Status:** APPROVED 2026-05-13 by Joe Dollinger (Task 2 sign-off — planner defaults accepted as-is; no per-row overrides; no voice-sample expansion; strategy expand-existing). Resume signal: "Facts expansion locked: 11 new ground_truth_facts entries across 3 cases (SKIPs=0); voice-sample add count=0; strategy=expand-existing."
 
 ## Strategy decision
 
