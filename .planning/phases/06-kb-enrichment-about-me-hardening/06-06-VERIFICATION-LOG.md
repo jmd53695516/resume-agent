@@ -202,8 +202,71 @@ Final tally: cat4-prompt-003 pass rate 5/7 = 71%. The flake is real but not dete
 
 ## Task 7 — Prod gate decision
 
-(pending — awaiting Joe's PROCEED-vs-HALT verdict on the prod gate)
+**Decision:** PROCEED to Task 8 (determinism CI verification) + Task 9 (Phase 06 close-out)
 
-## Task 8 — Determinism CI verification
+**Rationale:** All 4 D-F hard gates MET — preview cat1=15/15 (D-F-02), prod cat1=15/15 (D-F-03), preview cat4 agg 4.20 + per_case all pass (D-F-04), prod cat4 agg 4.52 + per_case all pass (D-F-05). D-F-08 audit trail complete: 4 nanoid-shaped eval_runs row IDs captured. CI eval workflow on merge commit 0fcb3f8 also passed cleanly. cat4-prompt-003 cold-cache borderline-ness is captured as post-Phase-6 triage follow-up; doesn't block Phase 06 closure given the 5/7 = 71% pass rate and prod's clean PASS on this exact case.
 
-(pending)
+**Signed:** Joe Dollinger, 2026-05-13
+
+## Task 8 — Determinism CI verification (D-F-06)
+
+**Check performed:** Inspected the CI workflow configuration + ran the determinism test locally against main HEAD content.
+
+**CI workflow inventory on merge commit `0fcb3f8`:**
+- Only check-run: `eval` workflow (`.github/workflows/eval.yml`) — runs `npm run eval` against the prod URL
+- **No separate `test.yml` workflow** that runs vitest unit tests (including `tests/lib/system-prompt.test.ts`)
+
+This is an instrumentation gap relative to D-F-06's spec phrasing (which assumed a separate determinism CI workflow). It is **not a Phase 06 regression** — the test simply isn't wired to fire automatically on every push in this project's current CI setup. The local equivalent is `npm test -- system-prompt`, which I have been running at every commit point throughout Plans 06-03 / 06-04 / 06-05 / 06-06 and at every relevant verification gate.
+
+**Local equivalent run on current main HEAD `daf4ad9` (which includes all Phase 06 content):**
+
+```
+> vitest run system-prompt
+ Test Files  1 passed (1)
+      Tests  17 passed (17)
+   Duration  477ms
+```
+
+**Result:** PASS — D-F-06 byte-identical-prefix determinism contract held across all Phase 06 commits (06-03 / 06-04 / 06-04-patch / 06-05 / 06-06 prefix-locked through every kb/* and evals/* edit). SAFE-11 invariant preserved.
+
+**Follow-up flagged (out of scope for Phase 06):** Add a `test.yml` GitHub Actions workflow that runs `npm test` on every push, so D-F-06 verification becomes automatic rather than manual. Captured as a Phase 7+ backlog item.
+
+**Action:** Proceeding to Task 9 (Phase 06 close-out).
+
+## Task 9 — Phase 06 close-out (D-F-07)
+
+**Phase 06 verification summary:**
+
+| Gate | Threshold | Preview | Prod | Status |
+|---|---|---|---|---|
+| D-F-02 cat1 preview | 15/15 | 15/15 | n/a | ✓ MET |
+| D-F-03 cat1 prod | 15/15 | n/a | 15/15 | ✓ MET |
+| D-F-04 cat4 preview | aggregate ≥ 4.0 + per_case all pass | agg 4.20, 5/5 | n/a | ✓ MET |
+| D-F-05 cat4 prod | aggregate ≥ 4.0 + per_case all pass | n/a | agg 4.52, 5/5 | ✓ MET |
+| D-F-06 determinism | system-prompt test green on merge | n/a | n/a | ✓ MET (local; instrumentation gap flagged) |
+| D-F-07 close-out | SUMMARY + ROADMAP + STATE updated | n/a | n/a | (this task) |
+| D-F-08 audit trail | 4 eval_runs row IDs captured | 2 | 2 | ✓ MET (all 4 IDs above) |
+
+**OQ-04 surfaced (NOT locked) for downstream reference:** Friend-test resume sequencing — Option A (re-DM friends with enriched artifact post-Phase-6) vs Option B (collect responses on pre-enriched artifact). Per Plan 06-06 frontmatter, this is recorded as a decision-point in the SUMMARY for Joe's downstream choice. Default-recommendation: Option A (re-DM friends now that enriched Phase 06 prod is live at https://joe-dollinger-chat.com).
+
+**OQ-03 RESOLVED locked-skip (Plan 06-06 frontmatter):** Voice-blind-A-B fresh run NOT invoked. The cat4 LLM-judge gate (≥4.0 + per_case all pass on both preview AND prod) is sufficient voice-fidelity verification per CONTEXT OQ-03 tentative recommendation. Aggregate 4.52 prod + 4.20-4.48 preview range = comfortably above threshold; no need for additional human A/B.
+
+**Phase 06 deferred items / follow-ups (captured for post-Phase-6 backlog):**
+
+1. **cat4-prompt-003 cold-cache borderline-ness** — N=7 runs: 5 PASS / 2 FAIL on the `"stance you hold that other PMs disagree with"` prompt. Aggregate consistently ≥4.20 across all runs. Fix options: (a) refine the prompt; (b) add a stance-register voice sample to kb/voice.md; (c) relax per_case threshold from 4.0 → 3.8.
+2. **No `test.yml` GitHub Actions workflow** — D-F-06 determinism is currently verified manually. Add a workflow that runs `npm test` on every push.
+3. **kb/profile.yml target_roles[] expansion 3→9** — per Plan 06-03 S4 + claim-matrix Top-5 finding #1.
+4. **kb/profile.yml industries[] expansion to 6-industry list** — per Plan 06-03 S19.
+5. **kb/case_studies/*.md coverage audit for all 10 stripped case studies** — per Plan 06-03 S23.
+6. **kb/profile.yml SQL 7/10 + DDL-gap surface** — per Plan 06-03 S11.
+7. **kb/case_studies/snowflake-marketplace-datashare.md FS/PE 12-domain audit** — per Plan 06-03 S21.
+
+**Total Plan 06-06 spend:** 88¢ manual evals + ~$1.32 CI runs = **~$2.20 grand total** (well under the $5 budget).
+
+**Total Phase 06 spend:** Plan 06-02 strip (7.5¢) + Plan 06-04 voice-rewrite (1.4¢) + Plan 06-06 evals ($2.20) = **~$2.30 total** for the entire phase.
+
+**Action:** Plan 06-06 complete. Phase 06 close-out artifacts (06-06-SUMMARY.md + ROADMAP.md + STATE.md updates) committed alongside this VERIFICATION-LOG.md update.
+
+---
+
+**Signed:** Joe Dollinger, 2026-05-13 (Plan 06-06 close-out — all 4 hard gates GREEN; Phase 06 verification complete)
