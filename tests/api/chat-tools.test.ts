@@ -59,6 +59,12 @@ vi.mock('@/lib/redis', () => ({
   isOverCap,
   incrementSpend,
   incrementIpCost,
+  // SEED-001 spend-cap half (quick task 260512-ro4): route imports this
+  // helper at module load. Default to "not allowlisted" so these tests'
+  // happy-path session.email triggers the production gate-4 isOverCap
+  // call exactly as before — onFinish wiring tests remain semantics-
+  // identical to the pre-spend-cap-exemption behavior.
+  isEmailSpendCapAllowlisted: () => false,
 }));
 
 // ---- supabase mock — happy-path session lookup + 0 turn rows ----------------

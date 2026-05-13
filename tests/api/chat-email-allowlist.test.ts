@@ -79,6 +79,12 @@ vi.mock('@/lib/redis', () => ({
   isOverCap,
   incrementSpend,
   incrementIpCost,
+  // SEED-001 spend-cap half (quick task 260512-ro4): route imports this
+  // helper. Default to "not allowlisted" — none of the surviving 3 tests
+  // exercise the spend-cap allowlist path (the deleted Test 4 used to,
+  // but its premise was inverted by D-A-01 and superseded by
+  // chat-spendcap-allowlist.test.ts Test 1).
+  isEmailSpendCapAllowlisted: () => false,
 }));
 
 // ---- Supabase chain --------------------------------------------------------
@@ -299,17 +305,13 @@ describe('/api/chat — SEED-001 email allowlist contract', () => {
     expect(classifyUserMessage).not.toHaveBeenCalled();
   });
 
-  it('SEED-001 AC: spend cap STILL applies to allowlisted eval-cli email (T-r4s-04 / gate 4 ordering preserved)', async () => {
-    currentSessionEmail = 'eval-cli@joedollinger.dev';
-    isOverCap.mockImplementationOnce(async () => true);
-
-    await postChat();
-
-    expect(persistDeflectionTurn).toHaveBeenCalledWith(
-      expect.objectContaining({ reason: 'spendcap' }),
-    );
-    // Gate 4 fires before gate 5; rate-limit check should NOT have run.
-    expect(checkRateLimits).not.toHaveBeenCalled();
-    expect(classifyUserMessage).not.toHaveBeenCalled();
-  });
+  // NOTE: Prior Test 4 ("SEED-001 AC: spend cap STILL applies to allowlisted
+  // eval-cli email (T-r4s-04 / gate 4 ordering preserved)") was DELETED on
+  // 2026-05-12 as part of the SEED-001 spend-cap half (quick task 260512-ro4).
+  // Its premise — that an allowlisted eval-cli email STILL trips spendcap at
+  // gate 4 — was inverted by D-A-01: eval-cli traffic now bypasses gate 4
+  // entirely. The corrected post-fix behavior is asserted by Test 1 in the
+  // sibling file tests/api/chat-spendcap-allowlist.test.ts (eval-cli reaches
+  // classifier even when isOverCap=true). Leaving the deleted test in place
+  // would be a self-contradictory regression-trap.
 });

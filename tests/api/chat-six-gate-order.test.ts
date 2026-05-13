@@ -83,6 +83,11 @@ vi.mock('@/lib/redis', () => ({
   isOverCap,
   incrementSpend,
   incrementIpCost,
+  // SEED-001 spend-cap half (quick task 260512-ro4): route imports this
+  // helper. Default to "not allowlisted" so the six-gate order test's
+  // r@x.com email still triggers isOverCap (gate 4 still records the
+  // 'over_cap_check' entry — six-gate canonical sequence preserved).
+  isEmailSpendCapAllowlisted: () => false,
 }));
 vi.mock('@/lib/supabase-server', () => ({ supabaseAdmin }));
 vi.mock('@/lib/classifier', () => ({ classifyUserMessage }));

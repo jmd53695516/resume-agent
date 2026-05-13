@@ -40,6 +40,7 @@ import {
   isOverCap,
   incrementSpend,
   incrementIpCost,
+  isEmailSpendCapAllowlisted,
 } from '@/lib/redis';
 import { computeCostCents, normalizeAiSdkUsage } from '@/lib/cost';
 import {
@@ -185,7 +186,15 @@ export async function POST(req: Request): Promise<Response> {
 
   // 4. spend cap (SAFE-04 / SAFE-09 — must precede classifier so abusive
   //    requests don't even pay for Haiku once cap is hit).
-  if (await isOverCap()) {
+  //
+  // SEED-001 / D-A-01 / quick task 260512-ro4 (per .planning/quick/
+  // 260512-ro4-exempt-eval-cli-joedollinger-dev-from-sa/260512-ro4-PLAN.md):
+  // allowlisted emails (eval-cli@joedollinger.dev) short-circuit the cap
+  // entirely — they neither read it nor pay for the deflection. Per-IP cost
+  // cap (SAFE-08) below at gate 5 is the new last-line cost backstop for
+  // eval-cli traffic. An attacker spoofing the email is still capped at
+  // 150¢/day per source IP and 60 msgs/day per IP (ip10m + ipday).
+  if (!isEmailSpendCapAllowlisted(session.email) && (await isOverCap())) {
     try {
       await persistDeflectionTurn({
         session_id,
@@ -367,7 +376,22 @@ export async function POST(req: Request): Promise<Response> {
           session_id,
           steps: event.steps as Parameters<typeof persistToolCallTurn>[0]['steps'],
         });
-        await Promise.all([incrementSpend(costCents), incrementIpCost(ipKey, costCents)]);
+        // SEED-001 / D-A-01 (quick task 260512-ro4): pass session.email so
+        // incrementSpend skips the increment when the email is allowlisted —
+        // eval-cli traffic is fully invisible to the SAFE-04 global counter.
+        //
+        // LOAD-BEARING: incrementIpCost does NOT receive opts.email and is
+        // INTENTIONALLY NOT gated by the allowlist. SAFE-08 (150¢/day per IP)
+        // is the new last-line cost backstop for eval-cli traffic since
+        // SAFE-04 is bypassed for allowlisted emails. Removing this per-IP
+        // increment would leave eval-cli traffic uncapped at the cost layer
+        // (STRIDE T-ro4-07 — future executor disables SAFE-08 thinking it's
+        // redundant). See .planning/quick/260512-ro4-.../260512-ro4-PLAN.md
+        // <threat_model> for the full mitigation chain.
+        await Promise.all([
+          incrementSpend(costCents, { email: session.email }),
+          incrementIpCost(ipKey, costCents),
+        ]);
       } catch (err) {
         log(
           {
