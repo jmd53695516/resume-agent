@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Plan 06-04 complete — voice rewrite applied + Joe-sign-off PATCHED (4 patches: WOO acronym restored + credibility-based descriptor + servant leadership framing + dropped Haiku-invented sentence). kb/about_me.md final: 1030 words / 16 content paragraphs / banned-vocab 0/17 / 4/5 voice-fidelity (Joe gut-check) / SAFE-11 17/17 green. Total Haiku spend 1.42¢. Plan 06-05 (cat1 ground_truth_facts expansion for 6 new chunks) is next."
-last_updated: "2026-05-13T18:05:00.000Z"
-last_activity: 2026-05-13 -- Plan 06-04 complete; Plan 06-05 (cat1 ground_truth_facts) is next
+stopped_at: "Plan 06-05 complete — cat1 ground_truth_facts +11 entries spliced across 3 cases (cat1-fab-006/008/014). D-B-01 15/15 invariant preserved (strategy=expand-existing). YAML parses cleanly; system-prompt 17/17 + cat1 13/13 + tsc + build all green. kb/voice.md byte-identical (D-A-04 skipped). Plan 06-06 (preview eval → promote → prod eval, the verification close-out) is next — final Phase 06 plan."
+last_updated: "2026-05-13T22:00:00.000Z"
+last_activity: 2026-05-13 -- Plan 06-05 complete; Plan 06-06 (preview/prod cat1+cat4 verification) is next
 progress:
   total_phases: 8
   completed_phases: 6
   total_plans: 47
-  completed_plans: 44
-  percent: 94
+  completed_plans: 45
+  percent: 96
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 ## Current Position
 
 Phase: 06 (kb-enrichment-about-me-hardening) — EXECUTING
-Plan: 4 of 6 complete; Plan 06-05 (cat1 ground_truth_facts) is next
-Status: Executing Phase 06 — Wave 2 complete (06-03 ✓, 06-04 ✓); Wave 3 (06-05 + 06-06) pending
-Last activity: 2026-05-13 -- Plan 06-04 complete (voice rewrite + Joe-sign-off PATCHED; kb/about_me.md 1030 words / 4/5 voice-fidelity / banned-vocab 0/17 / SAFE-11 17/17 green)
+Plan: 5 of 6 complete; Plan 06-06 (preview/prod cat1+cat4 verification) is next — final phase plan
+Status: Executing Phase 06 — Wave 3 partial (06-05 ✓; 06-06 pending)
+Last activity: 2026-05-13 -- Plan 06-05 complete (cat1 ground_truth_facts +11 entries; D-B-01 15/15 invariant preserved; SAFE-11 17/17 + cat1 13/13 green)
 
-Progress: [█████████░] Phase 06: 4/6 plans done (06-01 claim matrix, 06-02 strip, 06-03 merge, 06-04 voice rewrite — all committed). Wave 3 remaining: 06-05 cat1 ground_truth_facts expansion + 06-06 preview→promote→prod cat1+cat4 verification. Plan 05-12 functionally complete (code/data shipped, prod verified, gates green) — friend-test responses re-collected on post-Phase-6 enriched artifact per OQ-04 Option A. Phase 05.2 fully closed (VERIFICATION 14/14, HUMAN-UAT 1-6 approved).
+Progress: [█████████░] Phase 06: 5/6 plans done (06-01 claim matrix, 06-02 strip, 06-03 merge, 06-04 voice rewrite, 06-05 cat1 expansion — all committed). Final plan: 06-06 preview→promote→prod cat1+cat4 verification. Plan 05-12 functionally complete (code/data shipped, prod verified, gates green) — friend-test responses re-collected on post-Phase-6 enriched artifact per OQ-04 Option A. Phase 05.2 fully closed (VERIFICATION 14/14, HUMAN-UAT 1-6 approved).
 
 ## Performance Metrics
 
@@ -203,6 +203,7 @@ Recent decisions affecting current work:
 - [Phase 06-kb-enrichment-about-me-hardening]: Plan 06-03 follow-up items deferred to post-Phase-6 backlog: (1) kb/profile.yml target_roles[] expansion 3→9 (per S4 + claim-matrix Top-5 finding #1); (2) kb/profile.yml industries[] expansion to 6-industry list (per S19); (3) kb/case_studies/*.md coverage audit for all 10 stripped case studies (per S23); (4) kb/profile.yml SQL 7/10 + DDL-gap surface (per S11); (5) kb/case_studies/snowflake-marketplace-datashare.md FS/PE 12-domain audit (per S21). Out of scope for Plan 06-03 per files_modified guard (D-C-01..03).
 - [Phase 06-kb-enrichment-about-me-hardening]: Plan 06-04: scripts/voice-rewrite.ts uses pre-merge `git show 9e58675^:kb/about_me.md` as canonical reference (not the post-merge file containing 3rd-person Haiku output) — avoids contamination loop where Haiku would learn its own 3rd-person voice as "canonical". Per-passage one-shot calls (6 total) rather than batched whole-file rewrite; ~0.24¢ per call × 6 = 1.42¢ total (well under plan's 10-15¢ estimate). Reusable for Phase 7+ resume.md per D-C-04 sequencing.
 - [Phase 06-kb-enrichment-about-me-hardening]: Plan 06-04 Joe-verdict PATCHED with 4 manual restorations (R1 WOO acronym, R3 credibility-based 5th descriptor, R5 drop Haiku-invented "step back and let the specialist talk" sentence, R6 servant leadership framing). R2 + R4 paraphrases (genuine human interaction; translating technical data issues) left as-is — semantic preservation acceptable per Joe gut-check. Voice-fidelity 4/5; final kb/about_me.md 1030 words / 16 content paragraphs / banned-vocab 0/17 / SAFE-11 17/17 green. Plan 06-06 cat4 LLM-judge expected to clear ≥4.0 aggregate.
+- [Phase 06-kb-enrichment-about-me-hardening]: Plan 06-05: 11 new cat1 ground_truth_facts entries spliced across 3 existing cases (cat1-fab-006 UA quantitative trap +2; cat1-fab-008 persona-expert ML-engineer trap +5; cat1-fab-014 verifiable-easy SEI current product +4). Strategy=expand-existing preserves D-B-01 15/15 hard-gate invariant (case count 15→15); no CONTEXT D-F-02/03/04/05 amendments needed. Lineage style matches Plan 05-12 Task 0 iter-2/iter-3 (block-comment-then-entries; per-case-isolation false-positive-fix framing). Voice samples 0 added (D-A-04 skip — Phase 06 sourced from structured LLM file, not raw transcript turns). All Phase 06 hard-deps satisfied ahead of 06-06: D-A-05 ✓ (cat1 coverage), D-D-01 ✓ (spend-cap exemption via quick task 260512-tku kill-switch), D-A-04 ✓ (skipped cleanly).
 
 ### Roadmap Evolution
 
