@@ -211,7 +211,14 @@ afterEach(() => {
   vi.resetModules();
 });
 
-describe('/api/chat — SEED-001 ip-rate-limit allowlist contract', () => {
+// TODO(SEED-002): Un-skip when SAFETY_GATES_ENABLED='true' is set in Vercel
+// envs (gates 4 + 5 re-enabled). See .planning/seeds/SEED-002-re-enable-rate-
+// limits-and-spend-cap.md for re-enable criteria and the planning quick task
+// .planning/quick/260512-tku-disable-rate-limit-spend-cap-gates-globa/ for
+// why this was disabled. SEED-001 helper code (EVAL_CLI_ALLOWLIST in
+// src/lib/redis.ts) IS PRESERVED — re-enable is .skip → skip removed, no
+// implementation work. Single-line edit per file when re-enabling.
+describe.skip('/api/chat — SEED-001 ip-rate-limit allowlist contract', () => {
   it('SEED-001 ip-rl AC: exact-match — eval-cli@joedollinger.dev bypasses ip10m and reaches classifier', async () => {
     currentSessionEmail = 'eval-cli@joedollinger.dev';
     // checkRateLimits returns ok:true by default — this simulates the
