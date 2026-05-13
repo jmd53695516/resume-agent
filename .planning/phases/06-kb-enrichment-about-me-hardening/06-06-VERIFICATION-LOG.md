@@ -153,11 +153,56 @@ Two CI runs (on `e912372` runId `7ppPLS6odG2sfPWUdYf0M` and `e5aa169` runId `XPG
 
 ## Task 6 — Prod eval invocation
 
-(pending)
+**Prod URL:** https://joe-dollinger-chat.com
+**Main HEAD:** `0fcb3f8` (Phase 6 squash-merge commit)
+**Vercel prod deploy status:** success (Vercel-bridge `eval` CI on `0fcb3f8`: success — the cat4-prompt-003 cold-cache flake did NOT repeat on this CI run; updates the N=5 picture to N=6 with 2 fails / 4 passes on cat4-prompt-003)
+**Prod reachability check:** HTTP/1.1 200 OK
+
+### cat1 on prod
+
+- **Command:** `npm run eval -- --target=https://joe-dollinger-chat.com --cats=cat1`
+- **runId (eval_runs row id):** `JXjeiyEtKcCqKoOia4awU`
+- **Result:** 15 / 15 (D-F-03 hard-gate MET)
+- **Status:** **passed**
+- **Cost (cents):** 40
+- **Duration (ms):** 174806 (~2m55s)
+- **Per-case detail:** all 15 cases passed verbatim. Identical pass profile to preview cat1 — the Plan 06-05 ground_truth_facts expansion (cat1-fab-006/008/014) holds against prod Sonnet citations of the new about_me.md content.
+
+### cat4-judge on prod
+
+- **Command:** `npm run eval -- --target=https://joe-dollinger-chat.com --cats=cat4-judge`
+- **runId (eval_runs row id):** `EQXxHsTg-_WZENKHxgZua`
+- **Aggregate avg:** **4.52** (highest of all 6 cat4 runs in this plan: range 4.20-4.52)
+- **Per-case all pass:** **yes (5/5)** — cat4-prompt-003 PASSED on prod
+- **Status:** **passed** (D-F-05 hard-gate MET)
+- **Cost (cents):** 2
+- **Duration (ms):** 75015 (~1m15s)
+
+### Prod verification totals
+
+- **Combined cost:** 42¢ across both runs (matches preview cost pattern)
+- **Combined duration:** ~4m10s wall-clock (sequential)
+- **eval_runs row IDs captured:** `JXjeiyEtKcCqKoOia4awU` (prod cat1) + `EQXxHsTg-_WZENKHxgZua` (prod cat4-judge) — both nanoid-shaped, both persisted to Supabase via createRun (D-F-08 audit trail step 2 of 2 complete; all 4 row IDs now captured)
+
+### Updated N=6 cat4-prompt-003 variance picture
+
+| Run | Env | Aggregate | cat4-prompt-003 | Status |
+|---|---|---|---|---|
+| CI #1 | GH Actions cold-cache | 4.24 | FAIL | FAIL |
+| Manual #1 | local (preview, warm) | 4.20 | PASS | PASS |
+| Manual #2 | local (preview, warm) | 4.28 | PASS | PASS |
+| Manual #3 | local (preview, warm) | 4.48 | PASS | PASS |
+| CI #2 | GH Actions cold-cache (preview after empty commit) | 4.20 | FAIL | FAIL |
+| **CI #3 (on merge 0fcb3f8)** | **GH Actions cold-cache (prod)** | **PASS** | **PASS** | **PASS** |
+| **Manual #4 (prod)** | **local (prod, fresh)** | **4.52** | **PASS** | **PASS** |
+
+Final tally: cat4-prompt-003 pass rate 5/7 = 71%. The flake is real but not deterministic; the "all CI runs fail" hypothesis was wrong (CI run on the merge commit passed). The follow-up to triage cat4-prompt-003 cold-cache borderline-ness is captured as a Phase 7+ backlog item.
+
+**Action:** Proceeding to Task 7 (prod gate decision-point).
 
 ## Task 7 — Prod gate decision
 
-(pending)
+(pending — awaiting Joe's PROCEED-vs-HALT verdict on the prod gate)
 
 ## Task 8 — Determinism CI verification
 
