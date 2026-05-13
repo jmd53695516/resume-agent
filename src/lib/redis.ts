@@ -44,33 +44,33 @@ export const sessionLimiter = new Ratelimit({
   analytics: false,
 });
 
-// --- Per-email rate-limit allowlist (SEED-001) ---------------------------
+// --- Eval-cli allowlist (SEED-001 unified, D-A-02) ----------------------
 //
-// Exact-match Set of emails that BYPASS the per-email 150/day limiter
-// while still being subject to all other gates (ip10m, ipday, session,
-// ipcost, spend cap). Designed to unblock the eval CLI from CI without
-// creating a blanket bypass.
+// Exact-match Set of emails that BYPASS both the per-email 150/day rate
+// limiter (consumed by isEmailRatelimitAllowlisted) AND the SAFE-04 300¢/24h
+// global spend cap (consumed by isEmailSpendCapAllowlisted). Designed to
+// unblock the eval CLI from CI without creating a blanket bypass.
 //
 // SECURITY (SEED-001 threat-model — STRIDE register in
-// .planning/quick/260512-r4s-exempt-eval-cli-email-from-per-email-rat/260512-r4s-PLAN.md):
+// .planning/quick/260512-ro4-exempt-eval-cli-joedollinger-dev-from-sa/260512-ro4-PLAN.md):
 //   - Exact match only. NOT suffix, NOT regex, NOT case-insensitive.
 //     `eval-cli-test@joedollinger.dev` does NOT bypass.
 //     `EVAL-CLI@joedollinger.dev` does NOT bypass.
 //   - Per-IP rate limit still applies (an attacker spoofing this email
 //     is still capped at 60 messages/day per source IP).
-//   - Spend cap (SAFE-04, 300¢/day rolling 24h) still applies. An attacker
-//     would burn the cap fast, tripping spendcap deflection for all
-//     traffic — including the legitimate eval CLI.
+//   - Per-IP cost cap (SAFE-08, 150¢/day per IP at `resume-agent:ipcost:
+//     YYYY-MM-DD:<ipKey>`) STILL applies — this is the last-line cost
+//     backstop for eval-cli traffic since SAFE-04 spend cap is bypassed.
 //   - The canonical eval-cli email literal is duplicated in
 //     src/lib/eval/agent-client.ts mintEvalSession(); drift between the
-//     two is caught by tests/lib/redis.test.ts (constant assertion test).
+//     two is caught by tests/lib/redis.test.ts (drift-detection test).
 //
 // To extend: prefer adding a new exact email here. If a use case ever
 // needs env-var-driven flexibility, add a second Set built from
-// `process.env.EVAL_CLI_RATELIMIT_ALLOWLIST_EXTRA` (comma-separated)
-// and union them — but DO NOT replace the hardcoded baseline (the drift
-// detection test would no longer catch updates to the eval CLI literal).
-export const EVAL_CLI_RATELIMIT_ALLOWLIST: ReadonlySet<string> = new Set([
+// `process.env.EVAL_CLI_ALLOWLIST_EXTRA` (comma-separated) and union them
+// — but DO NOT replace the hardcoded baseline (the drift detection test
+// would no longer catch updates to the eval CLI literal).
+export const EVAL_CLI_ALLOWLIST: ReadonlySet<string> = new Set([
   'eval-cli@joedollinger.dev',
 ]);
 
@@ -79,7 +79,20 @@ export const EVAL_CLI_RATELIMIT_ALLOWLIST: ReadonlySet<string> = new Set([
  * limiter. Per-IP / spend-cap / session checks are NOT affected.
  */
 export function isEmailRatelimitAllowlisted(email: string): boolean {
-  return EVAL_CLI_RATELIMIT_ALLOWLIST.has(email);
+  return EVAL_CLI_ALLOWLIST.has(email);
+}
+
+/**
+ * Returns true if the given email is exempt from the SAFE-04 global
+ * 24h rolling spend cap (`isOverCap()` is short-circuited AND
+ * `incrementSpend()` skips its increment when called with this email).
+ *
+ * Per-IP cost cap (SAFE-08, 150¢/day per IP) and per-IP rate limits
+ * (ip10m, ipday) are NOT affected — those are the last-line backstops
+ * for eval-cli traffic.
+ */
+export function isEmailSpendCapAllowlisted(email: string): boolean {
+  return EVAL_CLI_ALLOWLIST.has(email);
 }
 
 export type RateLimitCheck =
@@ -136,8 +149,20 @@ export async function isOverCap(): Promise<boolean> {
   return (await getSpendToday()) >= 300; // D-D-07: 300 cents rolling 24h
 }
 
-export async function incrementSpend(cents: number): Promise<void> {
+/**
+ * Increment the global 24h-rolling spend counter by `cents`. Skipped if
+ * `cents <= 0` (no-op for free deflection paths). SEED-001 / D-A-01:
+ * skipped entirely when `opts.email` is in the eval-cli allowlist — eval
+ * traffic must be fully invisible to the global counter. Per-IP cost
+ * counter (incrementIpCost) is NOT gated here; it still increments for
+ * eval-cli traffic since SAFE-08 is the new last-line cost backstop.
+ */
+export async function incrementSpend(
+  cents: number,
+  opts?: { email?: string },
+): Promise<void> {
   if (cents <= 0) return;
+  if (opts?.email && isEmailSpendCapAllowlisted(opts.email)) return;
   const key = hourBucketKey();
   // EXPIRE 25h so the key outlives its 24h relevance window by a safety margin.
   await redis.incrby(key, cents);

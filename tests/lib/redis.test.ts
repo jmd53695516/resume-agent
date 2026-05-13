@@ -75,8 +75,10 @@ import {
   ipLimiterDay,
   emailLimiterDay,
   sessionLimiter,
-  EVAL_CLI_RATELIMIT_ALLOWLIST,
+  EVAL_CLI_ALLOWLIST,
   isEmailRatelimitAllowlisted,
+  isEmailSpendCapAllowlisted,
+  redis,
 } from '@/lib/redis';
 
 describe('spend counter', () => {
@@ -116,11 +118,11 @@ describe('checkRateLimits happy path', () => {
 // Exempt eval-cli email from the per-email 150/day window while keeping
 // per-IP + per-session + ipcost backstops intact.
 
-describe('SEED-001 EVAL_CLI_RATELIMIT_ALLOWLIST constant', () => {
+describe('SEED-001 EVAL_CLI_ALLOWLIST constant (unified, D-A-02)', () => {
   it('is a Set containing exactly the canonical eval-cli email', () => {
-    expect(EVAL_CLI_RATELIMIT_ALLOWLIST).toBeInstanceOf(Set);
-    expect(EVAL_CLI_RATELIMIT_ALLOWLIST.size).toBe(1);
-    expect(EVAL_CLI_RATELIMIT_ALLOWLIST.has('eval-cli@joedollinger.dev')).toBe(true);
+    expect(EVAL_CLI_ALLOWLIST).toBeInstanceOf(Set);
+    expect(EVAL_CLI_ALLOWLIST.size).toBe(1);
+    expect(EVAL_CLI_ALLOWLIST.has('eval-cli@joedollinger.dev')).toBe(true);
   });
 });
 
@@ -187,5 +189,91 @@ describe('SEED-001 checkRateLimits — allowlisted email', () => {
     await checkRateLimits('1.2.3.4', evilEmail, 'sess-evil');
     expect((emailLimiterDay.limit as ReturnType<typeof vi.fn>)).toHaveBeenCalledTimes(1);
     expect((emailLimiterDay.limit as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith(evilEmail);
+  });
+});
+
+// --- SEED-001 spend-cap half (quick task 260512-ro4, D-A-01 + D-A-02) ----
+// Mirrors the rate-limit half above but covers the SAFE-04 global spend
+// counter bypass. Both halves share the same unified EVAL_CLI_ALLOWLIST Set.
+
+describe('SEED-001 isEmailSpendCapAllowlisted', () => {
+  it('returns true for the canonical eval-cli email', () => {
+    expect(isEmailSpendCapAllowlisted('eval-cli@joedollinger.dev')).toBe(true);
+  });
+  it('returns false for pattern-adjacent eval-cli-test email', () => {
+    expect(isEmailSpendCapAllowlisted('eval-cli-test@joedollinger.dev')).toBe(false);
+  });
+  it('returns false for empty string', () => {
+    expect(isEmailSpendCapAllowlisted('')).toBe(false);
+  });
+  it('returns false for an unrelated recruiter email', () => {
+    expect(isEmailSpendCapAllowlisted('recruiter@google.com')).toBe(false);
+  });
+  it('returns false for case-variant (case-sensitive contract)', () => {
+    expect(isEmailSpendCapAllowlisted('EVAL-CLI@joedollinger.dev')).toBe(false);
+  });
+  it('returns false for subdomain-trick email', () => {
+    expect(isEmailSpendCapAllowlisted('eval-cli@joedollinger.dev.attacker.com')).toBe(false);
+  });
+});
+
+describe('SEED-001 unified EVAL_CLI_ALLOWLIST drift detection (D-A-02)', () => {
+  it('both rate-limit and spend-cap helpers consult the same Set for allowlisted emails', () => {
+    for (const e of EVAL_CLI_ALLOWLIST) {
+      expect(isEmailRatelimitAllowlisted(e)).toBe(true);
+      expect(isEmailSpendCapAllowlisted(e)).toBe(true);
+    }
+  });
+  it('both helpers reject pattern-adjacent emails identically', () => {
+    const adjacents = [
+      'eval-cli-test@joedollinger.dev',
+      'eval-cli2@joedollinger.dev',
+      'EVAL-CLI@joedollinger.dev',
+      'eval-cli@joedollinger.dev.attacker.com',
+      'recruiter@google.com',
+      '',
+    ];
+    for (const e of adjacents) {
+      expect(isEmailRatelimitAllowlisted(e)).toBe(false);
+      expect(isEmailSpendCapAllowlisted(e)).toBe(false);
+    }
+  });
+});
+
+describe('SEED-001 incrementSpend — email-gated skip (D-A-01 full invisibility)', () => {
+  beforeEach(async () => {
+    // The shared describe-level FakeRedis store persists across tests by
+    // module-singleton design (redis.ts imports the module once). Clear
+    // any accumulated spend so each test starts at zero.
+    // Strategy: import redis directly and clear the store. Cleaner than
+    // adding a reset helper to redis.ts production code.
+    // FakeRedis is the mocked Redis class — accessing .store is mock-only.
+    (redis as unknown as { store: Map<string, number> }).store.clear();
+  });
+
+  it('SKIPS increment for allowlisted eval-cli email (D-A-01 full invisibility)', async () => {
+    await incrementSpend(50, { email: 'eval-cli@joedollinger.dev' });
+    expect(await getSpendToday()).toBe(0);
+  });
+
+  it('DOES increment for an unrelated recruiter email', async () => {
+    await incrementSpend(50, { email: 'recruiter@google.com' });
+    expect(await getSpendToday()).toBe(50);
+  });
+
+  it('DOES increment when no opts.email is passed (back-compat)', async () => {
+    await incrementSpend(50);
+    expect(await getSpendToday()).toBe(50);
+  });
+
+  it('still no-ops on zero or negative cents even with allowlisted email', async () => {
+    await incrementSpend(0, { email: 'eval-cli@joedollinger.dev' });
+    await incrementSpend(-10, { email: 'recruiter@google.com' });
+    expect(await getSpendToday()).toBe(0);
+  });
+
+  it('DOES increment for pattern-adjacent email (exact-match contract preserved)', async () => {
+    await incrementSpend(75, { email: 'eval-cli-test@joedollinger.dev' });
+    expect(await getSpendToday()).toBe(75);
   });
 });
