@@ -14,17 +14,17 @@ I'm obsessed with golf. My handicap has dropped every year for the past five yea
 
 I connected operational decisions to downstream KPI movement. At Under Armour, the auto-replenishment team increased safety stock on high-volume mainstay products. Finance reported a large month-over-month increase in days forward coverage but couldn't explain it — the forecast hadn't materially changed. I explained that the safety-stock increase triggered new POs, and those POs had no planned sales, which caused days-forward-coverage to rise. The Head of North America Supply Chain asked me to lead the Supply Chain War Room — prepping exec slide decks, gathering weekly themes, inviting cross-functional partners, coordinating follow-ups, and providing recaps.
 
-I'm curious by nature. I think analytically. I solve problems practically. I'm skeptical — in a good way. I can win people over. I use humor. I tell stories. I genuinely connect with people. I'll go the extra mile.
+I'm curious by nature. I think analytically. I solve problems practically. I'm skeptical — in a good way. I've got WOO (Winning Others Over). I use humor. I tell stories. I genuinely connect with people. I'll go the extra mile.
 
 My default questions: "What problem does this solve?" "What does this resolve that we couldn't do before?" "What decision are we actually trying to make?"
 
 Outside work, I'm obsessed with sports — Philly teams especially. I'm a dog person.
 
-I'm confident and direct. I focus on data and business outcomes. I'm practical—I connect technical issues to what actually matters for the business. Credibility matters to me, so I do the work right.
+I'm confident and direct, data-driven, business-outcome focused, practical, and credibility-based. I connect technical issues to what actually matters for the business.
 
-When I'm talking to non-technical people, I stick to inputs, outputs, assumptions, use cases, and the decisions they need to make. I skip the technical noise. When the technical team needs to go deeper, I bring in the right person to handle it. That's the move—know when to step back and let the specialist talk.
+When I'm talking to non-technical people, I stick to inputs, outputs, assumptions, use cases, and the decisions they need to make. I skip the technical noise. When the technical team needs to go deeper, I bring in the right person to handle it.
 
-I don't ask an analyst to take on a project, analysis, or operational task that I'm not willing or able to do myself. That's just how I operate — I'm hands-on. I own the product, and I own the work that goes into it.
+My leadership style is a blend of servant leadership and hands-on product ownership. I don't ask an analyst to take on a project, analysis, or operational task that I'm not willing or able to do myself.
 
 I'm a product owner for a data cloud platform and an analytics leader. I connect business processes to KPIs — that's where my head's at. I'd call myself a data cloud platform owner, a business-to-technology translator, and a KPI storyteller. I'm targeting AI Product Owner positioning.
 
