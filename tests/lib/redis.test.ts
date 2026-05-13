@@ -78,6 +78,7 @@ import {
   EVAL_CLI_ALLOWLIST,
   isEmailRatelimitAllowlisted,
   isEmailSpendCapAllowlisted,
+  isEmailIpRatelimitAllowlisted, // SEED-001 ip-rl half (quick task 260512-sne)
   redis,
 } from '@/lib/redis';
 
@@ -160,11 +161,12 @@ describe('SEED-001 checkRateLimits — allowlisted email', () => {
   it('SKIPS emailLimiterDay.limit() for canonical eval-cli email', async () => {
     const res = await checkRateLimits('1.2.3.4', 'eval-cli@joedollinger.dev', 'sess-123');
     expect((emailLimiterDay.limit as ReturnType<typeof vi.fn>)).not.toHaveBeenCalled();
-    // Per-IP + session still fire — the protections SEED-001 explicitly preserves.
-    expect((ipLimiter10m.limit as ReturnType<typeof vi.fn>)).toHaveBeenCalledTimes(1);
-    expect((ipLimiter10m.limit as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith('1.2.3.4');
-    expect((ipLimiterDay.limit as ReturnType<typeof vi.fn>)).toHaveBeenCalledTimes(1);
-    expect((ipLimiterDay.limit as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith('1.2.3.4');
+    // SEED-001 ip-rl half (quick task 260512-sne) UPDATE: ip10m + ipday are
+    // also bypassed for the allowlisted email (was NOT the case at r4s landing
+    // — pre-sne behavior asserted ip10m + ipday were still called). Session
+    // limiter STILL fires (D-A-01 scope boundary).
+    expect((ipLimiter10m.limit as ReturnType<typeof vi.fn>)).not.toHaveBeenCalled();
+    expect((ipLimiterDay.limit as ReturnType<typeof vi.fn>)).not.toHaveBeenCalled();
     expect((sessionLimiter.limit as ReturnType<typeof vi.fn>)).toHaveBeenCalledTimes(1);
     expect((sessionLimiter.limit as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith('sess-123');
     expect(res).toEqual({ ok: true });
@@ -218,13 +220,14 @@ describe('SEED-001 isEmailSpendCapAllowlisted', () => {
 });
 
 describe('SEED-001 unified EVAL_CLI_ALLOWLIST drift detection (D-A-02)', () => {
-  it('both rate-limit and spend-cap helpers consult the same Set for allowlisted emails', () => {
+  it('all three helpers consult the same Set for allowlisted emails', () => {
     for (const e of EVAL_CLI_ALLOWLIST) {
       expect(isEmailRatelimitAllowlisted(e)).toBe(true);
       expect(isEmailSpendCapAllowlisted(e)).toBe(true);
+      expect(isEmailIpRatelimitAllowlisted(e)).toBe(true);
     }
   });
-  it('both helpers reject pattern-adjacent emails identically', () => {
+  it('all three helpers reject pattern-adjacent emails identically', () => {
     const adjacents = [
       'eval-cli-test@joedollinger.dev',
       'eval-cli2@joedollinger.dev',
@@ -236,6 +239,7 @@ describe('SEED-001 unified EVAL_CLI_ALLOWLIST drift detection (D-A-02)', () => {
     for (const e of adjacents) {
       expect(isEmailRatelimitAllowlisted(e)).toBe(false);
       expect(isEmailSpendCapAllowlisted(e)).toBe(false);
+      expect(isEmailIpRatelimitAllowlisted(e)).toBe(false);
     }
   });
 });
@@ -275,5 +279,92 @@ describe('SEED-001 incrementSpend — email-gated skip (D-A-01 full invisibility
   it('DOES increment for pattern-adjacent email (exact-match contract preserved)', async () => {
     await incrementSpend(75, { email: 'eval-cli-test@joedollinger.dev' });
     expect(await getSpendToday()).toBe(75);
+  });
+});
+
+// --- SEED-001 ip-rate-limit half (quick task 260512-sne, D-A-01 + D-A-02) -
+// Mirrors the rate-limit half and spend-cap half above. All three halves
+// share the same unified EVAL_CLI_ALLOWLIST Set — this half adds the third
+// sibling helper isEmailIpRatelimitAllowlisted and the ip10m/ipday skip in
+// checkRateLimits. Per-IP cost cap (SAFE-08) is INTENTIONALLY NOT gated by
+// email and serves as the last-line cost backstop (Test Q regression-trap).
+
+describe('SEED-001 isEmailIpRatelimitAllowlisted', () => {
+  it('returns true for the canonical eval-cli email', () => {
+    expect(isEmailIpRatelimitAllowlisted('eval-cli@joedollinger.dev')).toBe(true);
+  });
+  it('returns false for pattern-adjacent eval-cli-test email', () => {
+    expect(isEmailIpRatelimitAllowlisted('eval-cli-test@joedollinger.dev')).toBe(false);
+  });
+  it('returns false for empty string', () => {
+    expect(isEmailIpRatelimitAllowlisted('')).toBe(false);
+  });
+  it('returns false for an unrelated recruiter email', () => {
+    expect(isEmailIpRatelimitAllowlisted('recruiter@google.com')).toBe(false);
+  });
+  it('returns false for case-variant (case-sensitive contract)', () => {
+    expect(isEmailIpRatelimitAllowlisted('EVAL-CLI@joedollinger.dev')).toBe(false);
+  });
+  it('returns false for subdomain-trick email', () => {
+    expect(isEmailIpRatelimitAllowlisted('eval-cli@joedollinger.dev.attacker.com')).toBe(false);
+  });
+});
+
+describe('SEED-001 checkRateLimits — allowlisted email (ip-rate-limit half)', () => {
+  beforeEach(() => {
+    (ipLimiter10m.limit as ReturnType<typeof vi.fn>).mockClear();
+    (ipLimiterDay.limit as ReturnType<typeof vi.fn>).mockClear();
+    (emailLimiterDay.limit as ReturnType<typeof vi.fn>).mockClear();
+    (sessionLimiter.limit as ReturnType<typeof vi.fn>).mockClear();
+  });
+
+  it('SKIPS ipLimiter10m.limit() AND ipLimiterDay.limit() for canonical eval-cli email (D-A-01 ip-half bypass; session limiter STILL fires)', async () => {
+    const res = await checkRateLimits('1.2.3.4', 'eval-cli@joedollinger.dev', 'sess-iprl');
+    expect((ipLimiter10m.limit as ReturnType<typeof vi.fn>)).not.toHaveBeenCalled();
+    expect((ipLimiterDay.limit as ReturnType<typeof vi.fn>)).not.toHaveBeenCalled();
+    // Email window also exempt (already-shipped r4s) — confirms unified policy:
+    expect((emailLimiterDay.limit as ReturnType<typeof vi.fn>)).not.toHaveBeenCalled();
+    // Session limiter STILL fires (D-A-01 scope boundary):
+    expect((sessionLimiter.limit as ReturnType<typeof vi.fn>)).toHaveBeenCalledTimes(1);
+    expect((sessionLimiter.limit as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith('sess-iprl');
+    expect(res).toEqual({ ok: true });
+  });
+
+  it('DOES call ipLimiter10m + ipLimiterDay for a real recruiter email (back-compat)', async () => {
+    const res = await checkRateLimits('1.2.3.4', 'recruiter@google.com', 'sess-r');
+    expect((ipLimiter10m.limit as ReturnType<typeof vi.fn>)).toHaveBeenCalledTimes(1);
+    expect((ipLimiter10m.limit as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith('1.2.3.4');
+    expect((ipLimiterDay.limit as ReturnType<typeof vi.fn>)).toHaveBeenCalledTimes(1);
+    expect((ipLimiterDay.limit as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith('1.2.3.4');
+    expect(res).toEqual({ ok: true });
+  });
+
+  it.each([
+    'eval-cli-test@joedollinger.dev',
+    'eval-cli2@joedollinger.dev',
+    'eval-cli@joedollinger.dev.attacker.com',
+    'EVAL-CLI@joedollinger.dev',
+  ])('pattern-adjacent email %s DOES hit ip10m + ipday (exact-match contract)', async (evilEmail) => {
+    (ipLimiter10m.limit as ReturnType<typeof vi.fn>).mockClear();
+    (ipLimiterDay.limit as ReturnType<typeof vi.fn>).mockClear();
+    await checkRateLimits('1.2.3.4', evilEmail, 'sess-evil');
+    expect((ipLimiter10m.limit as ReturnType<typeof vi.fn>)).toHaveBeenCalledTimes(1);
+    expect((ipLimiter10m.limit as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith('1.2.3.4');
+    expect((ipLimiterDay.limit as ReturnType<typeof vi.fn>)).toHaveBeenCalledTimes(1);
+    expect((ipLimiterDay.limit as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith('1.2.3.4');
+  });
+
+  it('SAFE-08 last-line backstop STILL trips for allowlisted email when ipcost >= 150¢ (T-sne-04 regression-trap)', async () => {
+    // Pre-populate the FakeRedis store with 150¢ for a distinct ipKey so
+    // getIpCostToday returns 150 inside checkRateLimits. The existing
+    // per-IP cost describe block above demonstrates the pattern.
+    await incrementIpCost('safe-08-ip', 150);
+    const res = await checkRateLimits('safe-08-ip', 'eval-cli@joedollinger.dev', 'sess-safe-08');
+    expect(res).toEqual({ ok: false, which: 'ipcost' });
+    // ip10m + ipday were STILL bypassed for the allowlisted email — the
+    // backstop firing is purely the SAFE-08 ipcost check, not a per-IP
+    // rate-limit failure leaking through.
+    expect((ipLimiter10m.limit as ReturnType<typeof vi.fn>)).not.toHaveBeenCalled();
+    expect((ipLimiterDay.limit as ReturnType<typeof vi.fn>)).not.toHaveBeenCalled();
   });
 });

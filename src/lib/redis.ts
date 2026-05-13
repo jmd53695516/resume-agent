@@ -46,24 +46,29 @@ export const sessionLimiter = new Ratelimit({
 
 // --- Eval-cli allowlist (SEED-001 unified, D-A-02) ----------------------
 //
-// Exact-match Set of emails that BYPASS both the per-email 150/day rate
-// limiter (consumed by isEmailRatelimitAllowlisted) AND the SAFE-04 300¢/24h
-// global spend cap (consumed by isEmailSpendCapAllowlisted). Designed to
-// unblock the eval CLI from CI without creating a blanket bypass.
+// Exact-match Set of emails that BYPASS three gates:
+//   - the per-email 150/day rate limiter (consumed by isEmailRatelimitAllowlisted)
+//   - the SAFE-04 300¢/24h global spend cap (consumed by isEmailSpendCapAllowlisted)
+//   - the per-IP rate limiters: ip10m=20/10min + ipday=60/day (consumed by
+//     isEmailIpRatelimitAllowlisted; ADDED in quick task 260512-sne)
 //
-// SECURITY (SEED-001 threat-model — STRIDE register in
-// .planning/quick/260512-ro4-exempt-eval-cli-joedollinger-dev-from-sa/260512-ro4-PLAN.md):
+// Designed to unblock the eval CLI from CI without creating a blanket bypass.
+//
+// SECURITY (SEED-001 threat-model — STRIDE registers in
+// .planning/quick/260512-r4s-.../260512-r4s-PLAN.md (rate-limit half),
+// .planning/quick/260512-ro4-.../260512-ro4-PLAN.md (spend-cap half),
+// .planning/quick/260512-sne-.../260512-sne-PLAN.md (ip-rate-limit half)):
 //   - Exact match only. NOT suffix, NOT regex, NOT case-insensitive.
 //     `eval-cli-test@joedollinger.dev` does NOT bypass.
 //     `EVAL-CLI@joedollinger.dev` does NOT bypass.
-//   - Per-IP rate limit still applies (an attacker spoofing this email
-//     is still capped at 60 messages/day per source IP).
 //   - Per-IP cost cap (SAFE-08, 150¢/day per IP at `resume-agent:ipcost:
-//     YYYY-MM-DD:<ipKey>`) STILL applies — this is the last-line cost
-//     backstop for eval-cli traffic since SAFE-04 spend cap is bypassed.
+//     YYYY-MM-DD:<ipKey>`) STILL applies — this is the ONLY remaining
+//     cost-based last-line backstop for eval-cli traffic after sne lands.
+//   - Session limiter (sessionLimiter, 200 msg/7d) STILL applies (D-A-01
+//     explicit scope boundary; safety net preserved).
 //   - The canonical eval-cli email literal is duplicated in
 //     src/lib/eval/agent-client.ts mintEvalSession(); drift between the
-//     two is caught by tests/lib/redis.test.ts (drift-detection test).
+//     two is caught by tests/lib/redis.test.ts (3-helper drift-detection).
 //
 // To extend: prefer adding a new exact email here. If a use case ever
 // needs env-var-driven flexibility, add a second Set built from
@@ -95,6 +100,20 @@ export function isEmailSpendCapAllowlisted(email: string): boolean {
   return EVAL_CLI_ALLOWLIST.has(email);
 }
 
+/**
+ * Returns true if the given email is exempt from the per-IP rate limiters
+ * `ipLimiter10m` (20/10min per IP) and `ipLimiterDay` (60/day per IP).
+ *
+ * Session limiter (`sessionLimiter`, 200/7d) and per-IP cost cap
+ * (SAFE-08, 150¢/day per IP) are NOT affected — those are the last-line
+ * backstops for eval-cli traffic after all three SEED-001 halves land.
+ * SAFE-08 in particular is INTENTIONALLY NOT gated by email and is the
+ * regression-trap target for tests/lib/redis.test.ts Test Q.
+ */
+export function isEmailIpRatelimitAllowlisted(email: string): boolean {
+  return EVAL_CLI_ALLOWLIST.has(email);
+}
+
 export type RateLimitCheck =
   | { ok: true }
   | { ok: false; which: 'ip10m' | 'ipday' | 'email' | 'session' | 'ipcost' };
@@ -105,10 +124,22 @@ export async function checkRateLimits(
   sessionId: string,
 ): Promise<RateLimitCheck> {
   const emailExempt = isEmailRatelimitAllowlisted(email);
+  // SEED-001 / D-A-01 / quick task 260512-sne: allowlisted emails skip the
+  // per-IP rate limiters (ip10m + ipday) entirely. Session limiter still
+  // fires (D-A-01 scope boundary) and per-IP cost cap (SAFE-08, 150¢/day
+  // per IP) still applies via `getIpCostToday` below — that's the last-
+  // line cost backstop for eval-cli traffic and is INTENTIONALLY NOT
+  // gated by email. Future executor noticing the asymmetry "we bypass
+  // ip10m + ipday but not ipcost" — read the SECURITY comment above.
+  const ipRlExempt = isEmailIpRatelimitAllowlisted(email);
 
   const [ip10, ipDay, emailRes, sessionRes, ipCostCents] = await Promise.all([
-    ipLimiter10m.limit(ipKey),
-    ipLimiterDay.limit(ipKey),
+    ipRlExempt
+      ? Promise.resolve({ success: true } as const)
+      : ipLimiter10m.limit(ipKey),
+    ipRlExempt
+      ? Promise.resolve({ success: true } as const)
+      : ipLimiterDay.limit(ipKey),
     // SEED-001: allowlisted emails skip the per-email window. Returning a
     // synthetic success preserves the Promise.all shape and the precedence
     // ordering below (ip10m → ipday → email → session → ipcost) unchanged.
