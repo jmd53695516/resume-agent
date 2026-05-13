@@ -88,6 +88,10 @@ vi.mock('@/lib/redis', () => ({
   // r@x.com email still triggers isOverCap (gate 4 still records the
   // 'over_cap_check' entry — six-gate canonical sequence preserved).
   isEmailSpendCapAllowlisted: () => false,
+  // SEED-001 ip-rl half (quick task 260512-sne): route module load resolves.
+  // Happy-path uses r@x.com (not allowlisted) so gate 5 still records
+  // 'rate_limit_check' via the mocked checkRateLimits.
+  isEmailIpRatelimitAllowlisted: () => false,
 }));
 vi.mock('@/lib/supabase-server', () => ({ supabaseAdmin }));
 vi.mock('@/lib/classifier', () => ({ classifyUserMessage }));

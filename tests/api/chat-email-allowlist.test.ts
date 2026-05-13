@@ -85,6 +85,8 @@ vi.mock('@/lib/redis', () => ({
   // but its premise was inverted by D-A-01 and superseded by
   // chat-spendcap-allowlist.test.ts Test 1).
   isEmailSpendCapAllowlisted: () => false,
+  // SEED-001 ip-rl half (quick task 260512-sne): route module load resolves.
+  isEmailIpRatelimitAllowlisted: () => false,
 }));
 
 // ---- Supabase chain --------------------------------------------------------

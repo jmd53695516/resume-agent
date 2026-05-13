@@ -65,6 +65,8 @@ vi.mock('@/lib/redis', () => ({
   // call exactly as before — onFinish wiring tests remain semantics-
   // identical to the pre-spend-cap-exemption behavior.
   isEmailSpendCapAllowlisted: () => false,
+  // SEED-001 ip-rl half (quick task 260512-sne): route module load resolves.
+  isEmailIpRatelimitAllowlisted: () => false,
 }));
 
 // ---- supabase mock — happy-path session lookup + 0 turn rows ----------------
