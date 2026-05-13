@@ -159,15 +159,26 @@ Plans:
 Plans:
 - [x] 05.1-01-PLAN.md — Item #8 system-prompt premise-smuggling rule + KB counter_facts (commit `78f4f8c`); Item #6 scripts/reset-eval-rate-limits.ts (commit `699c294` + bug fix `4281c3b`); Item #7 transient data-deflection chunk + eval-CLI consumer (commit `d286b74`); SUMMARY at `.planning/phases/05.1-eval-content-trust-restoration/05.1-01-SUMMARY.md`. **CLOSED PARTIAL** — deferred-items #6/#7/#8 RESOLVED; cat1=15/15 D-B-01 hard gate deferred to Plan 05-12 due to NEW Item #11 (classifier over-flagging surfaced by Item #7's clean signal).
 
-### Phase 6: KB enrichment: about-me hardening
+### Phase 6: KB enrichment: about-me hardening (CLOSED 2026-05-13)
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Ingest LLM-written about-me draft, ground-truth every claim against the voice-interview transcript, strip agent-expansion drift, voice-rewrite to match `kb/voice.md` register, section-by-section merge into `kb/about_me.md`, expand cat1 `ground_truth_facts` to cover the new claims, and verify on preview then prod against the 5 D-F hard gates. End state: a 1030-word voice-true `kb/about_me.md` live at https://joe-dollinger-chat.com surfacing 6 new content chunks the recruiter agent previously could not cite (PM differentiator + UA War Room, personal traits + 3 default questions, communication style, leadership style, core positioning + roles-to-avoid, "what energizes me" with 5 product types + "ghost models").
 **Depends on:** Phase 5
-**Plans:** 0 plans
-
+**Requirements**: None (decimal-equivalent KB-enrichment phase; CONTEXT D-A..D-F IDs serve as the requirement surface)
+**Success Criteria** (met):
+  1. All 5 D-F hard gates GREEN on both preview and prod: cat1=15/15 preview, cat1=15/15 prod, cat4 aggregate ≥4.0 + per_case all pass preview (agg 4.20, 5/5), cat4 same on prod (agg 4.52, 5/5), SAFE-11 determinism 17/17 green
+  2. Audit trail captured: 4 `eval_runs` row IDs persisted (preview-cat1, preview-cat4, prod-cat1, prod-cat4)
+  3. cat1 `ground_truth_facts` expanded +11 entries across cat1-fab-006/008/014 — prevents Plan 05-12 per-case-isolation false-positive class on new content
+  4. Total phase spend ~$2.30 (well under budget)
+  5. Reusable `scripts/voice-rewrite.ts` Haiku 4.5 CLI ships for Phase 7+ resume.md work
+**Plans:** 6 plans
 Plans:
-- [ ] TBD (run /gsd-plan-phase 6 to break down)
+- [x] 06-01-PLAN.md — Per-claim diff matrix mapping every factual claim in LLM about-me → transcript quote OR existing kb/ fact OR no_source flag (durable: `06-01-CLAIM-MATRIX.md`)
+- [x] 06-02-PLAN.md — Strip LLM agent-expansion → 1899-word `llm-about-me.stripped.md` scaffolding ready for merge (durable: `06-02-STRIP-REVIEW.md`)
+- [x] 06-03-PLAN.md — Section-by-section merge of stripped content into `kb/about_me.md` per Joe's locked per-section dispositions; 6 new content chunks landed (durable: `06-03-MERGE-DECISIONS.md`)
+- [x] 06-04-PLAN.md — Voice-rewrite of merged content via `scripts/voice-rewrite.ts` (Haiku 4.5, $0.0142); 4 patches applied; Joe gut-check voice-fidelity 4/5 (durable: `06-04-VOICE-REWRITE-REVIEW.md`)
+- [x] 06-05-PLAN.md — cat1 `ground_truth_facts` +11 entries (expand-existing strategy) across cat1-fab-006/008/014; voice samples deferred (durable: `06-05-FACTS-EXPANSION.md`)
+- [x] 06-06-PLAN.md — Verification closure: preview eval gate → prod promote → prod eval gate; 5/5 D-F hard gates MET preview+prod; 4 `eval_runs` row IDs captured; 7 deferred items → 999.1-999.7 backlog (durable: `06-06-VERIFICATION-LOG.md` + `06-06-SUMMARY.md`)
+**UI hint**: no
 
 ## Backlog
 
