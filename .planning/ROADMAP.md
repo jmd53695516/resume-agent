@@ -207,10 +207,10 @@ Unsequenced parking lot (999.x). Items captured during Phase 06 close-out triage
 **Source:** 06-06-SUMMARY.md deferred item #1; 06-06-VERIFICATION-LOG.md N=7 variance map; CONTEXT.md 2026-05-14; RESEARCH.md 2026-05-14.
 **Depends on:** Phase 6 (cat4 baseline established 2026-05-13)
 **Requirements**: None (backlog phase; CONTEXT D-01..D-08 IDs serve as the requirement surface)
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
-- [ ] 999.1-01-PLAN.md — Externalize cat4 thresholds (per_case 4.0→3.8 in evals/cat-04-voice.yaml; aggregate stays 4.0) + add warmupSonnetCache helper invoked once before cat4 case loop in src/lib/eval/cats/cat4-judge.ts; 6+ regression tests; npm test + tsc + build all green (D-01, D-06)
+- [x] 999.1-01-PLAN.md — Externalize cat4 thresholds (per_case 4.0→3.8 in evals/cat-04-voice.yaml; aggregate stays 4.0) + add warmupSonnetCache helper invoked once before cat4 case loop in src/lib/eval/cats/cat4-judge.ts; 6+ regression tests; npm test + tsc + build all green (D-01, D-06)
 - [ ] 999.1-02-PLAN.md — N=3 cold-cache CI verification via `gh workflow run eval.yml -f target_url=https://joe-dollinger-chat.com -f cats=cat4-judge` × 3 sequential; capture run-ids + scores in 999.1-VERIFICATION-LOG.md; if 3/3 PASS, amend Plan 05-12 PLAN.md + CONTEXT-ADDENDUM.md D-12-B-01 with forward-looking supersession note pointing at Phase 999.1 (D-04, D-05, D-07, D-08)
 
 ### Phase 999.3: kb/profile.yml target_roles[] expansion 3→9 (BACKLOG)

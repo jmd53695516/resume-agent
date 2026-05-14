@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 7 Plan 07-1A context gathered (lint follow-up scope) — ready for /gsd-plan-phase 7
-last_updated: "2026-05-14T02:20:36.860Z"
+stopped_at: Phase 999.1 Plan 01 complete (eb260d6 + 5d02d15); ready for Plan 999.1-02 (N=3 cold-cache CI verification + D-08 close-out)
+last_updated: "2026-05-14T13:08:06.500Z"
 last_activity: 2026-05-14
 progress:
   total_phases: 16
   completed_phases: 8
-  total_plans: 50
-  completed_plans: 49
-  percent: 98
+  total_plans: 52
+  completed_plans: 50
+  percent: 96
 ---
 
 # Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** A recruiter in under five minutes walks away with a distinctive, specific impression of Joe — grounded in real projects, free of fabrication, and delivered by an agent they can see was engineered (not just prompted) with cost, abuse, and hallucination controls.
-**Current focus:** Phase 07 — add-test-yml-github-actions-workflow-for-determinism
+**Current focus:** Phase 999.1 — cat4-prompt-003-cold-cache-borderline-ness-fix
 
 ## Current Position
 
-Phase: 999.1
-Plan: Not started
-Status: Executing Phase 07
+Phase: 999.1 (cat4-prompt-003-cold-cache-borderline-ness-fix) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
 Last activity: 2026-05-14
 
 Progress: [██████████] Phase 06: 6/6 plans complete (CLOSED). Phase 06 kb/about_me.md enrichment live on prod (https://joe-dollinger-chat.com); cat1 = 15/15 preview + 15/15 prod; cat4 = 4.20 preview + 4.52 prod (both per_case all pass); SAFE-11 17/17 green; 11 new cat1 ground_truth_facts entries; D-F-08 audit trail complete (4 eval_runs row IDs). Plan 05-12 functionally complete (code/data shipped, prod verified, gates green) — friend-test responses now re-collected on post-Phase-6 enriched artifact per OQ-04 Option A recommendation. Phase 05.2 fully closed. **v1.0 milestone close still gated only on Plan 05-12 friend-test sign-off — Phase 7 is parallel CI-hardening, does NOT block launch.**
@@ -88,6 +88,7 @@ Progress: [██████████] Phase 06: 6/6 plans complete (CLOSED)
 | Phase 05.2 P04 | 3min | 2 tasks | 2 files |
 | Phase 05.2 P05 | 4min | 2 tasks | 2 files |
 | Phase 05-eval-gates-launch P13 | 8min | 2 tasks | 3 files |
+| Phase 999.1 P01 | 9min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -210,6 +211,9 @@ Recent decisions affecting current work:
 - [Phase 06-kb-enrichment-about-me-hardening]: Phase 06 COMPLETE 2026-05-13. kb/about_me.md live at https://joe-dollinger-chat.com (1030 words / 16 paragraphs / banned-vocab 0/17 / 4/5 voice-fidelity / cat4 prod 4.52 / cat1 prod 15/15). 7 deferred items captured for post-Phase-6 backlog (cat4-prompt-003 triage + 6 kb/profile.yml + kb/case_studies follow-ups). OQ-04 surfaced: re-DM friend-testers on enriched prod artifact (Option A recommended). OQ-03 RESOLVED locked-skip. v1.0 milestone close gated only on Plan 05-12 friend-test sign-off; Phase 06 is the final phase in v1.0 milestone scope.
 - [Phase 07-add-test-yml-github-actions-workflow-for-determinism]: Plan 07-1A COMPLETE 2026-05-14. 9 cataloged + 2 newly-found react-hooks@6 violations resolved via D-A-01..05 strategies: shared useIsClient() hook backed by useSyncExternalStore (src/hooks/use-is-client.ts), useSyncExternalStore refactor of LocalTime + RelativeTime (D-A-03), onFinish-driven ChatUI timestamp capture (D-A-04 + null-guard deviation D1), Server-Component purity disables (D-A-01 + inline-line form deviation D2). Clean-env 4-command pre-flight gate green (npm test 654 passed + tsc + lint + build all exit 0). Joe-approved smoke (chat send + matrix toggle + admin pages). NEW FINDING: react-hooks@6 more aggressive than 07-01-CONTEXT codification — `if/try/catch`-wrapped setStates in effects DO trip set-state-in-effect (Deviation D3, 2 additional violations in chat/page.tsx + ChatStatusBanner.tsx resolved via same eslint-disable strategy). 12-var sentinel-env list captured in SUMMARY Handoff for Plan 07-02's test.yml `env:` block (zero-secrets.* posture preserved per D-B-01).
 - [Phase 07-add-test-yml-github-actions-workflow-for-determinism]: Plan 07-1A introduced shared `useIsClient()` hook at src/hooks/use-is-client.ts — canonical SSR-safe client-detection primitive backed by useSyncExternalStore three-arg form. Replaces useState(false)+useEffect(setHydrated(true)) pattern across codebase. Pattern documented for future Client Components needing post-hydration render deferral.
+- [Phase 999.1]: Plan 01: Use js-yaml (existing top-level dep), not yaml package (not installed) - matches yaml-loader.ts pattern
+- [Phase 999.1]: Plan 01: Override-able readFile mock via vi.importActual passthrough sidesteps Vitest 4 ESM 'Cannot redefine property: readFile' while preserving real-fs fallthrough for loadVoiceSamples
+- [Phase 999.1]: Plan 01: Warmup prompt locked to 'Tell me one thing about your background.' - benign on-domain string clears classifier gate 6 so Sonnet writes the cache (short strings risk offtopic-deflection)
 
 ### Roadmap Evolution
 
@@ -250,9 +254,9 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-14T00:52:09.501Z
-Stopped at: Phase 7 Plan 07-1A context gathered (lint follow-up scope) — ready for /gsd-plan-phase 7
-Resume file: .planning/phases/07-add-test-yml-github-actions-workflow-for-determinism/07-1A-CONTEXT.md
+Last session: 2026-05-14T13:08:06.491Z
+Stopped at: Phase 999.1 Plan 01 complete (eb260d6 + 5d02d15); ready for Plan 999.1-02 (N=3 cold-cache CI verification + D-08 close-out)
+Resume file: None
 
 Resumed: 2026-05-11 — completed /gsd-execute-phase 5.2 Wave 5 close-out inline after two executor timeouts on full Playwright runs.
 Resumed: 2026-05-11 — /gsd-resume-work cleanup pass; STATE.md, stale checkpoint, and pending-todo reconciled to reflect Phase 05.2 closure.
