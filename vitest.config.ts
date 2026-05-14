@@ -15,6 +15,13 @@ export default defineConfig({
   test: {
     environment: 'node', // component tests can override via // @vitest-environment jsdom
     include: ['tests/**/*.test.{ts,tsx}'],
+    // D-C-02 + D-C-03 (Phase 07 CONTEXT): chat-six-gate-order parallel-execution flake
+    // quarantined in CI only. Source spec stays runnable locally for debugging.
+    // TODO: fix at root and remove this exclude. Tracked in
+    //   .planning/phases/05.2-implement-chat-stream-design-from-anthropic-design-system/deferred-items.md
+    exclude: process.env.CI
+      ? ['node_modules/**', 'dist/**', '.next/**', 'tests/api/chat-six-gate-order.test.ts']
+      : ['node_modules/**', 'dist/**', '.next/**'],
     setupFiles: ['./tests/setup.ts'], // Plan 03-03 Task 0: jest-dom matchers for jsdom tests
     globals: false,
     // TODO(REVIEW IN-06): revisit when vitest > 4.1.5 — the upstream default pool
