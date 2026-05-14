@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: "Plan 07-01 PARTIAL — Tasks 1+2 committed (lint scope narrowed to `eslint src/`; chat-six-gate flake CI-quarantined). Task 3 (clean-env pre-flight verify) DEFERRED per Option F: `eslint-plugin-react-hooks@6` (bundled with `eslint-config-next@16.2.4`) surfaces 9 pre-existing violations in shipped src/ code (5 `set-state-in-effect` hydration patterns + 2 server-component `purity` Date.now() + 2 trivial). Need new follow-up plan (e.g., 07-1A) to resolve before Plan 07-02 (test.yml) can run. Phase 7 still does NOT block v1.0 launch — Plan 05-12 friend-test sign-off remains only v1.0 gate."
-last_updated: "2026-05-14T00:30:00.000Z"
-last_activity: 2026-05-14 -- Phase 07 Plan 07-01 PARTIAL (Tasks 1+2 done `d767db3` `ae534c0`, SUMMARY `e4c26ea`); Task 3 deferred to follow-up plan for React-hooks lint debt
+status: "Plan 07-01 hit Rule 4 architectural checkpoint. `eslint-plugin-react-hooks@6` (shipped in `eslint-config-next@16.2.4`) flags 9 pre-existing violations across Phase 02-05.2 shipped code: 5 `react-hooks/set-state-in-effect` (hydration patterns in `ChatStatusBanner.tsx`, `ChatUI.tsx`, `chat/page.tsx`, `LocalTime.tsx`, `RelativeTime.tsx`), 2 `react-hooks/purity` (server-component `Date.now()` in admin `abuse/page.tsx` + `evals/calibrate/page.tsx`), 2 trivial (`prefer-const`, unused `_reset`). Option F chosen 2026-05-14: defer Task 3, spin up new follow-up plan to resolve violations, then return to Plan 07-02 (`test.yml` + branch protection)."
+stopped_at: Phase 7 Plan 07-1A context gathered (lint follow-up scope) — ready for /gsd-plan-phase 7
+last_updated: "2026-05-14T00:52:09.507Z"
+last_activity: 2026-05-14 -- Plan 07-01 PARTIAL `e4c26ea`; need new plan for React-hooks lint debt before 07-02
 progress:
-  total_phases: 9
+  total_phases: 16
   completed_phases: 7
   total_plans: 49
-  completed_plans: 46
-  percent: 94
+  completed_plans: 47
+  percent: 96
 ---
 
 # Project State
@@ -247,9 +247,9 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-13T23:23:23.006Z
-Stopped at: Phase 7 context gathered — ready for /gsd-plan-phase 7
-Resume file: .planning/phases/07-add-test-yml-github-actions-workflow-for-determinism/07-CONTEXT.md
+Last session: 2026-05-14T00:52:09.501Z
+Stopped at: Phase 7 Plan 07-1A context gathered (lint follow-up scope) — ready for /gsd-plan-phase 7
+Resume file: .planning/phases/07-add-test-yml-github-actions-workflow-for-determinism/07-1A-CONTEXT.md
 
 Resumed: 2026-05-11 — completed /gsd-execute-phase 5.2 Wave 5 close-out inline after two executor timeouts on full Playwright runs.
 Resumed: 2026-05-11 — /gsd-resume-work cleanup pass; STATE.md, stale checkpoint, and pending-todo reconciled to reflect Phase 05.2 closure.
