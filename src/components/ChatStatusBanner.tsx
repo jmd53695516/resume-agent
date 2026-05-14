@@ -23,6 +23,16 @@ export function ChatStatusBanner({ messages }: { messages: string[] }) {
     // visiting /chat while a banner is showing.
     try {
       if (typeof window !== 'undefined') {
+        // Plan 07-1A deviation: sessionStorage read-on-mount is intentional
+        // — we read the dismiss flag once per session to decide initial
+        // visibility. setDismissed fires at most once per mount. The
+        // eslint-plugin-react-hooks@6 rule fires unconditionally on any
+        // setState in an effect, including this canonical browser-storage
+        // -initialization pattern. Refactor to useSyncExternalStore would
+        // require a synthetic subscribe (sessionStorage does NOT fire
+        // storage events for same-tab setItem) — out of scope for this
+        // plan; tracked for future hardening if the pattern recurs.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setDismissed(sessionStorage.getItem(DISMISS_KEY) === '1');
       }
     } catch {

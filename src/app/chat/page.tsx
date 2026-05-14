@@ -48,6 +48,16 @@ export default function ChatPage() {
       router.replace('/');
       return;
     }
+    // Plan 07-1A deviation: sessionStorage read-on-mount is intentional —
+    // session_id is established by /api/session in EmailGate before
+    // navigation here; we read once, then proceed. setSessionId fires
+    // exactly once per mount. The eslint-plugin-react-hooks@6 rule fires
+    // unconditionally on any setState in an effect, including this
+    // canonical browser-storage-initialization pattern. Refactor to
+    // useSyncExternalStore would require a synthetic subscribe (sessionStorage
+    // does NOT fire storage events for same-tab setItem) — out of scope
+    // for this plan; tracked for future hardening if the pattern recurs.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSessionId(id);
   }, [router]);
 

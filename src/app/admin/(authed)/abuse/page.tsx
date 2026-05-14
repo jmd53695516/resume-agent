@@ -22,6 +22,8 @@ export default async function AbusePage() {
   // At expected volume this is cheap; if page-load > 300ms, switch to a Postgres
   // function or an extended messages-with-session view.
 
+  // Server Component — Date.now() in render is correct (runs once per request).
+  // eslint-disable-next-line react-hooks/purity
   const SINCE = new Date(Date.now() - 90 * 24 * 3600_000).toISOString(); // 90d retention window
 
   // WR-05: widen per-query limit to 200 (still cheap at expected volume)

@@ -51,7 +51,9 @@ export default async function CalibratePage() {
   const admin = await requireAdmin();
   if (!admin) return <NotAuthorized />;
 
+  // Server Component — Date.now() in render is correct (runs once per request).
   const sinceISO = new Date(
+    // eslint-disable-next-line react-hooks/purity
     Date.now() - WINDOW_DAYS * 24 * 60 * 60 * 1000,
   ).toISOString();
 
