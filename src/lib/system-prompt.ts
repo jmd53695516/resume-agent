@@ -60,6 +60,7 @@ export function buildSystemPrompt(): string {
   const kb = loadKB();
   return [
     IDENTITY,
+    `[SAFE-11 induced-break demo: ${Date.now()}]`,
     VOICE_RULES,
     HALLUCINATION_RULES,
     HARDCODED_REFUSAL_RULES, // Phase 2 addition — SAFE-10 defense-in-depth
