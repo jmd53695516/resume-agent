@@ -1,6 +1,19 @@
 // tests/lib/classifier.test.ts — mocked Anthropic client, all 4 labels + borderline + error.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+// Defeat cross-file mock leakage under the `vmThreads` pool. Seven other test
+// files (chat-*-allowlist.test.ts, heartbeat.test.ts, chat-bl17-session-error
+// .test.ts, chat-six-gate-order.test.ts, chat-tools.test.ts) do
+// `vi.mock('@/lib/classifier', () => ({ classifyUserMessage }))`. On CI's Node
+// 22 those partial mocks bleed into THIS file's module registry — the leaked
+// mock omits `classifyUserMessageOrThrow` and hardcodes `classifyUserMessage`
+// to return `{label:'normal',confidence:0.95}`, which is why the OrThrow tests
+// failed with "No export defined" and the value-discriminating tests received
+// the leaked-mock's hardcoded normal/0.95. Locally on Node 25 the leakage
+// doesn't fire (different vmThreads scheduling). `vi.unmock` is hoisted to
+// the top of the file like `vi.mock` and forces the real module on import.
+vi.unmock('@/lib/classifier');
+
 // Mock the anthropic module BEFORE importing classifier.
 vi.mock('@/lib/anthropic', () => {
   const messagesCreate = vi.fn();
