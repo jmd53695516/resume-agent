@@ -201,15 +201,17 @@ Plans:
 
 Unsequenced parking lot (999.x). Items captured during Phase 06 close-out triage (2026-05-13) from `.planning/phases/06-kb-enrichment-about-me-hardening/06-06-SUMMARY.md` "Phase 06 deferred items." None are launch-blocking. Promote with `/gsd-review-backlog`.
 
-### Phase 999.1: cat4-prompt-003 cold-cache borderline-ness fix (BACKLOG)
+### Phase 999.1: cat4-prompt-003 cold-cache borderline-ness fix (PLANNED 2026-05-14)
 
-**Goal:** Resolve cat4-prompt-003 ("What's a stance you hold that other PMs disagree with?") cold-cache flake — 5/7 PASS across N=7 runs with aggregate always ≥4.20. Fix options: (a) refine the prompt; (b) add stance-register voice sample to `kb/voice.md`; (c) relax per_case threshold from 4.0 → 3.8 in `evals/cat-04-voice.yaml`.
-**Source:** 06-06-SUMMARY.md deferred item #1; 06-06-VERIFICATION-LOG.md N=7 variance map.
-**Requirements**: TBD
-**Plans:** 0 plans
+**Goal:** Resolve cat4-prompt-003 ("What's a stance you hold that other PMs disagree with?") cold-cache flake — 5/7 PASS across N=7 runs with aggregate always ≥4.20. CONTEXT.md narrows the fix to (d) cold-cache warmup + (c) per_case threshold relax 4.0→3.8.
+**Source:** 06-06-SUMMARY.md deferred item #1; 06-06-VERIFICATION-LOG.md N=7 variance map; CONTEXT.md 2026-05-14; RESEARCH.md 2026-05-14.
+**Depends on:** Phase 6 (cat4 baseline established 2026-05-13)
+**Requirements**: None (backlog phase; CONTEXT D-01..D-08 IDs serve as the requirement surface)
+**Plans:** 2 plans
 
 Plans:
-- [ ] TBD (promote with /gsd-review-backlog when ready)
+- [ ] 999.1-01-PLAN.md — Externalize cat4 thresholds (per_case 4.0→3.8 in evals/cat-04-voice.yaml; aggregate stays 4.0) + add warmupSonnetCache helper invoked once before cat4 case loop in src/lib/eval/cats/cat4-judge.ts; 6+ regression tests; npm test + tsc + build all green (D-01, D-06)
+- [ ] 999.1-02-PLAN.md — N=3 cold-cache CI verification via `gh workflow run eval.yml -f target_url=https://joe-dollinger-chat.com -f cats=cat4-judge` × 3 sequential; capture run-ids + scores in 999.1-VERIFICATION-LOG.md; if 3/3 PASS, amend Plan 05-12 PLAN.md + CONTEXT-ADDENDUM.md D-12-B-01 with forward-looking supersession note pointing at Phase 999.1 (D-04, D-05, D-07, D-08)
 
 ### Phase 999.3: kb/profile.yml target_roles[] expansion 3→9 (BACKLOG)
 
