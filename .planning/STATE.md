@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 7 context gathered (07-CONTEXT.md + 07-DISCUSSION-LOG.md committed `39a8d9d`) — 3 areas discussed (test scope, triggers + env hygiene, branch protection); all 3 recommended options selected. Decisions locked: full pre-flight CI gate (vitest + tsc + lint + next build), zero-real-secrets, required check with chat-six-gate flake quarantined via vitest exclude. Ready for `/gsd-plan-phase 7`. Does NOT block v1.0 — Plan 05-12 friend-test sign-off remains the only v1.0 launch gate."
-last_updated: "2026-05-13T23:23:23.012Z"
-last_activity: 2026-05-13 -- Phase 7 context gathered (07-CONTEXT.md committed); ready for /gsd-plan-phase 7
+stopped_at: "Phase 7 PLANNED — 2 plans written (07-01 + 07-02) and verified by gsd-plan-checker (PASSED, no blockers, no warnings). Mid-planning discovery: `npm run lint` broken (Next 16 removed `next lint`); 78 errors + 41 warnings of pre-existing eslint debt surfaced. Decision Option B+E: scope Phase 7 lint to `eslint src/`, file test/script/eval debt as new 999.8 backlog. Plan 07-01 (wave 1, autonomous): narrow lint + CI-gated chat-six-gate flake quarantine in vitest.config.ts + 4-cmd pre-flight green from zero-secrets shell. Plan 07-02 (wave 2, non-autonomous): write test.yml + induced-break RED→GREEN demo + lock branch-protection AFTER first green run on main (D-C-04). Ready for `/gsd-execute-phase 7`. Phase 7 does NOT block v1.0 — Plan 05-12 friend-test sign-off remains the only v1.0 launch gate."
+last_updated: "2026-05-13T23:59:00.000Z"
+last_activity: 2026-05-13 -- Phase 7 planning complete (2 plans committed `06f974c`, verified PASSED); 999.8 backlog filed `6fd3cdb`; ready for /gsd-execute-phase 7
 progress:
   total_phases: 9
   completed_phases: 7
-  total_plans: 47
+  total_plans: 49
   completed_plans: 46
-  percent: 98
+  percent: 94
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 
 ## Current Position
 
-Phase: 07 (add-test-yml-github-actions-workflow-for-determinism) — **PROMOTED 2026-05-13, awaiting planning**
-Plan: 0 of TBD (no plans written yet — next action: `/gsd-plan-phase 7`)
-Status: Promoted from 999.2 backlog parking lot. Closes Plan 06-06 Task 8 instrumentation gap. Scope: automated test.yml workflow running 17 SAFE-11 system-prompt determinism tests on every PR + main push, plus branch protection check parity with existing eval gate.
-Last activity: 2026-05-13 -- Phase 7 promoted from 999.2 backlog (test.yml CI workflow); ROADMAP + STATE updated; 6 other backlog items (999.1, 999.3-999.7) remain in parking lot
+Phase: 07 (add-test-yml-github-actions-workflow-for-determinism) — **PLANNED 2026-05-13, ready to execute**
+Plan: 0 of 2 (plans written + verified — next action: `/gsd-execute-phase 7`)
+Status: 2 plans verified PASSED by gsd-plan-checker. Plan 07-01 (wave 1, autonomous) preps CI-green local state (`eslint src/` lint scope per Option B+E; CI-gated chat-six-gate flake quarantine in vitest.config.ts). Plan 07-02 (wave 2, non-autonomous — 2 Joe-driven checkpoints) writes `.github/workflows/test.yml`, runs induced-break RED→GREEN demo, locks branch protection AFTER first green run lands on main (D-C-04 sequence). Test/script/eval lint debt (78 errors + 41 warnings) deferred to new backlog item 999.8.
+Last activity: 2026-05-13 -- Phase 7 planning complete (plans `06f974c`, 999.8 backlog `6fd3cdb`, plan-checker PASSED); ready for /gsd-execute-phase 7
 
 Progress: [██████████] Phase 06: 6/6 plans complete (CLOSED). Phase 06 kb/about_me.md enrichment live on prod (https://joe-dollinger-chat.com); cat1 = 15/15 preview + 15/15 prod; cat4 = 4.20 preview + 4.52 prod (both per_case all pass); SAFE-11 17/17 green; 11 new cat1 ground_truth_facts entries; D-F-08 audit trail complete (4 eval_runs row IDs). Plan 05-12 functionally complete (code/data shipped, prod verified, gates green) — friend-test responses now re-collected on post-Phase-6 enriched artifact per OQ-04 Option A recommendation. Phase 05.2 fully closed. **v1.0 milestone close still gated only on Plan 05-12 friend-test sign-off — Phase 7 is parallel CI-hardening, does NOT block launch.**
 
