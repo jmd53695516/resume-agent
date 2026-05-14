@@ -31,19 +31,23 @@ jobs:
     timeout-minutes: 10
     env:
       CI: 'true'
-      # 12-var sentinel block — copied verbatim from 07-1A-SUMMARY Handoff.
+      # 12-var sentinel block — values satisfy src/lib/env.ts Zod schema
+      # constraints (min lengths, email format, re_ prefix, URL format).
       # These are LITERAL placeholder strings (NO CI-injected credentials).
       # Phase 7 D-B-02..04 hard rule. T-07-02-02 mitigation.
-      NEXT_PUBLIC_SUPABASE_URL: 'https://sentinel.local'
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: 'sentinel-anon-key'
-      SUPABASE_SERVICE_ROLE_KEY: 'sentinel-service-role-key'
-      ANTHROPIC_API_KEY: 'sentinel-do-not-use'
-      EXA_API_KEY: 'sentinel-do-not-use'
-      GOOGLE_GENERATIVE_AI_API_KEY: 'sentinel-do-not-use'
-      UPSTASH_REDIS_REST_URL: 'https://sentinel.local'
-      UPSTASH_REDIS_REST_TOKEN: 'sentinel-do-not-use'
-      RESEND_API_KEY: 'sentinel-do-not-use'
-      CRON_SECRET: 'sentinel-do-not-use'
+      # Note: GOOGLE_GENERATIVE_AI_API_KEY is z.string().min(20).optional() —
+      # intentionally NOT set here (optional + invalid > optional + unset).
+      NEXT_PUBLIC_SUPABASE_URL: 'https://sentinel.supabase.co'
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: 'sentinel-anon-key-min-20-chars'
+      SUPABASE_SERVICE_ROLE_KEY: 'sentinel-service-role-key-min-20'
+      ANTHROPIC_API_KEY: 'sentinel-anthropic-key-min-20'
+      EXA_API_KEY: 'sentinel-exa-key-min-20-chars'
+      UPSTASH_REDIS_REST_URL: 'https://sentinel.upstash.io'
+      UPSTASH_REDIS_REST_TOKEN: 'sentinel-upstash-token-min-10'
+      RESEND_API_KEY: 're_sentinel_resend_api_key'
+      RESEND_FROM_EMAIL: 'sentinel@example.com'
+      JOE_NOTIFICATION_EMAIL: 'joe-sentinel@example.com'
+      CRON_SECRET: 'sentinel-cron-secret-min-32-chars-long'
       ADMIN_GITHUB_LOGINS: 'sentinel-login'
     steps:
       # T-07-02-03 + T-07-02-08 mitigation: untrusted-PR-safe trigger plus
