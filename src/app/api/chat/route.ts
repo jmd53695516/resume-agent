@@ -280,7 +280,12 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   // 6. classifier (SAFE-01..03)
-  const verdict = await classifyUserMessage(lastUser);
+  // Pass the last assistant turn as an anchor so short follow-up replies
+  // (e.g. "Nike" after "which company are you recruiting for?") are not
+  // incorrectly deflected as offtopic. undefined on first turn — no change
+  // to existing single-turn behavior.
+  const lastAssistant = extractLastAssistantText(uiMessages);
+  const verdict = await classifyUserMessage(lastUser, lastAssistant);
   if (verdict.confidence < 0.7) {
     try {
       await persistDeflectionTurn({
@@ -523,4 +528,30 @@ function extractLastUserText(msgs: UIMessage[]): string | null {
     if (text.trim()) return text;
   }
   return null;
+}
+
+// Returns the last assistant message text that immediately precedes the user's
+// current turn. Used as a disambiguation anchor for the classifier so that short
+// follow-up replies (e.g. "Nike" after "which company are you recruiting for?")
+// are not incorrectly deflected as offtopic. Only the assistant turn is passed —
+// never prior user messages — to keep the injection surface minimal.
+function extractLastAssistantText(msgs: UIMessage[]): string | undefined {
+  // Walk backwards from the end. Skip the trailing user message(s), then
+  // return the first assistant message we find.
+  let seenUser = false;
+  for (let i = msgs.length - 1; i >= 0; i--) {
+    const m = msgs[i];
+    if (m.role === 'user') {
+      seenUser = true;
+      continue;
+    }
+    if (m.role === 'assistant' && seenUser) {
+      const text = (m.parts ?? [])
+        .filter((p: { type?: string }) => p?.type === 'text')
+        .map((p: { type?: string; text?: string }) => p.text ?? '')
+        .join('');
+      return text.trim() || undefined;
+    }
+  }
+  return undefined;
 }

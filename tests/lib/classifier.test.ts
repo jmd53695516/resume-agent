@@ -161,3 +161,92 @@ describe('Item #11 regression contract — cat1 prompts must classify as normal'
     });
   }
 });
+
+// Multi-turn anchor tests — root cause of friend-test "Nike" deflection bug.
+// The classifier was stateless: classifyUserMessage("Nike") with no context
+// correctly returned offtopic. Fix: pass lastAssistantText so Haiku sees the
+// prior clarifying question as disambiguation context.
+describe('multi-turn assistant anchor — short follow-up replies', () => {
+  beforeEach(() => messagesCreate.mockReset());
+
+  // Exact reproduction case from friend-test.
+  it('pitch flow: "Nike" WITH assistant anchor classifies as normal', async () => {
+    messagesCreate.mockResolvedValueOnce(mockResp({ label: 'normal', confidence: 0.92 }));
+    const v = await classifyUserMessage(
+      'Nike',
+      "Happy to put together a tailored pitch — which company are you recruiting for?",
+    );
+    expect(v.label).toBe('normal');
+    expect(v.confidence).toBeGreaterThanOrEqual(0.7);
+    // Verify the messages array sent to Haiku included the assistant anchor.
+    const callArgs = messagesCreate.mock.calls[0][0];
+    expect(callArgs.messages).toHaveLength(2);
+    expect(callArgs.messages[0].role).toBe('assistant');
+    expect(callArgs.messages[1].role).toBe('user');
+    expect(callArgs.messages[1].content).toBe('Nike');
+  });
+
+  // Security posture check: same bare text WITHOUT anchor stays as whatever
+  // Haiku returns — we do not override the verdict, we only provide context.
+  it('pitch flow: "Nike" WITHOUT assistant anchor passes through Haiku verdict unchanged', async () => {
+    messagesCreate.mockResolvedValueOnce(mockResp({ label: 'offtopic', confidence: 0.88 }));
+    const v = await classifyUserMessage('Nike');
+    expect(v.label).toBe('offtopic');
+    // Verify only a single-element messages array was sent (no anchor injected).
+    const callArgs = messagesCreate.mock.calls[0][0];
+    expect(callArgs.messages).toHaveLength(1);
+    expect(callArgs.messages[0].role).toBe('user');
+  });
+
+  // Case study follow-up.
+  it('case study flow: short follow-up WITH anchor classifies as normal', async () => {
+    messagesCreate.mockResolvedValueOnce(mockResp({ label: 'normal', confidence: 0.91 }));
+    const v = await classifyUserMessage(
+      'growth',
+      "I'd be glad to walk through a case study. Any preference — growth, monetization, or retention?",
+    );
+    expect(v.label).toBe('normal');
+    expect(v.confidence).toBeGreaterThanOrEqual(0.7);
+    const callArgs = messagesCreate.mock.calls[0][0];
+    expect(callArgs.messages).toHaveLength(2);
+    expect(callArgs.messages[0].role).toBe('assistant');
+  });
+
+  // Metric framework follow-up.
+  it('metric framework flow: short follow-up WITH anchor classifies as normal', async () => {
+    messagesCreate.mockResolvedValueOnce(mockResp({ label: 'normal', confidence: 0.92 }));
+    const v = await classifyUserMessage(
+      'retention',
+      "Which metric framework would you like me to design — engagement, retention, or monetization?",
+    );
+    expect(v.label).toBe('normal');
+    expect(v.confidence).toBeGreaterThanOrEqual(0.7);
+    const callArgs = messagesCreate.mock.calls[0][0];
+    expect(callArgs.messages).toHaveLength(2);
+    expect(callArgs.messages[0].role).toBe('assistant');
+  });
+
+  // First-turn behavior unchanged: undefined lastAssistantText -> single-element array.
+  it('first user message (no prior assistant turn) sends single-element messages array', async () => {
+    messagesCreate.mockResolvedValueOnce(mockResp({ label: 'normal', confidence: 0.95 }));
+    await classifyUserMessage("What's Joe's PM background?", undefined);
+    const callArgs = messagesCreate.mock.calls[0][0];
+    expect(callArgs.messages).toHaveLength(1);
+    expect(callArgs.messages[0].role).toBe('user');
+  });
+
+  // classifyUserMessageOrThrow also forwards the anchor correctly.
+  it('classifyUserMessageOrThrow forwards lastAssistantText to messages array', async () => {
+    messagesCreate.mockResolvedValueOnce(mockResp({ label: 'normal', confidence: 0.90 }));
+    await classifyUserMessageOrThrow(
+      'Google',
+      "Sure — which company should I frame the pitch around?",
+    );
+    const callArgs = messagesCreate.mock.calls[0][0];
+    expect(callArgs.messages).toHaveLength(2);
+    expect(callArgs.messages[0].role).toBe('assistant');
+    expect(callArgs.messages[0].content).toBe(
+      "Sure — which company should I frame the pitch around?",
+    );
+  });
+});
