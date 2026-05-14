@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { ChatUI } from '@/components/ChatUI';
 import { ViewToggle } from '@/components/ViewToggle';
+import { useIsClient } from '@/hooks/use-is-client';
 
 // Lazy import — code-split out of default chat-mode bundle (CD-02).
 // ssr: false is valid here because chat/page.tsx is 'use client'
@@ -38,16 +39,25 @@ const MatrixRain = dynamic(
 export default function ChatPage() {
   const router = useRouter();
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [hydrated, setHydrated] = useState(false);
+  const isClient = useIsClient();
   const [view, setView] = useState<'chat' | 'matrix'>('chat');
 
   useEffect(() => {
-    setHydrated(true);
     const id = typeof window !== 'undefined' ? sessionStorage.getItem('session_id') : null;
     if (!id) {
       router.replace('/');
       return;
     }
+    // Plan 07-1A deviation: sessionStorage read-on-mount is intentional —
+    // session_id is established by /api/session in EmailGate before
+    // navigation here; we read once, then proceed. setSessionId fires
+    // exactly once per mount. The eslint-plugin-react-hooks@6 rule fires
+    // unconditionally on any setState in an effect, including this
+    // canonical browser-storage-initialization pattern. Refactor to
+    // useSyncExternalStore would require a synthetic subscribe (sessionStorage
+    // does NOT fire storage events for same-tab setItem) — out of scope
+    // for this plan; tracked for future hardening if the pattern recurs.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSessionId(id);
   }, [router]);
 
@@ -61,7 +71,7 @@ export default function ChatPage() {
     }
   }, [view]);
 
-  if (!hydrated || !sessionId) {
+  if (!isClient || !sessionId) {
     // Brief flash before hydration / redirect. Avoids hydration mismatch
     // (Pitfall 3 — initial 'chat' literal state matches server render).
     return null;

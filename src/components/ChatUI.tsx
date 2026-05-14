@@ -29,11 +29,13 @@ type ChatUIProps = {
 // Phase 05.2 (D-A-01, D-A-02-AMENDED, CD-06): bubble grouping via
 // computePositions; inter-group timestamps via shouldShowTimestampBefore
 // + TimestampDivider; assistant timestamps captured CLIENT-SIDE on
-// status==='streaming' transition (NO /api/chat changes — Phase 02 D-G
-// byte-identical contract preserved). Header now has chev (CD-06) and
-// matrix-mode selector-hook data-testids (chat-main, chat-header,
-// chat-avatar, chat-contact-name, chat-contact-chev, chat-composer)
-// for Plan 05.2-02 CSS to bind to.
+// useChat onFinish callback (Phase 7 Plan 07-1A D-A-04 — was a
+// status==='streaming' useEffect, hoisted to event-driven onFinish to
+// resolve react-hooks/set-state-in-effect violation; NO /api/chat
+// changes — Phase 02 D-G byte-identical contract preserved). Header
+// now has chev (CD-06) and matrix-mode selector-hook data-testids
+// (chat-main, chat-header, chat-avatar, chat-contact-name,
+// chat-contact-chev, chat-composer) for Plan 05.2-02 CSS to bind to.
 export function ChatUI({ sessionId }: ChatUIProps) {
   // Consumer-managed input (v6 pattern: useChat no longer owns input state)
   const [input, setInput] = useState('');
@@ -61,7 +63,7 @@ export function ChatUI({ sessionId }: ChatUIProps) {
         router.push('/?fallback=1');
       }
     },
-    onFinish: ({ isError, isAbort, isDisconnect }) => {
+    onFinish: ({ message, isError, isAbort, isDisconnect }) => {
       // BL-18: AI SDK v6's Chat.makeRequest fires onFinish in a finally
       // block AFTER onError on every request, including errors. Resetting
       // unconditionally here defeats the 2-consecutive-error redirect
@@ -70,20 +72,29 @@ export function ChatUI({ sessionId }: ChatUIProps) {
       if (!isError && !isAbort && !isDisconnect) {
         errorCountRef.current = 0;
       }
+
+      // Plan 07-1A D-A-04: stamp assistant message timestamp here (event-
+      // driven) instead of in a post-stream useEffect (effect-driven).
+      // Eliminates the react-hooks/set-state-in-effect violation that
+      // eslint-plugin-react-hooks@6 flagged on the previous pattern. The
+      // 05.2-03 D-A-02-AMENDED design intent was "stamped on first-chunk
+      // transition" — AI SDK v6's useChat does NOT surface onChunk, so we
+      // stamp on stream end instead. shouldShowTimestampBefore's 5-min
+      // rule is unaffected (sub-second precision irrelevant). Always
+      // stamp message.role === 'assistant'; user messages have their own
+      // metadata.createdAt set at sendMessage time.
+      // Defensive null-guard: AI SDK v6's type contract guarantees `message`
+      // is always supplied at runtime, but pre-existing BL-18 tests
+      // (tests/components/ChatUI-fallback-redirect.test.tsx) invoke
+      // onFinish with a partial payload to exercise error-counter logic in
+      // isolation. Skip the stamp when message is absent rather than crash.
+      if (message?.role === 'assistant') {
+        setAssistantTimestamps((prev) =>
+          prev[message.id] ? prev : { ...prev, [message.id]: Date.now() },
+        );
+      }
     },
   });
-
-  // D-A-02-AMENDED: capture assistant message timestamp on first chunk.
-  // status === 'streaming' fires when AI SDK transitions from waiting-for-
-  // first-token to actively streaming. The current latest assistant message
-  // is the one being streamed; if it doesn't yet have a timestamp, stamp it.
-  useEffect(() => {
-    if (status !== 'streaming') return;
-    const latest = [...messages].reverse().find((m) => m.role === 'assistant');
-    if (!latest) return;
-    if (assistantTimestamps[latest.id]) return; // already stamped
-    setAssistantTimestamps((prev) => ({ ...prev, [latest.id]: Date.now() }));
-  }, [status, messages, assistantTimestamps]);
 
   const isStreaming = status === 'submitted' || status === 'streaming';
   const isEmpty = messages.length === 0;

@@ -173,7 +173,7 @@ export async function runCat2(targetUrl: string, runId: string): Promise<Categor
   log.info({ runId, caseCount: cases.length, sessionId }, 'cat2_started');
 
   const results: EvalCaseResult[] = [];
-  let totalCost = 0;
+  const totalCost = 0;
   // CR-01 fix: production gate uses HOURLY buckets (src/lib/redis.ts
   // hourBucketKey + getSpendToday mgets 24 hour-keys), not a single
   // YYYY-MM-DD key. Setting `resume-agent:spend:YYYY-MM-DD` did NOT trip the

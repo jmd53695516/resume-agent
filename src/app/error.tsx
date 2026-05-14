@@ -13,7 +13,6 @@ import { PlainHtmlFallback } from '@/components/PlainHtmlFallback';
 
 export default function ErrorBoundary({
   error,
-  reset: _reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;

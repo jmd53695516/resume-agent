@@ -2,8 +2,16 @@
 
 // src/app/admin/components/RelativeTime.tsx
 // Renders an ISO timestamp as a relative string ("5 min ago", "2 hours ago",
-// "yesterday"). SSR-safe — server emits the ISO, client replaces on hydrate.
-import { useEffect, useState } from 'react';
+// "yesterday"). SSR-safe via useSyncExternalStore: server snapshot returns
+// the raw ISO; client snapshot returns the relative-formatted string.
+// React's hydration phase reconciles the two without a setState-in-effect
+// cycle (Phase 7 Plan 07-1A D-A-03; eslint-plugin-react-hooks@6 conformant).
+//
+// Note: `relative()` reads Date.now() — that's correct in Client Component
+// context because the snapshot fires per render, not at module init. Server
+// snapshot returns raw ISO so this Date.now() call is structurally avoided
+// during SSR.
+import { useSyncExternalStore } from 'react';
 
 function relative(iso: string): string {
   const d = new Date(iso);
@@ -20,9 +28,10 @@ function relative(iso: string): string {
 }
 
 export function RelativeTime({ iso }: { iso: string }) {
-  const [text, setText] = useState(iso);
-  useEffect(() => {
-    setText(relative(iso));
-  }, [iso]);
+  const text = useSyncExternalStore(
+    () => () => {}, // subscribe: no-op (no external store; value is derived from props + Date.now())
+    () => relative(iso), // client snapshot: relative-formatted string
+    () => iso, // server snapshot: raw ISO (matches pre-hydration server render)
+  );
   return <span suppressHydrationWarning>{text}</span>;
 }
