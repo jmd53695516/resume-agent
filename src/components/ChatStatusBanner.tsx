@@ -5,16 +5,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useIsClient } from '@/hooks/use-is-client';
 
 const DISMISS_KEY = 'status-banner-dismissed';
 
 export function ChatStatusBanner({ messages }: { messages: string[] }) {
   // Initialize from sessionStorage in an effect to avoid SSR/CSR mismatch.
   const [dismissed, setDismissed] = useState(false);
-  const [hydrated, setHydrated] = useState(false);
+  const isClient = useIsClient();
 
   useEffect(() => {
-    setHydrated(true);
     // WR-04 fix: sessionStorage.getItem() throws SecurityError in Safari
     // Private Browsing, iOS Lockdown Mode, and on quota-exceeded. Without
     // this try/catch, the throw inside an effect trips the nearest error
@@ -31,7 +31,7 @@ export function ChatStatusBanner({ messages }: { messages: string[] }) {
   }, []);
 
   // Brief flash before hydration. Better than a hydration mismatch warning.
-  if (!hydrated) return null;
+  if (!isClient) return null;
   if (dismissed) return null;
 
   return (

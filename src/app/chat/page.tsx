@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { ChatUI } from '@/components/ChatUI';
 import { ViewToggle } from '@/components/ViewToggle';
+import { useIsClient } from '@/hooks/use-is-client';
 
 // Lazy import — code-split out of default chat-mode bundle (CD-02).
 // ssr: false is valid here because chat/page.tsx is 'use client'
@@ -38,11 +39,10 @@ const MatrixRain = dynamic(
 export default function ChatPage() {
   const router = useRouter();
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [hydrated, setHydrated] = useState(false);
+  const isClient = useIsClient();
   const [view, setView] = useState<'chat' | 'matrix'>('chat');
 
   useEffect(() => {
-    setHydrated(true);
     const id = typeof window !== 'undefined' ? sessionStorage.getItem('session_id') : null;
     if (!id) {
       router.replace('/');
@@ -61,7 +61,7 @@ export default function ChatPage() {
     }
   }, [view]);
 
-  if (!hydrated || !sessionId) {
+  if (!isClient || !sessionId) {
     // Brief flash before hydration / redirect. Avoids hydration mismatch
     // (Pitfall 3 — initial 'chat' literal state matches server render).
     return null;
