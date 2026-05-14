@@ -336,3 +336,140 @@ describe('loadCat4Config', () => {
     );
   });
 });
+
+// Phase 999.1 Plan 01 Task 2 — warmupSonnetCache invocation + cost-isolation.
+// The warmup helper is INTERNAL (not exported); we exercise it via its
+// observable side-effect on global fetch + the totalCost invariant of
+// runCat4Judge's returned CategoryResult.
+describe('warmupSonnetCache + runCat4Judge integration', () => {
+  it('invokes warmupSonnetCache exactly once, AFTER mintEvalSession and BEFORE callAgent', async () => {
+    loadCasesMock.mockResolvedValue([fakeCase()]);
+    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '' });
+    judgeMock.mockResolvedValue(verdictWithAvg(5));
+
+    // Drop-in fetch stub: capture call order vs other mocked fns.
+    const fetchStub = vi.fn().mockResolvedValue({
+      status: 200,
+      text: async () => 'ok',
+    } as unknown as Response);
+    const origFetch = globalThis.fetch;
+    globalThis.fetch = fetchStub as unknown as typeof fetch;
+    try {
+      const { runCat4Judge } = await import('@/lib/eval/cats/cat4-judge');
+      await runCat4Judge('http://localhost:3000', 'run_warmup_order');
+    } finally {
+      globalThis.fetch = origFetch;
+    }
+
+    // Exactly one warmup fetch (POST to /api/chat).
+    const chatFetches = fetchStub.mock.calls.filter(
+      ([url]) => typeof url === 'string' && url.endsWith('/api/chat'),
+    );
+    expect(chatFetches.length).toBe(1);
+
+    // Order: mintEvalSession -> warmup (fetch) -> callAgent.
+    const mintOrder = mintEvalSessionMock.mock.invocationCallOrder[0];
+    const warmupOrder = fetchStub.mock.invocationCallOrder[0];
+    const callAgentOrder = callAgentMock.mock.invocationCallOrder[0];
+    expect(mintOrder).toBeLessThan(warmupOrder);
+    expect(warmupOrder).toBeLessThan(callAgentOrder);
+  });
+
+  it('warmupSonnetCache cost does NOT appear in CategoryResult.cost_cents (cost-isolation invariant T-999.1-01)', async () => {
+    loadCasesMock.mockResolvedValue([
+      fakeCase({ case_id: 'a' }),
+      fakeCase({ case_id: 'b' }),
+      fakeCase({ case_id: 'c' }),
+    ]);
+    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '' });
+    // Each judge call returns cost_cents: 5. Across 3 cases, total = 15.
+    judgeMock
+      .mockResolvedValueOnce({ ...verdictWithAvg(5), cost_cents: 5 })
+      .mockResolvedValueOnce({ ...verdictWithAvg(5), cost_cents: 5 })
+      .mockResolvedValueOnce({ ...verdictWithAvg(5), cost_cents: 5 });
+
+    // Even if the warmup fetch were charged, it would not be visible because
+    // warmupSonnetCache never touches the local totalCost accumulator. We
+    // assert exact equality (not >=) to prove no leak.
+    const fetchStub = vi.fn().mockResolvedValue({
+      status: 200,
+      text: async () => 'ok',
+    } as unknown as Response);
+    const origFetch = globalThis.fetch;
+    globalThis.fetch = fetchStub as unknown as typeof fetch;
+    try {
+      const { runCat4Judge } = await import('@/lib/eval/cats/cat4-judge');
+      const result = await runCat4Judge('http://localhost:3000', 'run_warmup_cost');
+      expect(result.cost_cents).toBe(Math.round(5 * 3));
+    } finally {
+      globalThis.fetch = origFetch;
+    }
+  });
+
+  it('warmupSonnetCache swallows fetch rejection and the case loop proceeds', async () => {
+    loadCasesMock.mockResolvedValue([fakeCase()]);
+    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '' });
+    judgeMock.mockResolvedValue(verdictWithAvg(5));
+
+    const fetchStub = vi.fn().mockRejectedValue(new Error('warmup ECONNREFUSED'));
+    const origFetch = globalThis.fetch;
+    globalThis.fetch = fetchStub as unknown as typeof fetch;
+    try {
+      const { runCat4Judge } = await import('@/lib/eval/cats/cat4-judge');
+      // Must NOT throw; case loop must still produce a CategoryResult.
+      const result = await runCat4Judge('http://localhost:3000', 'run_warmup_err');
+      expect(result.category).toBe('cat4-judge');
+      expect(result.cases.length).toBe(1);
+      expect(result.cases[0].passed).toBe(true);
+    } finally {
+      globalThis.fetch = origFetch;
+    }
+  });
+
+  it('warmupSonnetCache POSTs to <targetUrl>/api/chat with the benign on-domain prompt and the minted session_id', async () => {
+    loadCasesMock.mockResolvedValue([fakeCase()]);
+    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '' });
+    judgeMock.mockResolvedValue(verdictWithAvg(5));
+    mintEvalSessionMock.mockResolvedValue('warmup-session-abc');
+
+    const fetchStub = vi.fn().mockResolvedValue({
+      status: 200,
+      text: async () => 'ok',
+    } as unknown as Response);
+    const origFetch = globalThis.fetch;
+    globalThis.fetch = fetchStub as unknown as typeof fetch;
+    try {
+      const { runCat4Judge } = await import('@/lib/eval/cats/cat4-judge');
+      await runCat4Judge('http://example.test', 'run_warmup_shape');
+    } finally {
+      globalThis.fetch = origFetch;
+    }
+
+    // Find the warmup fetch (to /api/chat) among possibly-many fetch calls.
+    const warmupCall = fetchStub.mock.calls.find(
+      ([url]) => typeof url === 'string' && url.endsWith('/api/chat'),
+    );
+    expect(warmupCall).toBeDefined();
+    const [url, init] = warmupCall as [string, RequestInit];
+    expect(url).toBe('http://example.test/api/chat');
+    expect(init.method).toBe('POST');
+    expect((init.headers as Record<string, string>)['content-type']).toBe(
+      'application/json',
+    );
+    const body = JSON.parse(init.body as string) as {
+      session_id: string;
+      messages: Array<{
+        id: string;
+        role: string;
+        parts: Array<{ type: string; text: string }>;
+      }>;
+    };
+    expect(body.session_id).toBe('warmup-session-abc');
+    expect(body.messages).toHaveLength(1);
+    expect(body.messages[0].role).toBe('user');
+    expect(body.messages[0].parts[0].type).toBe('text');
+    expect(body.messages[0].parts[0].text).toBe(
+      'Tell me one thing about your background.',
+    );
+  });
+});
