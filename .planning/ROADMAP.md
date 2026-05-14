@@ -190,9 +190,10 @@ Plans:
   2. The workflow runs the 17 SAFE-11 system-prompt determinism tests and fails the check on any regression
   3. Branch protection on `main` requires the new check to pass before merge (parity with existing eval gate posture)
   4. A representative PR demonstrates the gate catching an induced determinism break (synthetic violation reverted before merge)
-**Plans:** 2 plans
+**Plans:** 3 plans
 Plans:
-- [ ] 07-01-PLAN.md — Pre-CI prep: narrow lint to `eslint src/` (Option B+E) + CI-gated `exclude` for chat-six-gate flake (D-C-02/03) + verify 4-command pre-flight gate exits 0 from zero-secrets shell
+- [x] 07-01-PLAN.md — Pre-CI prep PARTIAL: narrow lint to `eslint src/` (Option B+E) + CI-gated `exclude` for chat-six-gate flake (D-C-02/03); Task 3 pre-flight verification deferred to 07-1A after eslint-plugin-react-hooks@6 exposed 9 pre-existing violations (Option F)
+- [x] 07-1A-PLAN.md — Resolve 9 react-hooks@6 violations (D-A-01..05) via shared useIsClient hook, useSyncExternalStore time-component refactors, onFinish timestamp hoist + zero-secrets pre-flight gate; sentinel-env-var handoff for 07-02
 - [ ] 07-02-PLAN.md — Write `.github/workflows/test.yml` (zero `secrets.*`, pinned actions, commit-SHA ref, least-privilege perms) + induced-break demo (RED→GREEN) + lock new check as required on `main` branch protection (D-C-04 sequence; Joe-driven)
 **UI hint**: no
 
