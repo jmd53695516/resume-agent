@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 7 PLANNED — 2 plans written (07-01 + 07-02) and verified by gsd-plan-checker (PASSED, no blockers, no warnings). Mid-planning discovery: `npm run lint` broken (Next 16 removed `next lint`); 78 errors + 41 warnings of pre-existing eslint debt surfaced. Decision Option B+E: scope Phase 7 lint to `eslint src/`, file test/script/eval debt as new 999.8 backlog. Plan 07-01 (wave 1, autonomous): narrow lint + CI-gated chat-six-gate flake quarantine in vitest.config.ts + 4-cmd pre-flight green from zero-secrets shell. Plan 07-02 (wave 2, non-autonomous): write test.yml + induced-break RED→GREEN demo + lock branch-protection AFTER first green run on main (D-C-04). Ready for `/gsd-execute-phase 7`. Phase 7 does NOT block v1.0 — Plan 05-12 friend-test sign-off remains the only v1.0 launch gate."
-last_updated: "2026-05-13T23:59:00.000Z"
-last_activity: 2026-05-13 -- Phase 7 planning complete (2 plans committed `06f974c`, verified PASSED); 999.8 backlog filed `6fd3cdb`; ready for /gsd-execute-phase 7
+stopped_at: "Plan 07-01 PARTIAL — Tasks 1+2 committed (lint scope narrowed to `eslint src/`; chat-six-gate flake CI-quarantined). Task 3 (clean-env pre-flight verify) DEFERRED per Option F: `eslint-plugin-react-hooks@6` (bundled with `eslint-config-next@16.2.4`) surfaces 9 pre-existing violations in shipped src/ code (5 `set-state-in-effect` hydration patterns + 2 server-component `purity` Date.now() + 2 trivial). Need new follow-up plan (e.g., 07-1A) to resolve before Plan 07-02 (test.yml) can run. Phase 7 still does NOT block v1.0 launch — Plan 05-12 friend-test sign-off remains only v1.0 gate."
+last_updated: "2026-05-14T00:30:00.000Z"
+last_activity: 2026-05-14 -- Phase 07 Plan 07-01 PARTIAL (Tasks 1+2 done `d767db3` `ae534c0`, SUMMARY `e4c26ea`); Task 3 deferred to follow-up plan for React-hooks lint debt
 progress:
   total_phases: 9
   completed_phases: 7
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** A recruiter in under five minutes walks away with a distinctive, specific impression of Joe — grounded in real projects, free of fabrication, and delivered by an agent they can see was engineered (not just prompted) with cost, abuse, and hallucination controls.
-**Current focus:** v1.0 milestone close-out — Plan 05-12 friend-test sign-off (post-Phase-6 enriched-artifact eval) is the only remaining action before broad distribution.
+**Current focus:** Phase 07 — add-test-yml-github-actions-workflow-for-determinism
 
 ## Current Position
 
-Phase: 07 (add-test-yml-github-actions-workflow-for-determinism) — **PLANNED 2026-05-13, ready to execute**
-Plan: 0 of 2 (plans written + verified — next action: `/gsd-execute-phase 7`)
-Status: 2 plans verified PASSED by gsd-plan-checker. Plan 07-01 (wave 1, autonomous) preps CI-green local state (`eslint src/` lint scope per Option B+E; CI-gated chat-six-gate flake quarantine in vitest.config.ts). Plan 07-02 (wave 2, non-autonomous — 2 Joe-driven checkpoints) writes `.github/workflows/test.yml`, runs induced-break RED→GREEN demo, locks branch protection AFTER first green run lands on main (D-C-04 sequence). Test/script/eval lint debt (78 errors + 41 warnings) deferred to new backlog item 999.8.
-Last activity: 2026-05-13 -- Phase 7 planning complete (plans `06f974c`, 999.8 backlog `6fd3cdb`, plan-checker PASSED); ready for /gsd-execute-phase 7
+Phase: 07 (add-test-yml-github-actions-workflow-for-determinism) — EXECUTING (paused)
+Plan: 1 of 2 — Plan 07-01 PARTIAL (Tasks 1+2 done, Task 3 deferred); Plan 07-02 blocked
+Status: Plan 07-01 hit Rule 4 architectural checkpoint. `eslint-plugin-react-hooks@6` (shipped in `eslint-config-next@16.2.4`) flags 9 pre-existing violations across Phase 02-05.2 shipped code: 5 `react-hooks/set-state-in-effect` (hydration patterns in `ChatStatusBanner.tsx`, `ChatUI.tsx`, `chat/page.tsx`, `LocalTime.tsx`, `RelativeTime.tsx`), 2 `react-hooks/purity` (server-component `Date.now()` in admin `abuse/page.tsx` + `evals/calibrate/page.tsx`), 2 trivial (`prefer-const`, unused `_reset`). Option F chosen 2026-05-14: defer Task 3, spin up new follow-up plan to resolve violations, then return to Plan 07-02 (`test.yml` + branch protection).
+Last activity: 2026-05-14 -- Plan 07-01 PARTIAL `e4c26ea`; need new plan for React-hooks lint debt before 07-02
 
 Progress: [██████████] Phase 06: 6/6 plans complete (CLOSED). Phase 06 kb/about_me.md enrichment live on prod (https://joe-dollinger-chat.com); cat1 = 15/15 preview + 15/15 prod; cat4 = 4.20 preview + 4.52 prod (both per_case all pass); SAFE-11 17/17 green; 11 new cat1 ground_truth_facts entries; D-F-08 audit trail complete (4 eval_runs row IDs). Plan 05-12 functionally complete (code/data shipped, prod verified, gates green) — friend-test responses now re-collected on post-Phase-6 enriched artifact per OQ-04 Option A recommendation. Phase 05.2 fully closed. **v1.0 milestone close still gated only on Plan 05-12 friend-test sign-off — Phase 7 is parallel CI-hardening, does NOT block launch.**
 
