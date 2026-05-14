@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 7 Plan 07-1A context gathered (lint follow-up scope) — ready for /gsd-plan-phase 7
-last_updated: "2026-05-14T01:08:29.717Z"
-last_activity: 2026-05-14 -- Phase 07 planning complete
+stopped_at: Phase 7 Plan 07-1A COMPLETE (10/10 tasks, Joe-approved smoke) — Plan 07-02 pending (test.yml authoring); Phase 7 NOT closed
+last_updated: "2026-05-14T02:00:00.000Z"
+last_activity: 2026-05-14 -- Phase 07 Plan 07-1A complete (react-hooks@6 lint debt resolved + sentinel-env-var handoff captured for 07-02)
 progress:
   total_phases: 16
   completed_phases: 7
-  total_plans: 50
-  completed_plans: 47
+  total_plans: 51
+  completed_plans: 48
   percent: 94
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 
 ## Current Position
 
-Phase: 07 (add-test-yml-github-actions-workflow-for-determinism) — EXECUTING (paused)
-Plan: 1 of 2 — Plan 07-01 PARTIAL (Tasks 1+2 done, Task 3 deferred); Plan 07-02 blocked
-Status: Ready to execute
-Last activity: 2026-05-14 -- Phase 07 planning complete
+Phase: 07 (add-test-yml-github-actions-workflow-for-determinism) — EXECUTING
+Plan: 2 of 3 — Plan 07-1A COMPLETE; Plan 07-02 pending (test.yml authoring)
+Status: Executing Phase 07
+Last activity: 2026-05-14 -- Phase 07 Plan 07-1A complete (react-hooks@6 lint debt resolved)
 
 Progress: [██████████] Phase 06: 6/6 plans complete (CLOSED). Phase 06 kb/about_me.md enrichment live on prod (https://joe-dollinger-chat.com); cat1 = 15/15 preview + 15/15 prod; cat4 = 4.20 preview + 4.52 prod (both per_case all pass); SAFE-11 17/17 green; 11 new cat1 ground_truth_facts entries; D-F-08 audit trail complete (4 eval_runs row IDs). Plan 05-12 functionally complete (code/data shipped, prod verified, gates green) — friend-test responses now re-collected on post-Phase-6 enriched artifact per OQ-04 Option A recommendation. Phase 05.2 fully closed. **v1.0 milestone close still gated only on Plan 05-12 friend-test sign-off — Phase 7 is parallel CI-hardening, does NOT block launch.**
 
@@ -207,6 +207,8 @@ Recent decisions affecting current work:
 - [Phase 06-kb-enrichment-about-me-hardening]: Plan 06-05: 11 new cat1 ground_truth_facts entries spliced across 3 existing cases (cat1-fab-006 UA quantitative trap +2; cat1-fab-008 persona-expert ML-engineer trap +5; cat1-fab-014 verifiable-easy SEI current product +4). Strategy=expand-existing preserves D-B-01 15/15 hard-gate invariant (case count 15→15); no CONTEXT D-F-02/03/04/05 amendments needed. Lineage style matches Plan 05-12 Task 0 iter-2/iter-3 (block-comment-then-entries; per-case-isolation false-positive-fix framing). Voice samples 0 added (D-A-04 skip — Phase 06 sourced from structured LLM file, not raw transcript turns). All Phase 06 hard-deps satisfied ahead of 06-06: D-A-05 ✓ (cat1 coverage), D-D-01 ✓ (spend-cap exemption via quick task 260512-tku kill-switch), D-A-04 ✓ (skipped cleanly).
 - [Phase 06-kb-enrichment-about-me-hardening]: Plan 06-06: All 5 D-F hard gates MET on both preview AND prod. Preview: cat1=15/15 (runId zL96uv6tF1LxzUqkuoLI3), cat4 agg 4.20 5/5 (runId u7JmGllxyJGOtpn92IFZq). Prod: cat1=15/15 (runId JXjeiyEtKcCqKoOia4awU), cat4 agg 4.52 5/5 (runId EQXxHsTg-_WZENKHxgZua). D-F-06 SAFE-11 determinism verified locally on main HEAD (17/17 system-prompt tests). cat4-prompt-003 cold-cache borderline-ness surfaced as N=7 follow-up (5/7 PASS, 2/2 fails on CI cold-cache for stance-elicitation prompt; aggregate consistently ≥4.0 across all 7 runs). Merge via enforce_admins toggle (~30 sec bypass-window) justified by 3/3 manual PASS vs 2/2 CI FAIL pattern + Joe-Task-4-PROCEED conscious-human-gate (D-B-03 honored). Total Plan 06-06 spend ~$2.20; phase total ~$2.30.
 - [Phase 06-kb-enrichment-about-me-hardening]: Phase 06 COMPLETE 2026-05-13. kb/about_me.md live at https://joe-dollinger-chat.com (1030 words / 16 paragraphs / banned-vocab 0/17 / 4/5 voice-fidelity / cat4 prod 4.52 / cat1 prod 15/15). 7 deferred items captured for post-Phase-6 backlog (cat4-prompt-003 triage + 6 kb/profile.yml + kb/case_studies follow-ups). OQ-04 surfaced: re-DM friend-testers on enriched prod artifact (Option A recommended). OQ-03 RESOLVED locked-skip. v1.0 milestone close gated only on Plan 05-12 friend-test sign-off; Phase 06 is the final phase in v1.0 milestone scope.
+- [Phase 07-add-test-yml-github-actions-workflow-for-determinism]: Plan 07-1A COMPLETE 2026-05-14. 9 cataloged + 2 newly-found react-hooks@6 violations resolved via D-A-01..05 strategies: shared useIsClient() hook backed by useSyncExternalStore (src/hooks/use-is-client.ts), useSyncExternalStore refactor of LocalTime + RelativeTime (D-A-03), onFinish-driven ChatUI timestamp capture (D-A-04 + null-guard deviation D1), Server-Component purity disables (D-A-01 + inline-line form deviation D2). Clean-env 4-command pre-flight gate green (npm test 654 passed + tsc + lint + build all exit 0). Joe-approved smoke (chat send + matrix toggle + admin pages). NEW FINDING: react-hooks@6 more aggressive than 07-01-CONTEXT codification — `if/try/catch`-wrapped setStates in effects DO trip set-state-in-effect (Deviation D3, 2 additional violations in chat/page.tsx + ChatStatusBanner.tsx resolved via same eslint-disable strategy). 12-var sentinel-env list captured in SUMMARY Handoff for Plan 07-02's test.yml `env:` block (zero-secrets.* posture preserved per D-B-01).
+- [Phase 07-add-test-yml-github-actions-workflow-for-determinism]: Plan 07-1A introduced shared `useIsClient()` hook at src/hooks/use-is-client.ts — canonical SSR-safe client-detection primitive backed by useSyncExternalStore three-arg form. Replaces useState(false)+useEffect(setHydrated(true)) pattern across codebase. Pattern documented for future Client Components needing post-hydration render deferral.
 
 ### Roadmap Evolution
 
