@@ -259,3 +259,14 @@ Plans:
 
 Plans:
 - [ ] TBD (promote with /gsd-review-backlog when ready)
+
+### Phase 999.8: Cleanup test/script/eval lint debt (BACKLOG)
+
+**Goal:** Clean up the 78 eslint errors + 41 warnings in `tests/**`, `scripts/**`, `evals/**` discovered during Phase 7 planning. Mostly `@typescript-eslint/no-explicit-any` in tightly-mocked SDK types in test files. After cleanup, expand `npm run lint` script from `eslint src/` (Phase 7 scope) back to `eslint .` so the broader codebase is also gated in CI.
+**Source:** Phase 7 discuss-phase decision (Option B+E, 2026-05-13). Joe scoped Phase 7 lint to `src/` only to preserve a 2-plan budget; this backlog item captures the deferred cleanup so it stays visible.
+**Why:** Memory `feedback_local_vs_vercel_build` motivation is satisfied by `tsc + next build` in Phase 7; this is broader code-hygiene work that yields low signal per hour but improves CI fidelity.
+**Requirements**: TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
