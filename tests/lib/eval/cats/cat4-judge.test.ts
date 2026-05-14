@@ -44,6 +44,27 @@ vi.mock('@/lib/eval/agent-client', () => ({
   parseChatStream: (raw: string) => raw,
 }));
 
+// Phase 999.1 Plan 01 Task 1 — fs/promises readFile override so loadCat4Config
+// can be tested against synthetic YAML stubs. Defaults to real readFile so
+// loadVoiceSamples (kb/voice.md) + the live cat-04-voice.yaml read still work.
+let readFileOverride: ((p: string) => string | undefined) | null = null;
+vi.mock('node:fs/promises', async () => {
+  const actual = await vi.importActual<typeof import('node:fs/promises')>(
+    'node:fs/promises',
+  );
+  return {
+    ...actual,
+    default: actual,
+    readFile: async (p: string, encoding: BufferEncoding) => {
+      if (readFileOverride) {
+        const stub = readFileOverride(p);
+        if (typeof stub === 'string') return stub;
+      }
+      return actual.readFile(p, encoding);
+    },
+  };
+});
+
 beforeEach(() => {
   loadCasesMock.mockReset();
   judgeMock.mockReset();
@@ -52,6 +73,7 @@ beforeEach(() => {
   mintEvalSessionMock.mockReset();
   writeCaseMock.mockResolvedValue(undefined);
   mintEvalSessionMock.mockResolvedValue('test-session-id-cat4-judge');
+  readFileOverride = null;
 });
 
 const fakeCase = (overrides: Record<string, unknown> = {}) => ({
@@ -147,10 +169,14 @@ describe('runCat4Judge', () => {
     expect(result.cases[0].judge_score).toBe(4.0);
   });
 
-  it('per-case fails when verdict.average < 4.0', async () => {
+  // Phase 999.1 Plan 01 Task 1 — D-01c lowered per_case floor from 4.0 to 3.8.
+  // Original test asserted FAIL at 3.8; under the new threshold 3.8 PASSES.
+  // Re-target the FAIL assertion below the new floor (use 3.7) so the test
+  // still exercises the per-case fail path against the externalized YAML.
+  it('per-case fails when verdict.average < 3.8 (post-D-01c)', async () => {
     loadCasesMock.mockResolvedValue([fakeCase()]);
     callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '' });
-    judgeMock.mockResolvedValue(verdictWithAvg(3.8));
+    judgeMock.mockResolvedValue(verdictWithAvg(3.7));
 
     const { runCat4Judge } = await import('@/lib/eval/cats/cat4-judge');
     const result = await runCat4Judge('http://localhost:3000', 'run_t5');
@@ -250,5 +276,63 @@ describe('runCat4Judge', () => {
     const { runCat4Judge } = await import('@/lib/eval/cats/cat4-judge');
     const result = await runCat4Judge('http://localhost:3000', 'run_t11');
     expect(result.category).toBe('cat4-judge');
+  });
+
+  // Phase 999.1 Plan 01 Task 1 — D-01c per_case threshold relaxation 4.0 -> 3.8.
+  // After loadCat4Config wires the YAML, per_case avg of 3.8 must PASS (was FAIL at 4.0).
+  it('per-case passes when verdict.average === 3.8 (Phase 999.1 D-01c threshold relaxation)', async () => {
+    loadCasesMock.mockResolvedValue([fakeCase()]);
+    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '' });
+    judgeMock.mockResolvedValue(verdictWithAvg(3.8));
+
+    const { runCat4Judge } = await import('@/lib/eval/cats/cat4-judge');
+    const result = await runCat4Judge('http://localhost:3000', 'run_999_1_relax');
+    expect(result.cases[0].passed).toBe(true);
+  });
+
+  it('per-case fails when verdict.average < 3.8 (Phase 999.1 D-01c new floor)', async () => {
+    loadCasesMock.mockResolvedValue([fakeCase()]);
+    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '' });
+    judgeMock.mockResolvedValue(verdictWithAvg(3.7));
+
+    const { runCat4Judge } = await import('@/lib/eval/cats/cat4-judge');
+    const result = await runCat4Judge('http://localhost:3000', 'run_999_1_below');
+    expect(result.cases[0].passed).toBe(false);
+  });
+});
+
+// Phase 999.1 Plan 01 Task 1 — externalized thresholds via evals/cat-04-voice.yaml.
+// loadCat4Config reads pass_threshold.per_case_min_avg + .aggregate_min_avg from YAML,
+// closing the pre-existing drift class (runner used to ignore the YAML and hardcode 4.0).
+describe('loadCat4Config', () => {
+  it('returns { passThreshold: 3.8, aggregateThreshold: 4.0 } from evals/cat-04-voice.yaml', async () => {
+    const { loadCat4Config } = await import('@/lib/eval/cats/cat4-judge');
+    const cfg = await loadCat4Config();
+    expect(cfg.passThreshold).toBe(3.8);
+    expect(cfg.aggregateThreshold).toBe(4.0);
+  });
+
+  it('throws when pass_threshold.per_case_min_avg is missing from the YAML', async () => {
+    // Override readFile only for the cat-04-voice.yaml path; loadVoiceSamples
+    // (kb/voice.md) and other reads fall through to the real fs.
+    readFileOverride = (p: string) =>
+      p.endsWith('cat-04-voice.yaml')
+        ? 'rubric:\n  dimensions: []\nvoice_samples_count: 8\n'
+        : undefined;
+    const { loadCat4Config } = await import('@/lib/eval/cats/cat4-judge');
+    await expect(loadCat4Config()).rejects.toThrow(
+      /cat-04-voice\.yaml missing pass_threshold/,
+    );
+  });
+
+  it('throws when pass_threshold.aggregate_min_avg is missing from the YAML', async () => {
+    readFileOverride = (p: string) =>
+      p.endsWith('cat-04-voice.yaml')
+        ? 'pass_threshold:\n  per_case_min_avg: 3.8\n  n_cases: 5\n'
+        : undefined;
+    const { loadCat4Config } = await import('@/lib/eval/cats/cat4-judge');
+    await expect(loadCat4Config()).rejects.toThrow(
+      /cat-04-voice\.yaml missing pass_threshold/,
+    );
   });
 });
