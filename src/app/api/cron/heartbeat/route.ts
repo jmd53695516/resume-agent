@@ -2,11 +2,17 @@
 // Phase 4 OBSV-14 + D-C-10. Light-touch dep pings + optional Anthropic
 // prompt-cache pre-warm.
 //
-// Schedule (cron-job.org, operationally configured): every 5 min during
-// 9am–6pm ET Mon–Fri (e.g. `*/5 14-22 * * 1-5` UTC, or use cron-job.org's
-// timezone selector). Outside business hours we accept that the recruiter's
-// first request takes the cold-cache hit; cost vs. coverage trade is
-// documented in CONTEXT.md D-C-10.
+// Schedule (cron-job.org, operationally configured): `*/5 9-17 * * 1-5` with
+// timezone America/New_York (DST-safe via cron-job.org's timezone selector;
+// no UTC math required). This matches the Anthropic ephemeral prompt-cache TTL
+// of ~5 min — one warming fire per TTL window; firing more often burns
+// cache_read tokens with zero additional coverage. Outside business hours we
+// accept that the recruiter's first request takes the cold-cache hit; cost vs.
+// coverage trade is documented in CONTEXT.md D-C-10.
+//
+// Reconciled 2026-05-20 from a prior every-minute schedule (`* 13-22 * * 1-5`
+// UTC) that was silently over-firing — see
+// .planning/incidents/2026-05-20-heartbeat-overfire.md.
 //
 // RESEARCH §5 / Pitfall 5: the Anthropic call MUST use buildSystemPrompt()
 // — never an inline copy. Cache hit on the recruiter session depends on
