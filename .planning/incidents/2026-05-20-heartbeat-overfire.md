@@ -50,8 +50,23 @@ Backlog items (do NOT address in this quick task; flagged for the next milestone
 - Idle-window spend is a useful diagnostic signal: any non-zero Anthropic spend during a no-login window means the cron path is the culprit. Check cron cadence first before investigating application bugs.
 - The comment-as-documentation pattern creates a silent drift hazard when the thing being documented (a cron schedule) lives in a separate external system that can be edited independently. Treat externally-configured schedules as infrastructure that requires the same drift-check rigor as environment variables.
 
+## Addendum 2026-05-20 — banner-vs-cost tension discovered post-fix
+
+Within the same session, post-mortem review surfaced a regression in the `*/5` reconciliation: `src/lib/health.ts:27` defines `HEARTBEAT_OK_S = 60`, and the heartbeat Redis keys (`heartbeat:anthropic|classifier|exa`) carry a 120s TTL. The StatusBanner shows `'ok'` only when the most recent heartbeat write is less than 60 seconds old. With a 5-minute cron cadence and no `/api/chat` traffic to refresh the keys, the banner reads `'degraded'` for approximately 4 of every 5 minutes during business hours and 100% of the time outside business hours — surfacing "Chat may be slow" or "Pitch tool offline" to most recruiters who land on the page. That trade-off was not acceptable.
+
+Chosen direction (operational state at end of 2026-05-20 documentation pass): **split into two crons**.
+
+- Cheap dep-ping cron every 1 minute during business hours, with `HEARTBEAT_LLM_PREWARM=false` so the Anthropic cache-read is skipped — cost ~$0.06/biz-day (Haiku classifier only). Keeps the banner green.
+- Separate prewarm-only cron every 5 minutes during business hours, calling a new code path (or the same route with a flag) that ONLY runs `warmPromptCache()` — cost ~$1.00/biz-day. Keeps the Anthropic prompt cache warm without 4-of-5 redundant fires.
+
+Implementation status at time of writing: **NOT YET SHIPPED**. The cron-job.org dashboard schedule must be reverted to `*/1` (or `*` minute field) immediately so the banner recovers, accepting the ~$5.57/biz-day cost spike until the split-cron code lands. Tracked as a follow-up quick task.
+
+The route.ts top comment and MILESTONE_SUMMARY-v1.0.md line 125 reconciliations captured in commits d8c3e13 and 792861e describe the `*/5` schedule as the operational state on the morning of 2026-05-20 (the first reconciliation pass). They are intentionally left in place as the historical record. Once the split-cron pattern ships, those surfaces should be updated again to describe the two-cron operational reality.
+
 ## References
 
-- `src/app/api/cron/heartbeat/route.ts` — top-of-file comment now reflects the reconciled `*/5 9-17 * * 1-5` schedule and points back to this file.
-- `.planning/reports/MILESTONE_SUMMARY-v1.0.md` Section 6 line 125 — tech-debt bullet now reflects the 5-min cadence and reconciliation date.
+- `src/app/api/cron/heartbeat/route.ts` — top-of-file comment reflects the morning-of-2026-05-20 `*/5 9-17 * * 1-5` reconciliation and points back to this file. Will be updated again when split-cron ships.
+- `.planning/reports/MILESTONE_SUMMARY-v1.0.md` Section 6 line 125 — tech-debt bullet reflects the 5-min cadence and reconciliation date. Will be updated again when split-cron ships.
+- `src/lib/health.ts:27` (`HEARTBEAT_OK_S = 60`) and the 120s key TTL in `heartbeat/route.ts:80` are the constraints that make 1-min cadence necessary for banner freshness.
+- `HEARTBEAT_LLM_PREWARM` env var already exists at `heartbeat/route.ts:111` — setting it `false` for the dep-ping cron is half of the split-cron pattern.
 - Prior related incident: spend-cap-incident memory note 2026-05-12 (single-hour 272¢ spike from eval verification run + silent failure due to unscheduled alarm cron).
