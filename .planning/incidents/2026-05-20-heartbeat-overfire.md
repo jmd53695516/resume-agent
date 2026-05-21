@@ -59,7 +59,7 @@ Chosen direction (operational state at end of 2026-05-20 documentation pass): **
 - Cheap dep-ping cron every 1 minute during business hours, with `HEARTBEAT_LLM_PREWARM=false` so the Anthropic cache-read is skipped — cost ~$0.06/biz-day (Haiku classifier only). Keeps the banner green.
 - Separate prewarm-only cron every 5 minutes during business hours, calling a new code path (or the same route with a flag) that ONLY runs `warmPromptCache()` — cost ~$1.00/biz-day. Keeps the Anthropic prompt cache warm without 4-of-5 redundant fires.
 
-Implementation status at time of writing: **NOT YET SHIPPED**. The cron-job.org dashboard schedule must be reverted to `*/1` (or `*` minute field) immediately so the banner recovers, accepting the ~$5.57/biz-day cost spike until the split-cron code lands. Tracked as a follow-up quick task.
+Implementation status: **SHIPPED in commit <hash> on 2026-05-21** — split-cron pattern live; cron-job.org operational steps tracked in `.planning/quick/260520-t5j-split-cron-implementation-for-heartbeat-/SUMMARY.md`.
 
 The route.ts top comment and MILESTONE_SUMMARY-v1.0.md line 125 reconciliations captured in commits d8c3e13 and 792861e describe the `*/5` schedule as the operational state on the morning of 2026-05-20 (the first reconciliation pass). They are intentionally left in place as the historical record. Once the split-cron pattern ships, those surfaces should be updated again to describe the two-cron operational reality.
 
