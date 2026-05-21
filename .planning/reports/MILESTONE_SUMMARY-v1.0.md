@@ -122,7 +122,10 @@
 
 **Operational (not code), still pending:**
 - **SAFE-12 verification** — Anthropic org-level $20/mo spend cap evidence captured at `.planning/phases/05-eval-gates-launch/safe-12-evidence.png`; final sign-off folded into Plan 05-12 LAUNCH-06 checklist.
-- **cron-job.org schedules** — 3 schedules to configure (heartbeat business-hours, archive daily, weekly eval). Heartbeat is LIVE (1-min biz-hrs); archive + weekly-eval deferred into Plan 05-12 because the weekly eval needs the stable prod URL after CNAME flip (now done at `joe-dollinger-chat.com`). ~10-15 min residual work.
+- **cron-job.org schedules** — Two-cron operational reality (reconciled 2026-05-21 from the 2026-05-20 banner-vs-cost tension — see .planning/incidents/2026-05-20-heartbeat-overfire.md Addendum):
+  - `/api/cron/heartbeat` at `*/1 9-17 * * 1-5` TZ America/New_York with HEARTBEAT_LLM_PREWARM=false (deps-only ping + classifier banner, ~$0.06/biz-day, keeps StatusBanner green at 1-min cadence required by HEARTBEAT_OK_S=60)
+  - `/api/cron/prewarm-cache` at `*/5 9-17 * * 1-5` TZ America/New_York (Sonnet cache_read only via shared warmPromptCache(), ~$1.00/biz-day, keeps Anthropic ephemeral cache warm without 4-of-5 redundant fires)
+  - Total ~$1.06/biz-day (down from ~$5.57/biz-day over-fire). Archive + weekly-eval cron deferred into Plan 05-12 because the weekly eval needs the stable prod URL after CNAME flip (now done at `joe-dollinger-chat.com`). ~10-15 min residual work.
 - **`joe-dollinger-resume.pdf`** — drop into `public/` before public deploy; PlainHtmlFallback links to `/joe-dollinger-resume.pdf` which currently 404s (T-03-05-08 disposition: accept; recruiter still has email + LinkedIn + GitHub paths).
 - **One-time `oauth_debug_claims_shape` Pino log** in `/auth/callback` — schedule a removal commit after Joe verifies the claims shape from the first real GitHub login on Vercel.
 

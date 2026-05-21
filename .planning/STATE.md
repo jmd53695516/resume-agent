@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 7 Plan 07-1A context gathered (lint follow-up scope) — ready for /gsd-plan-phase 7
-last_updated: "2026-05-14T02:20:36.860Z"
+stopped_at: Phase 999.1 Plan 01 complete (eb260d6 + 5d02d15); ready for Plan 999.1-02 (N=3 cold-cache CI verification + D-08 close-out)
+last_updated: "2026-05-14T13:08:06.500Z"
 last_activity: 2026-05-14
 progress:
   total_phases: 16
   completed_phases: 8
-  total_plans: 50
-  completed_plans: 49
-  percent: 98
+  total_plans: 52
+  completed_plans: 50
+  percent: 96
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** A recruiter in under five minutes walks away with a distinctive, specific impression of Joe — grounded in real projects, free of fabrication, and delivered by an agent they can see was engineered (not just prompted) with cost, abuse, and hallucination controls.
-**Current focus:** Phase 07 — add-test-yml-github-actions-workflow-for-determinism
+**Current focus:** Phase 999.1 — cat4-prompt-003-cold-cache-borderline-ness-fix
 
 ## Current Position
 
-Phase: 999.1
-Plan: Not started
-Status: Executing Phase 07
-Last activity: 2026-05-14
+Phase: 999.1 (cat4-prompt-003-cold-cache-borderline-ness-fix) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-05-21 - Completed quick task 260520-t5j: Split-cron implementation for heartbeat (Verified)
 
 Progress: [██████████] Phase 06: 6/6 plans complete (CLOSED). Phase 06 kb/about_me.md enrichment live on prod (https://joe-dollinger-chat.com); cat1 = 15/15 preview + 15/15 prod; cat4 = 4.20 preview + 4.52 prod (both per_case all pass); SAFE-11 17/17 green; 11 new cat1 ground_truth_facts entries; D-F-08 audit trail complete (4 eval_runs row IDs). Plan 05-12 functionally complete (code/data shipped, prod verified, gates green) — friend-test responses now re-collected on post-Phase-6 enriched artifact per OQ-04 Option A recommendation. Phase 05.2 fully closed. **v1.0 milestone close still gated only on Plan 05-12 friend-test sign-off — Phase 7 is parallel CI-hardening, does NOT block launch.**
 
@@ -88,6 +88,7 @@ Progress: [██████████] Phase 06: 6/6 plans complete (CLOSED)
 | Phase 05.2 P04 | 3min | 2 tasks | 2 files |
 | Phase 05.2 P05 | 4min | 2 tasks | 2 files |
 | Phase 05-eval-gates-launch P13 | 8min | 2 tasks | 3 files |
+| Phase 999.1 P01 | 9min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -210,6 +211,9 @@ Recent decisions affecting current work:
 - [Phase 06-kb-enrichment-about-me-hardening]: Phase 06 COMPLETE 2026-05-13. kb/about_me.md live at https://joe-dollinger-chat.com (1030 words / 16 paragraphs / banned-vocab 0/17 / 4/5 voice-fidelity / cat4 prod 4.52 / cat1 prod 15/15). 7 deferred items captured for post-Phase-6 backlog (cat4-prompt-003 triage + 6 kb/profile.yml + kb/case_studies follow-ups). OQ-04 surfaced: re-DM friend-testers on enriched prod artifact (Option A recommended). OQ-03 RESOLVED locked-skip. v1.0 milestone close gated only on Plan 05-12 friend-test sign-off; Phase 06 is the final phase in v1.0 milestone scope.
 - [Phase 07-add-test-yml-github-actions-workflow-for-determinism]: Plan 07-1A COMPLETE 2026-05-14. 9 cataloged + 2 newly-found react-hooks@6 violations resolved via D-A-01..05 strategies: shared useIsClient() hook backed by useSyncExternalStore (src/hooks/use-is-client.ts), useSyncExternalStore refactor of LocalTime + RelativeTime (D-A-03), onFinish-driven ChatUI timestamp capture (D-A-04 + null-guard deviation D1), Server-Component purity disables (D-A-01 + inline-line form deviation D2). Clean-env 4-command pre-flight gate green (npm test 654 passed + tsc + lint + build all exit 0). Joe-approved smoke (chat send + matrix toggle + admin pages). NEW FINDING: react-hooks@6 more aggressive than 07-01-CONTEXT codification — `if/try/catch`-wrapped setStates in effects DO trip set-state-in-effect (Deviation D3, 2 additional violations in chat/page.tsx + ChatStatusBanner.tsx resolved via same eslint-disable strategy). 12-var sentinel-env list captured in SUMMARY Handoff for Plan 07-02's test.yml `env:` block (zero-secrets.* posture preserved per D-B-01).
 - [Phase 07-add-test-yml-github-actions-workflow-for-determinism]: Plan 07-1A introduced shared `useIsClient()` hook at src/hooks/use-is-client.ts — canonical SSR-safe client-detection primitive backed by useSyncExternalStore three-arg form. Replaces useState(false)+useEffect(setHydrated(true)) pattern across codebase. Pattern documented for future Client Components needing post-hydration render deferral.
+- [Phase 999.1]: Plan 01: Use js-yaml (existing top-level dep), not yaml package (not installed) - matches yaml-loader.ts pattern
+- [Phase 999.1]: Plan 01: Override-able readFile mock via vi.importActual passthrough sidesteps Vitest 4 ESM 'Cannot redefine property: readFile' while preserving real-fs fallthrough for loadVoiceSamples
+- [Phase 999.1]: Plan 01: Warmup prompt locked to 'Tell me one thing about your background.' - benign on-domain string clears classifier gate 6 so Sonnet writes the cache (short strings risk offtopic-deflection)
 
 ### Roadmap Evolution
 
@@ -240,19 +244,21 @@ Recent decisions affecting current work:
 
 ### Quick Tasks Completed
 
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
-| 260511-u9d | WR-01 classifier banner false-green: extract classifyUserMessageOrThrow throwing variant; heartbeat caller now reports classifier=degraded truthfully during Anthropic outages | 2026-05-12 | 6a5a8b0 | [260511-u9d-fix-wr-01-classifier-banner-false-green-](./quick/260511-u9d-fix-wr-01-classifier-banner-false-green-/) |
-| 260512-r4s | SEED-001 rate-limit exemption: EVAL_CLI_RATELIMIT_ALLOWLIST Set + checkRateLimits skip for eval-cli@joedollinger.dev; per-IP + spend-cap still apply (exact-match, 12 new tests, STRIDE T-r4s-01..07 mitigated, route.ts byte-identical). NOTE: spend-cap half of EOD incident scope deferred to follow-up quick task. | 2026-05-12 | e3dbfae | [260512-r4s-exempt-eval-cli-email-from-per-email-rat](./quick/260512-r4s-exempt-eval-cli-email-from-per-email-rat/) |
-| 260512-ro4 | SEED-001 spend-cap half: unified EVAL_CLI_ALLOWLIST (renamed from EVAL_CLI_RATELIMIT_ALLOWLIST) + isEmailSpendCapAllowlisted helper + gate-4 short-circuit + incrementSpend email-gated skip (full bypass per D-A-01). Per-IP cost cap SAFE-08 is the new last-line backstop (deliberately NOT gated; T-ro4-07 mitigation comments + regression test). 16 new tests, STRIDE T-ro4-01..07 mitigated, six-gate order preserved. SEED-001 fully resolved. | 2026-05-12 | 5c19fa1 | [260512-ro4-exempt-eval-cli-joedollinger-dev-from-sa](./quick/260512-ro4-exempt-eval-cli-joedollinger-dev-from-sa/) |
-| 260512-sne | SEED-001 ip-rate-limit half: isEmailIpRatelimitAllowlisted helper (third sibling) + checkRateLimits ip10m/ipday skip for allowlisted emails. D-A-01 exempts ip10m+ipday only — session limiter stays as safety net. D-A-03 SAFE-08 (150¢/day/IP) accepted as the new ONLY cost backstop. 18 new tests, STRIDE T-sne-01..09 mitigated, route.ts byte-identical, six-gate order preserved. Driven by PR #4 CI failure cat1-fab-013..015 at ip10m=20/10min from single GH Actions runner IP. SEED-001 all three halves complete. | 2026-05-13 | 97e4a65 | [260512-sne-exempt-eval-cli-joedollinger-dev-from-pe](./quick/260512-sne-exempt-eval-cli-joedollinger-dev-from-pe/) |
-| 260512-tku | SAFETY_GATES_ENABLED kill-switch — disable gate 4 (spend-cap) + gate 5 (rate-limits) globally via single in-code feature flag. Default OFF (`=== 'true'` strict equality); env var override re-enables. SEED-001 helpers + Ratelimit constructions byte-identical in redis.ts; counter increments (incrementSpend + incrementIpCost) preserved in onFinish for observability. 3 SEED-001 contract tests `describe.skip`'d with TODO(SEED-002). chat-six-gate-order extended for flag-aware coverage. **SECURITY EXPOSURE WINDOW STARTS AT MERGE:** public agent has no per-IP/per-email throttle and no per-IP/global spend cap during OFF window; Anthropic org $100/mo cap is the only remaining backstop. SEED-002 planted with rollback steps + trigger (re-enable BEFORE broad distribution). 654 tests pass, 12 skipped. Driven by exhausting cycle of SEED-001 r4s/ro4/sne fixes revealing successive gates (final trip = incrementIpCost server-side cost 150¢/run hitting SAFE-08 on a single eval run). | 2026-05-13 | 5aacbb5 | [260512-tku-disable-rate-limit-spend-cap-gates-globa](./quick/260512-tku-disable-rate-limit-spend-cap-gates-globa/) |
+| # | Description | Date | Commit | Status | Directory |
+|---|-------------|------|--------|--------|-----------|
+| 260511-u9d | WR-01 classifier banner false-green: extract classifyUserMessageOrThrow throwing variant; heartbeat caller now reports classifier=degraded truthfully during Anthropic outages | 2026-05-12 | 6a5a8b0 |  | [260511-u9d-fix-wr-01-classifier-banner-false-green-](./quick/260511-u9d-fix-wr-01-classifier-banner-false-green-/) |
+| 260512-r4s | SEED-001 rate-limit exemption: EVAL_CLI_RATELIMIT_ALLOWLIST Set + checkRateLimits skip for eval-cli@joedollinger.dev; per-IP + spend-cap still apply (exact-match, 12 new tests, STRIDE T-r4s-01..07 mitigated, route.ts byte-identical). NOTE: spend-cap half of EOD incident scope deferred to follow-up quick task. | 2026-05-12 | e3dbfae |  | [260512-r4s-exempt-eval-cli-email-from-per-email-rat](./quick/260512-r4s-exempt-eval-cli-email-from-per-email-rat/) |
+| 260512-ro4 | SEED-001 spend-cap half: unified EVAL_CLI_ALLOWLIST (renamed from EVAL_CLI_RATELIMIT_ALLOWLIST) + isEmailSpendCapAllowlisted helper + gate-4 short-circuit + incrementSpend email-gated skip (full bypass per D-A-01). Per-IP cost cap SAFE-08 is the new last-line backstop (deliberately NOT gated; T-ro4-07 mitigation comments + regression test). 16 new tests, STRIDE T-ro4-01..07 mitigated, six-gate order preserved. SEED-001 fully resolved. | 2026-05-12 | 5c19fa1 |  | [260512-ro4-exempt-eval-cli-joedollinger-dev-from-sa](./quick/260512-ro4-exempt-eval-cli-joedollinger-dev-from-sa/) |
+| 260512-sne | SEED-001 ip-rate-limit half: isEmailIpRatelimitAllowlisted helper (third sibling) + checkRateLimits ip10m/ipday skip for allowlisted emails. D-A-01 exempts ip10m+ipday only — session limiter stays as safety net. D-A-03 SAFE-08 (150¢/day/IP) accepted as the new ONLY cost backstop. 18 new tests, STRIDE T-sne-01..09 mitigated, route.ts byte-identical, six-gate order preserved. Driven by PR #4 CI failure cat1-fab-013..015 at ip10m=20/10min from single GH Actions runner IP. SEED-001 all three halves complete. | 2026-05-13 | 97e4a65 |  | [260512-sne-exempt-eval-cli-joedollinger-dev-from-pe](./quick/260512-sne-exempt-eval-cli-joedollinger-dev-from-pe/) |
+| 260512-tku | SAFETY_GATES_ENABLED kill-switch — disable gate 4 (spend-cap) + gate 5 (rate-limits) globally via single in-code feature flag. Default OFF (`=== 'true'` strict equality); env var override re-enables. SEED-001 helpers + Ratelimit constructions byte-identical in redis.ts; counter increments (incrementSpend + incrementIpCost) preserved in onFinish for observability. 3 SEED-001 contract tests `describe.skip`'d with TODO(SEED-002). chat-six-gate-order extended for flag-aware coverage. **SECURITY EXPOSURE WINDOW STARTS AT MERGE:** public agent has no per-IP/per-email throttle and no per-IP/global spend cap during OFF window; Anthropic org $100/mo cap is the only remaining backstop. SEED-002 planted with rollback steps + trigger (re-enable BEFORE broad distribution). 654 tests pass, 12 skipped. Driven by exhausting cycle of SEED-001 r4s/ro4/sne fixes revealing successive gates (final trip = incrementIpCost server-side cost 150¢/run hitting SAFE-08 on a single eval run). | 2026-05-13 | 5aacbb5 |  | [260512-tku-disable-rate-limit-spend-cap-gates-globa](./quick/260512-tku-disable-rate-limit-spend-cap-gates-globa/) |
+| 260520-paz | Heartbeat cron cadence doc fix — reconcile `src/app/api/cron/heartbeat/route.ts` top comment + `MILESTONE_SUMMARY-v1.0.md` line 125 from prior 1-min biz-hrs to actual `*/5 9-17 * * 1-5` TZ `America/New_York` (Joe edited cron-job.org dashboard 2026-05-20). Seeds `.planning/incidents/` with `2026-05-20-heartbeat-overfire.md` post-mortem (silent ~$5.57/biz-day waste from ~May 12; detected only via 3-day idle-window cost question). Flags as backlog: $3/day spend cap from CLAUDE.md only gates `/api/chat`, not the cron path — heartbeat alone exceeded the cap with no alarm. | 2026-05-20 | 792861e |  | [260520-paz-document-heartbeat-cron-cadence-fix-2026](./quick/260520-paz-document-heartbeat-cron-cadence-fix-2026/) |
+| 260520-t5j | Split-cron implementation for heartbeat — extract `warmPromptCache()` into `src/lib/prompt-cache.ts`; add new `POST /api/cron/prewarm-cache` route (lazy Anthropic client, same Bearer auth, writes `heartbeat:anthropic` Redis key, ~30 LOC); 5-case test suite at `tests/cron/prewarm-cache.test.ts`; heartbeat route stays as deps-only when `HEARTBEAT_LLM_PREWARM=false`. Reconciles incident doc Addendum (NOT YET SHIPPED → SHIPPED) and MILESTONE_SUMMARY line 125 (single-cron → two-cron). Plan-checker passed iter 2/2 (1 blocker + 2 warnings addressed); verifier passed 12/12 (`tsc --noEmit`, `npm run build`, both vitest suites green). Joe's 3 post-deploy operational steps captured in SUMMARY.md (Vercel env `HEARTBEAT_LLM_PREWARM=false`; cron-job.org existing heartbeat revert to `*/1`; new cron-job.org entry for `/api/cron/prewarm-cache` at `*/5`). Expected steady-state cost ~$1.06/biz-day with banner green. | 2026-05-21 | 9865b34 | Verified | [260520-t5j-split-cron-implementation-for-heartbeat-](./quick/260520-t5j-split-cron-implementation-for-heartbeat-/) |
 
 ## Session Continuity
 
-Last session: 2026-05-14T00:52:09.501Z
-Stopped at: Phase 7 Plan 07-1A context gathered (lint follow-up scope) — ready for /gsd-plan-phase 7
-Resume file: .planning/phases/07-add-test-yml-github-actions-workflow-for-determinism/07-1A-CONTEXT.md
+Last session: 2026-05-14T13:08:06.491Z
+Stopped at: Phase 999.1 Plan 01 complete (eb260d6 + 5d02d15); ready for Plan 999.1-02 (N=3 cold-cache CI verification + D-08 close-out)
+Resume file: None
 
 Resumed: 2026-05-11 — completed /gsd-execute-phase 5.2 Wave 5 close-out inline after two executor timeouts on full Playwright runs.
 Resumed: 2026-05-11 — /gsd-resume-work cleanup pass; STATE.md, stale checkpoint, and pending-todo reconciled to reflect Phase 05.2 closure.

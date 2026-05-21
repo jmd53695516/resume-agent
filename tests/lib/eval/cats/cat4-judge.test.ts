@@ -44,6 +44,27 @@ vi.mock('@/lib/eval/agent-client', () => ({
   parseChatStream: (raw: string) => raw,
 }));
 
+// Phase 999.1 Plan 01 Task 1 — fs/promises readFile override so loadCat4Config
+// can be tested against synthetic YAML stubs. Defaults to real readFile so
+// loadVoiceSamples (kb/voice.md) + the live cat-04-voice.yaml read still work.
+let readFileOverride: ((p: string) => string | undefined) | null = null;
+vi.mock('node:fs/promises', async () => {
+  const actual = await vi.importActual<typeof import('node:fs/promises')>(
+    'node:fs/promises',
+  );
+  return {
+    ...actual,
+    default: actual,
+    readFile: async (p: string, encoding: BufferEncoding) => {
+      if (readFileOverride) {
+        const stub = readFileOverride(p);
+        if (typeof stub === 'string') return stub;
+      }
+      return actual.readFile(p, encoding);
+    },
+  };
+});
+
 beforeEach(() => {
   loadCasesMock.mockReset();
   judgeMock.mockReset();
@@ -52,6 +73,7 @@ beforeEach(() => {
   mintEvalSessionMock.mockReset();
   writeCaseMock.mockResolvedValue(undefined);
   mintEvalSessionMock.mockResolvedValue('test-session-id-cat4-judge');
+  readFileOverride = null;
 });
 
 const fakeCase = (overrides: Record<string, unknown> = {}) => ({
@@ -147,10 +169,14 @@ describe('runCat4Judge', () => {
     expect(result.cases[0].judge_score).toBe(4.0);
   });
 
-  it('per-case fails when verdict.average < 4.0', async () => {
+  // Phase 999.1 Plan 01 Task 1 — D-01c lowered per_case floor from 4.0 to 3.8.
+  // Original test asserted FAIL at 3.8; under the new threshold 3.8 PASSES.
+  // Re-target the FAIL assertion below the new floor (use 3.7) so the test
+  // still exercises the per-case fail path against the externalized YAML.
+  it('per-case fails when verdict.average < 3.8 (post-D-01c)', async () => {
     loadCasesMock.mockResolvedValue([fakeCase()]);
     callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '' });
-    judgeMock.mockResolvedValue(verdictWithAvg(3.8));
+    judgeMock.mockResolvedValue(verdictWithAvg(3.7));
 
     const { runCat4Judge } = await import('@/lib/eval/cats/cat4-judge');
     const result = await runCat4Judge('http://localhost:3000', 'run_t5');
@@ -250,5 +276,200 @@ describe('runCat4Judge', () => {
     const { runCat4Judge } = await import('@/lib/eval/cats/cat4-judge');
     const result = await runCat4Judge('http://localhost:3000', 'run_t11');
     expect(result.category).toBe('cat4-judge');
+  });
+
+  // Phase 999.1 Plan 01 Task 1 — D-01c per_case threshold relaxation 4.0 -> 3.8.
+  // After loadCat4Config wires the YAML, per_case avg of 3.8 must PASS (was FAIL at 4.0).
+  it('per-case passes when verdict.average === 3.8 (Phase 999.1 D-01c threshold relaxation)', async () => {
+    loadCasesMock.mockResolvedValue([fakeCase()]);
+    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '' });
+    judgeMock.mockResolvedValue(verdictWithAvg(3.8));
+
+    const { runCat4Judge } = await import('@/lib/eval/cats/cat4-judge');
+    const result = await runCat4Judge('http://localhost:3000', 'run_999_1_relax');
+    expect(result.cases[0].passed).toBe(true);
+  });
+
+  it('per-case fails when verdict.average < 3.8 (Phase 999.1 D-01c new floor)', async () => {
+    loadCasesMock.mockResolvedValue([fakeCase()]);
+    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '' });
+    judgeMock.mockResolvedValue(verdictWithAvg(3.7));
+
+    const { runCat4Judge } = await import('@/lib/eval/cats/cat4-judge');
+    const result = await runCat4Judge('http://localhost:3000', 'run_999_1_below');
+    expect(result.cases[0].passed).toBe(false);
+  });
+});
+
+// Phase 999.1 Plan 01 Task 1 — externalized thresholds via evals/cat-04-voice.yaml.
+// loadCat4Config reads pass_threshold.per_case_min_avg + .aggregate_min_avg from YAML,
+// closing the pre-existing drift class (runner used to ignore the YAML and hardcode 4.0).
+describe('loadCat4Config', () => {
+  it('returns { passThreshold: 3.8, aggregateThreshold: 4.0 } from evals/cat-04-voice.yaml', async () => {
+    const { loadCat4Config } = await import('@/lib/eval/cats/cat4-judge');
+    const cfg = await loadCat4Config();
+    expect(cfg.passThreshold).toBe(3.8);
+    expect(cfg.aggregateThreshold).toBe(4.0);
+  });
+
+  it('throws when pass_threshold.per_case_min_avg is missing from the YAML', async () => {
+    // Override readFile only for the cat-04-voice.yaml path; loadVoiceSamples
+    // (kb/voice.md) and other reads fall through to the real fs.
+    readFileOverride = (p: string) =>
+      p.endsWith('cat-04-voice.yaml')
+        ? 'rubric:\n  dimensions: []\nvoice_samples_count: 8\n'
+        : undefined;
+    const { loadCat4Config } = await import('@/lib/eval/cats/cat4-judge');
+    await expect(loadCat4Config()).rejects.toThrow(
+      /cat-04-voice\.yaml missing pass_threshold/,
+    );
+  });
+
+  it('throws when pass_threshold.aggregate_min_avg is missing from the YAML', async () => {
+    readFileOverride = (p: string) =>
+      p.endsWith('cat-04-voice.yaml')
+        ? 'pass_threshold:\n  per_case_min_avg: 3.8\n  n_cases: 5\n'
+        : undefined;
+    const { loadCat4Config } = await import('@/lib/eval/cats/cat4-judge');
+    await expect(loadCat4Config()).rejects.toThrow(
+      /cat-04-voice\.yaml missing pass_threshold/,
+    );
+  });
+});
+
+// Phase 999.1 Plan 01 Task 2 — warmupSonnetCache invocation + cost-isolation.
+// The warmup helper is INTERNAL (not exported); we exercise it via its
+// observable side-effect on global fetch + the totalCost invariant of
+// runCat4Judge's returned CategoryResult.
+describe('warmupSonnetCache + runCat4Judge integration', () => {
+  it('invokes warmupSonnetCache exactly once, AFTER mintEvalSession and BEFORE callAgent', async () => {
+    loadCasesMock.mockResolvedValue([fakeCase()]);
+    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '' });
+    judgeMock.mockResolvedValue(verdictWithAvg(5));
+
+    // Drop-in fetch stub: capture call order vs other mocked fns.
+    const fetchStub = vi.fn().mockResolvedValue({
+      status: 200,
+      text: async () => 'ok',
+    } as unknown as Response);
+    const origFetch = globalThis.fetch;
+    globalThis.fetch = fetchStub as unknown as typeof fetch;
+    try {
+      const { runCat4Judge } = await import('@/lib/eval/cats/cat4-judge');
+      await runCat4Judge('http://localhost:3000', 'run_warmup_order');
+    } finally {
+      globalThis.fetch = origFetch;
+    }
+
+    // Exactly one warmup fetch (POST to /api/chat).
+    const chatFetches = fetchStub.mock.calls.filter(
+      ([url]) => typeof url === 'string' && url.endsWith('/api/chat'),
+    );
+    expect(chatFetches.length).toBe(1);
+
+    // Order: mintEvalSession -> warmup (fetch) -> callAgent.
+    const mintOrder = mintEvalSessionMock.mock.invocationCallOrder[0];
+    const warmupOrder = fetchStub.mock.invocationCallOrder[0];
+    const callAgentOrder = callAgentMock.mock.invocationCallOrder[0];
+    expect(mintOrder).toBeLessThan(warmupOrder);
+    expect(warmupOrder).toBeLessThan(callAgentOrder);
+  });
+
+  it('warmupSonnetCache cost does NOT appear in CategoryResult.cost_cents (cost-isolation invariant T-999.1-01)', async () => {
+    loadCasesMock.mockResolvedValue([
+      fakeCase({ case_id: 'a' }),
+      fakeCase({ case_id: 'b' }),
+      fakeCase({ case_id: 'c' }),
+    ]);
+    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '' });
+    // Each judge call returns cost_cents: 5. Across 3 cases, total = 15.
+    judgeMock
+      .mockResolvedValueOnce({ ...verdictWithAvg(5), cost_cents: 5 })
+      .mockResolvedValueOnce({ ...verdictWithAvg(5), cost_cents: 5 })
+      .mockResolvedValueOnce({ ...verdictWithAvg(5), cost_cents: 5 });
+
+    // Even if the warmup fetch were charged, it would not be visible because
+    // warmupSonnetCache never touches the local totalCost accumulator. We
+    // assert exact equality (not >=) to prove no leak.
+    const fetchStub = vi.fn().mockResolvedValue({
+      status: 200,
+      text: async () => 'ok',
+    } as unknown as Response);
+    const origFetch = globalThis.fetch;
+    globalThis.fetch = fetchStub as unknown as typeof fetch;
+    try {
+      const { runCat4Judge } = await import('@/lib/eval/cats/cat4-judge');
+      const result = await runCat4Judge('http://localhost:3000', 'run_warmup_cost');
+      expect(result.cost_cents).toBe(Math.round(5 * 3));
+    } finally {
+      globalThis.fetch = origFetch;
+    }
+  });
+
+  it('warmupSonnetCache swallows fetch rejection and the case loop proceeds', async () => {
+    loadCasesMock.mockResolvedValue([fakeCase()]);
+    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '' });
+    judgeMock.mockResolvedValue(verdictWithAvg(5));
+
+    const fetchStub = vi.fn().mockRejectedValue(new Error('warmup ECONNREFUSED'));
+    const origFetch = globalThis.fetch;
+    globalThis.fetch = fetchStub as unknown as typeof fetch;
+    try {
+      const { runCat4Judge } = await import('@/lib/eval/cats/cat4-judge');
+      // Must NOT throw; case loop must still produce a CategoryResult.
+      const result = await runCat4Judge('http://localhost:3000', 'run_warmup_err');
+      expect(result.category).toBe('cat4-judge');
+      expect(result.cases.length).toBe(1);
+      expect(result.cases[0].passed).toBe(true);
+    } finally {
+      globalThis.fetch = origFetch;
+    }
+  });
+
+  it('warmupSonnetCache POSTs to <targetUrl>/api/chat with the benign on-domain prompt and the minted session_id', async () => {
+    loadCasesMock.mockResolvedValue([fakeCase()]);
+    callAgentMock.mockResolvedValue({ response: 'r', httpStatus: 200, rawBody: '' });
+    judgeMock.mockResolvedValue(verdictWithAvg(5));
+    mintEvalSessionMock.mockResolvedValue('warmup-session-abc');
+
+    const fetchStub = vi.fn().mockResolvedValue({
+      status: 200,
+      text: async () => 'ok',
+    } as unknown as Response);
+    const origFetch = globalThis.fetch;
+    globalThis.fetch = fetchStub as unknown as typeof fetch;
+    try {
+      const { runCat4Judge } = await import('@/lib/eval/cats/cat4-judge');
+      await runCat4Judge('http://example.test', 'run_warmup_shape');
+    } finally {
+      globalThis.fetch = origFetch;
+    }
+
+    // Find the warmup fetch (to /api/chat) among possibly-many fetch calls.
+    const warmupCall = fetchStub.mock.calls.find(
+      ([url]) => typeof url === 'string' && url.endsWith('/api/chat'),
+    );
+    expect(warmupCall).toBeDefined();
+    const [url, init] = warmupCall as [string, RequestInit];
+    expect(url).toBe('http://example.test/api/chat');
+    expect(init.method).toBe('POST');
+    expect((init.headers as Record<string, string>)['content-type']).toBe(
+      'application/json',
+    );
+    const body = JSON.parse(init.body as string) as {
+      session_id: string;
+      messages: Array<{
+        id: string;
+        role: string;
+        parts: Array<{ type: string; text: string }>;
+      }>;
+    };
+    expect(body.session_id).toBe('warmup-session-abc');
+    expect(body.messages).toHaveLength(1);
+    expect(body.messages[0].role).toBe('user');
+    expect(body.messages[0].parts[0].type).toBe('text');
+    expect(body.messages[0].parts[0].text).toBe(
+      'Tell me one thing about your background.',
+    );
   });
 });
