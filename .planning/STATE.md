@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 999.1 CLOSED (3/3 cold-cache PASS; D-08 close-out commit 731ec74); v1.0 milestone close still gated only on Plan 05-12 friend-test sign-off
-last_updated: "2026-05-22T02:08:00.000Z"
+status: milestone-close-ready
+stopped_at: Plan 05-12 CLOSED 2026-05-22 (Joe-attested clean friend-test, non-PM Q1=Y, no awkward issues); Phase 5 + v1.0 milestone all gates met; ready for /gsd-complete-milestone v1.0
+last_updated: "2026-05-22T02:30:00.000Z"
 last_activity: 2026-05-22
 progress:
   total_phases: 16
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 52
-  completed_plans: 51
-  percent: 98
+  completed_plans: 52
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** A recruiter in under five minutes walks away with a distinctive, specific impression of Joe — grounded in real projects, free of fabrication, and delivered by an agent they can see was engineered (not just prompted) with cost, abuse, and hallucination controls.
-**Current focus:** v1.0 milestone close — gated only on Plan 05-12 friend-test sign-off on the post-Phase-6 enriched prod artifact (OQ-04 Option A). Phase 999.1 CLOSED 2026-05-22.
+**Current focus:** v1.0 milestone close — all gates met as of 2026-05-22. Next action: invoke `/gsd-complete-milestone v1.0` to archive milestone + open v1.1 scope discussion. Paper-resume print is a Joe-side action ahead of next interview cycle (NOT gating).
 
 ## Current Position
 
-Phase: 999.1 (cat4-prompt-003-cold-cache-borderline-ness-fix) — CLOSED 2026-05-22
-Plan: 2 of 2 complete
-Status: Phase closed; v1.0 milestone close gated on Plan 05-12 friend-test sign-off (no active phase).
-Last activity: 2026-05-22 - Phase 999.1 CLOSED via Plan 999.1-02 (3/3 cold-cache CI PASS — aggregate 4.16/4.20/4.32 across runs 26263750852/26263945079/26264146558; D-08 close-out commit 731ec74 amending Plan 05-12 with forward-looking 3.8/4.0 cat4-PASS def).
+Phase: None active — v1.0 milestone close-ready
+Plan: All 52/52 plans complete across the v1.0 milestone
+Status: **v1.0 milestone close-ready.** Plan 05-12 CLOSED 2026-05-22 (Joe-attested clean friend-test). Phase 5 + all parallel phases (05.1, 05.2, 6, 7, 999.1) closed.
+Last activity: 2026-05-22 - Plan 05-12 CLOSED (Joe-attested clean friend-test sign-off: 3 testers — non-PM, PM, recruiter; non-PM Q1=Y satisfied LAUNCH-04 hard gate; no awkward-issues to triage; final go/no-go = GO). LAUNCH-CHECKLIST + Plan 05-12 SUMMARY committed.
 
-Progress: [██████████] Phase 999.1 CLOSED 2026-05-22 (N=3 cold-cache CI 3/3 PASS — aggregate 4.16/4.20/4.32; D-08 close-out commit 731ec74 amends Plan 05-12 cat4-PASS def 3.8/4.0 forward-looking, original 4.0/4.0 sign-off preserved per D-07). Phase 06: 6/6 plans complete (CLOSED). Phase 06 kb/about_me.md enrichment live on prod (https://joe-dollinger-chat.com); cat1 = 15/15 preview + 15/15 prod; cat4 = 4.20 preview + 4.52 prod (both per_case all pass); SAFE-11 17/17 green; 11 new cat1 ground_truth_facts entries; D-F-08 audit trail complete (4 eval_runs row IDs). Plan 05-12 functionally complete (code/data shipped, prod verified, gates green) — friend-test responses now re-collected on post-Phase-6 enriched artifact per OQ-04 Option A recommendation. Phase 05.2 fully closed. Phase 7 CI gate live. **v1.0 milestone close still gated only on Plan 05-12 friend-test sign-off — Phase 7 + Phase 999.1 are parallel hardening, do NOT block launch.**
+Progress: [██████████] **v1.0 milestone COMPLETE — 52/52 plans (100%).** Final close-out artifacts: `05-12-LAUNCH-CHECKLIST.md` (Joe-attested clean friend-test) + `05-12-SUMMARY.md` (durable close-out record). Phase 999.1 CLOSED 2026-05-22 (N=3 cold-cache CI 3/3 PASS — aggregate 4.16/4.20/4.32; D-08 commit 731ec74 amends Plan 05-12 cat4-PASS def 3.8/4.0 forward-looking, original 4.0/4.0 sign-off preserved per D-07). Phase 06: 6/6 plans complete (CLOSED); kb/about_me.md enrichment live on prod (https://joe-dollinger-chat.com); cat1 = 15/15 prod + cat4 4.52 prod. Phase 05.2 fully closed (chat-stream design ported). Phase 7 CI gate live. v1.0 LIVE on prod since 2026-05-11; paper-resume print + v1.1 milestone scope are the next-cycle decisions.
 
 ## Performance Metrics
 
@@ -226,6 +226,7 @@ Recent decisions affecting current work:
 - 2026-05-11: Phase 05.2 (Implement Chat Stream design from Anthropic design system) inserted after Phase 5 — UI-polish decimal phase to port relevant aspects of the Anthropic Chat Stream design bundle into the recruiter-facing chat surface BEFORE Plan 05-12 LAUNCH-05, so v1.0 ships with an intentionally-designed UI rather than generic Tailwind defaults. Visual-only — no changes to useChat wiring, prompt caching, six-gate order, email gate, or PlainHtmlFallback. Source: todo `2026-05-11-implement-chat-stream-design-from-anthropic-design-system.md`. Discuss + plan to follow.
 - 2026-05-12: Phase 6 (KB enrichment: about-me hardening) added to end of v1.0 milestone — Integer phase (not decimal). Joe's call after brainstorm: this is planned next-step work BEFORE broad distribution, not an urgent insertion (decimal pattern is reserved for reactive insertions per ROADMAP.md:13-14 convention). v1.0 milestone scope stays open until broad distribution (QR paper print + LinkedIn push); Phase 6 is pre-distribution polish. Workflow: ingest LLM-written about-me .md (interview-derived, highest-risk class same as 775-line resume), ground-truth claims against interview transcript, strip agent expansion, voice-rewrite to match kb/voice.md, section-by-section merge into existing kb/about_me.md, expand cat1 ground_truth_facts, verify cat1=15/15 + cat4>=4.0 on preview then promote then verify on prod. 6 plans across 3 waves. **Hard dependency:** tomorrow's eval-cli spend-cap exemption fix (incident follow-up) must land first — Phase 6 verification spend would otherwise re-trip the 24h-rolling cap and re-create today's silent-lockout incident. Out of scope: 775-line resume.md (sequenced — may become Phase 7 or move to v1.1). Plan 05-12 friend-test sign-off happens on the post-Phase-6 enriched artifact. Brainstorm + design done 2026-05-12 EOD; design doc at .planning/phases/06-kb-enrichment-about-me-hardening/06-CONTEXT.md. Source: external interview + LLM-generated about-me .md held by Joe locally.
 - 2026-05-22: Phase 999.1 (cat4-prompt-003 cold-cache borderline-ness fix) CLOSED. N=3 cold-cache CI verification 3/3 PASS: aggregate 4.16 / 4.20 / 4.32, per_case 5/5 across all 3 runs. Cold-cache gaps enforced (5:14 + 5:04 between consecutive warmups, both clearing 5-min Anthropic cache TTL). `cat4_warmup_complete` fired green on all 3 runs (status 200) — `warmupSonnetCache` helper wired correctly in prod. D-04 anti-chase-loop kick-back NOT triggered (no failures to investigate). D-08 forward-only supersession committed via `731ec74`: 4 inline notes in Plan 05-12 PLAN.md + 1 indented-blockquote block under D-12-B-01 in 05-12-CONTEXT-ADDENDUM.md; original 2026-05-13 launch sign-off context preserved per D-07. Effective 2026-05-14, cat4 PASS = per_case_min_avg 3.8 + aggregate_min_avg 4.0 (forward-only). v1.0 milestone close still gated only on Plan 05-12 friend-test sign-off. Phase 999.1 has no downstream dependencies. Total verifiable cost 6¢ + invisible warmup ~$1.
+- 2026-05-22 (later same session): **Plan 05-12 CLOSED — v1.0 milestone close-ready.** Joe attested clean friend-test responses from all 3 testers (non-PM Q1=Y satisfied LAUNCH-04 hard gate; no awkward / cringe / block-launch issues to triage). LAUNCH-CHECKLIST.md status flipped to `signed-off`; Joe-attested go/no-go = GO. Plan 05-12 SUMMARY.md created at `.planning/phases/05-eval-gates-launch/05-12-SUMMARY.md` (durable close-out artifact cross-linking LAUNCH-CHECKLIST + 999.1 supersession + commit chain). All 52/52 v1.0 plans complete (100%). Phase 5 fully CLOSED. Paper-resume print is a Joe-side action ahead of next interview cycle (NOT gating). Next action: `/gsd-complete-milestone v1.0` to archive + open v1.1 scope discussion (KB expansion, CI eval narrowing, multi-turn eval coverage, cat2/3/5/6 calibration). Full Q3/Q5 response text retained locally by Joe per friend-tester privacy norm — NOT committed to repo.
 
 ### Pending Todos
 

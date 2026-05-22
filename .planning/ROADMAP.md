@@ -118,7 +118,7 @@ Plans:
 - [x] 05-09-PLAN.md — /admin/evals index + detail + calibrate + Cohen's kappa + AdminNav (EVAL-12, EVAL-14)
 - [x] 05-10-PLAN.md — Real eval workflow body + branch protection + Vercel Deployment Checks + A7 spot-test (EVAL-09, EVAL-13)
 - [x] 05-11-PLAN.md — /api/cron/run-eval + 5th alarm condition (weekly_eval_failure 24h NX) + cron-job.org schedule (EVAL-11)
-- [ ] 05-12-PLAN.md — Launch: domain CNAME + PDF + QR + LinkedIn/PDF/site URL + SAFE-12 evidence + friend-test + LAUNCH-CHECKLIST signed (LAUNCH-01..07, SAFE-12)
+- [x] 05-12-PLAN.md — Launch: domain CNAME + PDF + QR + LinkedIn/PDF/site URL + SAFE-12 evidence + friend-test + LAUNCH-CHECKLIST signed (LAUNCH-01..07, SAFE-12). **CLOSED 2026-05-22:** Joe-attested clean friend-test (3 testers, non-PM Q1=Y, no awkward issues); LAUNCH-CHECKLIST go/no-go=GO. Durable close-out artifact: [`05-12-SUMMARY.md`](./phases/05-eval-gates-launch/05-12-SUMMARY.md).
 - [x] 05-13-PLAN.md — Gap closure (UAT Test 1): add --target / --cats argv flags to eval CLI; back-compat env-fallback preserved (EVAL-09, EVAL-13)
 
 ## Progress
