@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 999.1 Plan 01 complete (eb260d6 + 5d02d15); ready for Plan 999.1-02 (N=3 cold-cache CI verification + D-08 close-out)
-last_updated: "2026-05-14T13:08:06.500Z"
-last_activity: 2026-05-14
+stopped_at: Phase 999.1 CLOSED (3/3 cold-cache PASS; D-08 close-out commit 731ec74); v1.0 milestone close still gated only on Plan 05-12 friend-test sign-off
+last_updated: "2026-05-22T02:08:00.000Z"
+last_activity: 2026-05-22
 progress:
   total_phases: 16
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 52
-  completed_plans: 50
-  percent: 96
+  completed_plans: 51
+  percent: 98
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-07)
 
 **Core value:** A recruiter in under five minutes walks away with a distinctive, specific impression of Joe — grounded in real projects, free of fabrication, and delivered by an agent they can see was engineered (not just prompted) with cost, abuse, and hallucination controls.
-**Current focus:** Phase 999.1 — cat4-prompt-003-cold-cache-borderline-ness-fix
+**Current focus:** v1.0 milestone close — gated only on Plan 05-12 friend-test sign-off on the post-Phase-6 enriched prod artifact (OQ-04 Option A). Phase 999.1 CLOSED 2026-05-22.
 
 ## Current Position
 
-Phase: 999.1 (cat4-prompt-003-cold-cache-borderline-ness-fix) — EXECUTING
-Plan: 2 of 2
-Status: Ready to execute
-Last activity: 2026-05-21 - Completed quick task 260520-t5j: Split-cron implementation for heartbeat (Verified)
+Phase: 999.1 (cat4-prompt-003-cold-cache-borderline-ness-fix) — CLOSED 2026-05-22
+Plan: 2 of 2 complete
+Status: Phase closed; v1.0 milestone close gated on Plan 05-12 friend-test sign-off (no active phase).
+Last activity: 2026-05-22 - Phase 999.1 CLOSED via Plan 999.1-02 (3/3 cold-cache CI PASS — aggregate 4.16/4.20/4.32 across runs 26263750852/26263945079/26264146558; D-08 close-out commit 731ec74 amending Plan 05-12 with forward-looking 3.8/4.0 cat4-PASS def).
 
-Progress: [██████████] Phase 06: 6/6 plans complete (CLOSED). Phase 06 kb/about_me.md enrichment live on prod (https://joe-dollinger-chat.com); cat1 = 15/15 preview + 15/15 prod; cat4 = 4.20 preview + 4.52 prod (both per_case all pass); SAFE-11 17/17 green; 11 new cat1 ground_truth_facts entries; D-F-08 audit trail complete (4 eval_runs row IDs). Plan 05-12 functionally complete (code/data shipped, prod verified, gates green) — friend-test responses now re-collected on post-Phase-6 enriched artifact per OQ-04 Option A recommendation. Phase 05.2 fully closed. **v1.0 milestone close still gated only on Plan 05-12 friend-test sign-off — Phase 7 is parallel CI-hardening, does NOT block launch.**
+Progress: [██████████] Phase 999.1 CLOSED 2026-05-22 (N=3 cold-cache CI 3/3 PASS — aggregate 4.16/4.20/4.32; D-08 close-out commit 731ec74 amends Plan 05-12 cat4-PASS def 3.8/4.0 forward-looking, original 4.0/4.0 sign-off preserved per D-07). Phase 06: 6/6 plans complete (CLOSED). Phase 06 kb/about_me.md enrichment live on prod (https://joe-dollinger-chat.com); cat1 = 15/15 preview + 15/15 prod; cat4 = 4.20 preview + 4.52 prod (both per_case all pass); SAFE-11 17/17 green; 11 new cat1 ground_truth_facts entries; D-F-08 audit trail complete (4 eval_runs row IDs). Plan 05-12 functionally complete (code/data shipped, prod verified, gates green) — friend-test responses now re-collected on post-Phase-6 enriched artifact per OQ-04 Option A recommendation. Phase 05.2 fully closed. Phase 7 CI gate live. **v1.0 milestone close still gated only on Plan 05-12 friend-test sign-off — Phase 7 + Phase 999.1 are parallel hardening, do NOT block launch.**
 
 ## Performance Metrics
 
@@ -89,6 +89,7 @@ Progress: [██████████] Phase 06: 6/6 plans complete (CLOSED)
 | Phase 05.2 P05 | 4min | 2 tasks | 2 files |
 | Phase 05-eval-gates-launch P13 | 8min | 2 tasks | 3 files |
 | Phase 999.1 P01 | 9min | 2 tasks | 3 files |
+| Phase 999.1 P02 | ~20min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -214,6 +215,9 @@ Recent decisions affecting current work:
 - [Phase 999.1]: Plan 01: Use js-yaml (existing top-level dep), not yaml package (not installed) - matches yaml-loader.ts pattern
 - [Phase 999.1]: Plan 01: Override-able readFile mock via vi.importActual passthrough sidesteps Vitest 4 ESM 'Cannot redefine property: readFile' while preserving real-fs fallthrough for loadVoiceSamples
 - [Phase 999.1]: Plan 01: Warmup prompt locked to 'Tell me one thing about your background.' - benign on-domain string clears classifier gate 6 so Sonnet writes the cache (short strings risk offtopic-deflection)
+- [Phase 999.1]: Plan 02: 5-min Anthropic prompt-cache TTL gap between sequential `gh workflow run` dispatches enforced via wall-clock waits (cache TTL starts from LAST cache_read, not first warmup_write). For cat4-judge runs that wrap up in 2-3 min (faster than the plan's 3-5 min estimate), wait until ≥5 min from prior run's `cat4_judge_complete` timestamp before dispatching the next one — otherwise the next runner's warmup hits warm cache (not cold) and the verification mechanic is defeated.
+- [Phase 999.1]: Plan 02: Per-case `judge_score` decimals do NOT surface in CI stdout (only Supabase `eval_cases.judge_score`). The `cat4_judge_complete` log emits the rollup: `per_case_passed: <n>` (where <n>=5 means all 5 cases cleared threshold) + `aggregate_avg: "<n.nn>"` (the category-wide mean). Per-case 5/5 + threshold 3.8 is the watertight inference that cat4-prompt-003 (and every other cat4 case) individually scored ≥3.8 — exact decimal retrieval needs the admin /admin/evals/<runId> UI or a Supabase query.
+- [Phase 999.1]: Plan 02 D-08 mechanic: append-only edits to D-12-B-01 via indented blockquote inside the bulleted list (NOT `---`-separated heading block that the plan template suggested — that breaks markdown list rendering). Plan 05-12 PLAN.md inline notes use parentheticals appended to existing bullets/paragraphs to preserve the originals byte-for-byte.
 
 ### Roadmap Evolution
 
@@ -221,6 +225,7 @@ Recent decisions affecting current work:
 - 2026-05-10: Phase 05.1 (Eval Content Trust Restoration) CLOSED PARTIAL. Four feature/fix commits: Item #8 = `78f4f8c`, Item #6 = `699c294`, Item #7 = `d286b74`, Item #6 sliding-window-key bug fix = `4281c3b`. Local cat1 hit 8-13/15 across 3 runs (D-B-01 NOT met) — failures are now classifier-deflections (Item #7 made them visible) NOT real fabrications; cat1-fab-005 (the original Item #8 trigger) passed in every post-Task-1 run. Local cat3 hit 0/6 vs pinned pre-Task-1 baseline 1/6 — the pre-baseline was deflection-grading-as-warmth noise, NOT a real cat3 baseline. Production /api/chat byte-identical to pre-phase SHA `8be227b` (D-E-03 verified via pinned $PRE_SHA, not HEAD~N). Plan 05-12 LAUNCH-05 partially unblocked; classifier-over-flagging finding promoted to NEW deferred-item #11. Item #6/#7/#8 marked RESOLVED in deferred-items.md.
 - 2026-05-11: Phase 05.2 (Implement Chat Stream design from Anthropic design system) inserted after Phase 5 — UI-polish decimal phase to port relevant aspects of the Anthropic Chat Stream design bundle into the recruiter-facing chat surface BEFORE Plan 05-12 LAUNCH-05, so v1.0 ships with an intentionally-designed UI rather than generic Tailwind defaults. Visual-only — no changes to useChat wiring, prompt caching, six-gate order, email gate, or PlainHtmlFallback. Source: todo `2026-05-11-implement-chat-stream-design-from-anthropic-design-system.md`. Discuss + plan to follow.
 - 2026-05-12: Phase 6 (KB enrichment: about-me hardening) added to end of v1.0 milestone — Integer phase (not decimal). Joe's call after brainstorm: this is planned next-step work BEFORE broad distribution, not an urgent insertion (decimal pattern is reserved for reactive insertions per ROADMAP.md:13-14 convention). v1.0 milestone scope stays open until broad distribution (QR paper print + LinkedIn push); Phase 6 is pre-distribution polish. Workflow: ingest LLM-written about-me .md (interview-derived, highest-risk class same as 775-line resume), ground-truth claims against interview transcript, strip agent expansion, voice-rewrite to match kb/voice.md, section-by-section merge into existing kb/about_me.md, expand cat1 ground_truth_facts, verify cat1=15/15 + cat4>=4.0 on preview then promote then verify on prod. 6 plans across 3 waves. **Hard dependency:** tomorrow's eval-cli spend-cap exemption fix (incident follow-up) must land first — Phase 6 verification spend would otherwise re-trip the 24h-rolling cap and re-create today's silent-lockout incident. Out of scope: 775-line resume.md (sequenced — may become Phase 7 or move to v1.1). Plan 05-12 friend-test sign-off happens on the post-Phase-6 enriched artifact. Brainstorm + design done 2026-05-12 EOD; design doc at .planning/phases/06-kb-enrichment-about-me-hardening/06-CONTEXT.md. Source: external interview + LLM-generated about-me .md held by Joe locally.
+- 2026-05-22: Phase 999.1 (cat4-prompt-003 cold-cache borderline-ness fix) CLOSED. N=3 cold-cache CI verification 3/3 PASS: aggregate 4.16 / 4.20 / 4.32, per_case 5/5 across all 3 runs. Cold-cache gaps enforced (5:14 + 5:04 between consecutive warmups, both clearing 5-min Anthropic cache TTL). `cat4_warmup_complete` fired green on all 3 runs (status 200) — `warmupSonnetCache` helper wired correctly in prod. D-04 anti-chase-loop kick-back NOT triggered (no failures to investigate). D-08 forward-only supersession committed via `731ec74`: 4 inline notes in Plan 05-12 PLAN.md + 1 indented-blockquote block under D-12-B-01 in 05-12-CONTEXT-ADDENDUM.md; original 2026-05-13 launch sign-off context preserved per D-07. Effective 2026-05-14, cat4 PASS = per_case_min_avg 3.8 + aggregate_min_avg 4.0 (forward-only). v1.0 milestone close still gated only on Plan 05-12 friend-test sign-off. Phase 999.1 has no downstream dependencies. Total verifiable cost 6¢ + invisible warmup ~$1.
 
 ### Pending Todos
 
