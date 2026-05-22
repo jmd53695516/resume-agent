@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: milestone-close-ready
-stopped_at: Plan 05-12 CLOSED 2026-05-22 (Joe-attested clean friend-test, non-PM Q1=Y, no awkward issues); Phase 5 + v1.0 milestone all gates met; ready for /gsd-complete-milestone v1.0
-last_updated: "2026-05-22T02:30:00.000Z"
-last_activity: 2026-05-22
+status: Awaiting next milestone
+stopped_at: Phase 999.1 Plan 01 complete (eb260d6 + 5d02d15); ready for Plan 999.1-02 (N=3 cold-cache CI verification + D-08 close-out)
+last_updated: "2026-05-22T03:04:12.844Z"
+last_activity: 2026-05-22 — Milestone v1.0 completed and archived
 progress:
   total_phases: 16
   completed_phases: 10
   total_plans: 52
   completed_plans: 52
-  percent: 100
+  percent: 63
 ---
 
 # Project State
@@ -25,12 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-07)
 
 ## Current Position
 
-Phase: None active — v1.0 milestone close-ready
-Plan: All 52/52 plans complete across the v1.0 milestone
-Status: **v1.0 milestone close-ready.** Plan 05-12 CLOSED 2026-05-22 (Joe-attested clean friend-test). Phase 5 + all parallel phases (05.1, 05.2, 6, 7, 999.1) closed.
-Last activity: 2026-05-22 - Plan 05-12 CLOSED (Joe-attested clean friend-test sign-off: 3 testers — non-PM, PM, recruiter; non-PM Q1=Y satisfied LAUNCH-04 hard gate; no awkward-issues to triage; final go/no-go = GO). LAUNCH-CHECKLIST + Plan 05-12 SUMMARY committed.
-
-Progress: [██████████] **v1.0 milestone COMPLETE — 52/52 plans (100%).** Final close-out artifacts: `05-12-LAUNCH-CHECKLIST.md` (Joe-attested clean friend-test) + `05-12-SUMMARY.md` (durable close-out record). Phase 999.1 CLOSED 2026-05-22 (N=3 cold-cache CI 3/3 PASS — aggregate 4.16/4.20/4.32; D-08 commit 731ec74 amends Plan 05-12 cat4-PASS def 3.8/4.0 forward-looking, original 4.0/4.0 sign-off preserved per D-07). Phase 06: 6/6 plans complete (CLOSED); kb/about_me.md enrichment live on prod (https://joe-dollinger-chat.com); cat1 = 15/15 prod + cat4 4.52 prod. Phase 05.2 fully closed (chat-stream design ported). Phase 7 CI gate live. v1.0 LIVE on prod since 2026-05-11; paper-resume print + v1.1 milestone scope are the next-cycle decisions.
+Phase: Milestone v1.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-05-22 — Milestone v1.0 completed and archived
 
 ## Performance Metrics
 
@@ -277,3 +275,7 @@ Resumed: 2026-05-13 — /gsd-resume-work after Phase 06-02 close-out; next actio
 | 260509-q00 | eval CLI session-mint fix | 2026-05-09 | 4da1c66 | DONE | [260509-q00-eval-cli-session-mint-fix](./quick/260509-q00-eval-cli-session-mint-fix/) |
 | 260509-r39 | swap eval judge to Claude Haiku 4.5 | 2026-05-10 | fe612a8 | PARTIAL | [260509-r39-swap-eval-judge-to-claude-haiku-4-5](./quick/260509-r39-swap-eval-judge-to-claude-haiku-4-5/) |
 | 260509-sgn | judge schema flakiness fix + live close-out (items #3/#4/#5) | 2026-05-10 | 261a19c | DONE-LIVE | [260509-sgn-judge-schema-flakiness-fix-swap-src-lib-](./quick/260509-sgn-judge-schema-flakiness-fix-swap-src-lib-/) |
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone
