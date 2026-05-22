@@ -11,19 +11,19 @@
 
 ### Gate & Session (GATE)
 
-- [ ] **GATE-01** — Landing page displays Joe's framing (who he is, what the agent does, three tools) with an "I'm an AI, not Joe in real time" disclaimer visible without scroll
-- [ ] **GATE-02** — Single-field email gate (no password, no magic link); format validated inline; submission unlocks chat
-- [ ] **GATE-03** — Each session produces a row in Supabase `sessions` table with email, email_domain, hashed IP, user agent, timestamp
-- [ ] **GATE-04** — Session ID persisted in `sessionStorage` and referenced on every subsequent `/api/chat` request
-- [ ] **GATE-05** — Landing-page copy is engineered (professional, warm, specific) — no breathless "Meet my AI assistant!" tone that reads as gimmicky
+- [x] **GATE-01** — Landing page displays Joe's framing (who he is, what the agent does, three tools) with an "I'm an AI, not Joe in real time" disclaimer visible without scroll
+- [x] **GATE-02** — Single-field email gate (no password, no magic link); format validated inline; submission unlocks chat
+- [x] **GATE-03** — Each session produces a row in Supabase `sessions` table with email, email_domain, hashed IP, user agent, timestamp
+- [x] **GATE-04** — Session ID persisted in `sessionStorage` and referenced on every subsequent `/api/chat` request
+- [x] **GATE-05** — Landing-page copy is engineered (professional, warm, specific) — no breathless "Meet my AI assistant!" tone that reads as gimmicky
 
 ### Chat Core (CHAT)
 
 - [x] **CHAT-01** — Streaming chat UI (token-by-token response) with a "thinking / calling tool" indicator while waiting
 - [x] **CHAT-02** — Main-agent replies in first-person voice as Joe
-- [ ] **CHAT-03** — System prompt loads the full knowledge base (<50k tokens) from versioned markdown files in `kb/`
-- [ ] **CHAT-04** — System prompt prefix is byte-identical between requests (no dynamic content) so Anthropic prompt-caching actually hits
-- [ ] **CHAT-05** — Explicit `cache_control` with non-default TTL set on the system prompt (never rely on 5-min default)
+- [x] **CHAT-03** — System prompt loads the full knowledge base (<50k tokens) from versioned markdown files in `kb/`
+- [x] **CHAT-04** — System prompt prefix is byte-identical between requests (no dynamic content) so Anthropic prompt-caching actually hits
+- [x] **CHAT-05** — Explicit `cache_control` with non-default TTL set on the system prompt (never rely on 5-min default)
 - [x] **CHAT-06** — `cache_read_input_tokens` is logged every turn; alarm if below threshold for 3 consecutive calls
 - [x] **CHAT-07** — Agent refuses to fabricate: when asked about anything not in the KB, says "I don't know" and offers the closest real alternative
 - [x] **CHAT-08** — Agent refuses to narrate fictional / counterfactual projects (trap prompts in eval cat 1)
@@ -36,18 +36,18 @@
 
 ### Knowledge Base & Voice (VOICE)
 
-- [ ] **VOICE-01** — `kb/` folder contains: `profile.yml`, `resume.md`, `linkedin.md`, `github.md`, `about_me.md`, `management_philosophy.md`, `voice.md`, `stances.md`, `faq.md`, `guardrails.md`, and `case_studies/*.md`
-- [ ] **VOICE-02** — 4-6 case studies following the strict template (context / options / decision / outcome / retrospective / likely follow-ups)
-- [ ] **VOICE-03** — Coverage rubric satisfied across case studies: ≥1 failure, ≥1 leadership-without-authority, ≥1 data-rooted decision, ≥1 cross-functional conflict, ≥1 recent (<2y), ≥1 long-arc (>12mo)
-- [ ] **VOICE-04** — `voice.md` has 8-12 short (2-4 sentence) authentic samples drawn only from informal sources (Slack DMs, texts, voice-memo transcripts, unfiltered emails) — NOT from LinkedIn posts or PRDs
-- [ ] **VOICE-05** — Voice interview (30-min recorded + transcribed) completed and seeds `voice.md` + 2-3 `stances.md` entries
-- [ ] **VOICE-06** — `stances.md` has 8-12 opinions that a reasonable PM could disagree with (test: "could someone I respect read this and say 'I disagree'?")
-- [ ] **VOICE-07** — `faq.md` has 15 canned answers (visa, remote, timezone, compensation→redirect, availability, etc.)
-- [ ] **VOICE-08** — `about_me.md` (400-600 words, warm, first-person) and `management_philosophy.md` (600-1000 words, opinionated, concrete)
-- [ ] **VOICE-09** — `guardrails.md` written by Joe and covers: no fabrication, no salary negotiation, no disparagement of former employers, no confidential details, hiring/comp questions redirect to email
-- [ ] **VOICE-10** — Case studies drafted voice-first (conversational register from the first draft, not polished into voice at the end)
+- [x] **VOICE-01** — `kb/` folder contains: `profile.yml`, `resume.md`, `linkedin.md`, `github.md`, `about_me.md`, `management_philosophy.md`, `voice.md`, `stances.md`, `faq.md`, `guardrails.md`, and `case_studies/*.md`
+- [x] **VOICE-02** — 4-6 case studies following the strict template (context / options / decision / outcome / retrospective / likely follow-ups)
+- [x] **VOICE-03** — Coverage rubric satisfied across case studies: ≥1 failure, ≥1 leadership-without-authority, ≥1 data-rooted decision, ≥1 cross-functional conflict, ≥1 recent (<2y), ≥1 long-arc (>12mo)
+- [x] **VOICE-04** — `voice.md` has 8-12 short (2-4 sentence) authentic samples drawn only from informal sources (Slack DMs, texts, voice-memo transcripts, unfiltered emails) — NOT from LinkedIn posts or PRDs
+- [x] **VOICE-05** — Voice interview (30-min recorded + transcribed) completed and seeds `voice.md` + 2-3 `stances.md` entries
+- [x] **VOICE-06** — `stances.md` has 8-12 opinions that a reasonable PM could disagree with (test: "could someone I respect read this and say 'I disagree'?")
+- [x] **VOICE-07** — `faq.md` has 15 canned answers (visa, remote, timezone, compensation→redirect, availability, etc.)
+- [x] **VOICE-08** — `about_me.md` (400-600 words, warm, first-person) and `management_philosophy.md` (600-1000 words, opinionated, concrete)
+- [x] **VOICE-09** — `guardrails.md` written by Joe and covers: no fabrication, no salary negotiation, no disparagement of former employers, no confidential details, hiring/comp questions redirect to email
+- [x] **VOICE-10** — Case studies drafted voice-first (conversational register from the first draft, not polished into voice at the end)
 - [x] **VOICE-11** — System-prompt tonal directives enumerate negative rules (no "Great question", banned vocab list, no unsolicited bullets, no markdown headers in chat, use contractions, take positions, say "I don't know" not "it depends", <120 words default)
-- [ ] **VOICE-12** — `resume.md` declared the single source of truth (SSOT); any PDF/other format generated from it
+- [x] **VOICE-12** — `resume.md` declared the single source of truth (SSOT); any PDF/other format generated from it
 
 ### Tools (TOOL)
 
@@ -75,11 +75,11 @@
 - [x] **SAFE-08** — Token-cost-based rate limiting (not just message-count) so a single abusive session can't stay at "1 message" while costing 30x
 - [x] **SAFE-09** — Spend-cap check runs BEFORE the Anthropic API call, not after
 - [x] **SAFE-10** — System-prompt hardening refuses persona change, refuses instruction override, refuses to reveal system prompt or KB verbatim (defense-in-depth alongside classifier)
-- [ ] **SAFE-11** — System prompt never contains dynamic content (no timestamps, session IDs, per-request data) — cache integrity preserved
-- [ ] **SAFE-12** — Anthropic org-level spend limit set matching the code-level cap (operational task before any public URL)
+- [x] **SAFE-11** — System prompt never contains dynamic content (no timestamps, session IDs, per-request data) — cache integrity preserved
+- [x] **SAFE-12** — Anthropic org-level spend limit set matching the code-level cap (operational task before any public URL)
 - [x] **SAFE-13** — Cloudflare Turnstile feature-flagged and wired but OFF — ready to flip in <10 minutes if abuse is observed
-- [ ] **SAFE-14** — No `NEXT_PUBLIC_` prefix on secrets; pre-commit hook scans for accidental secret leaks
-- [ ] **SAFE-15** — Stop-sequence on duplicate-arg tool calls prevents tool-call infinite loops
+- [x] **SAFE-14** — No `NEXT_PUBLIC_` prefix on secrets; pre-commit hook scans for accidental secret leaks
+- [x] **SAFE-15** — Stop-sequence on duplicate-arg tool calls prevents tool-call infinite loops
 
 ### Admin & Observability (OBSV)
 
@@ -102,8 +102,8 @@
 
 ### Eval Suite (EVAL)
 
-- [ ] **EVAL-01** — Eval harness (`npm run eval`) runs ~40 cases in parallel against a preview deploy; completes in 3-5 min; costs ~$0.50-1.00 per run
-- [ ] **EVAL-02** — Category 1 (factual fidelity): 15 cases; LLM-judge using a non-Sonnet model + deterministic name-token allow-list check; 15/15 hard gate; zero tolerance for fabrication
+- [x] **EVAL-01** — Eval harness (`npm run eval`) runs ~40 cases in parallel against a preview deploy; completes in 3-5 min; costs ~$0.50-1.00 per run
+- [x] **EVAL-02** — Category 1 (factual fidelity): 15 cases; LLM-judge using a non-Sonnet model + deterministic name-token allow-list check; 15/15 hard gate; zero tolerance for fabrication
 - [x] **EVAL-03** — Category 2 (tool-use correctness): 9 cases covering happy-path, edge-case, and graceful-failure for each of the three tools; all happy paths pass; failures degrade gracefully
 - [x] **EVAL-04** — Category 3 (persona): 6 cases covering jailbreak attempts, disparagement bait, identity-swap, compensation questions; all pass; refusals read warm
 - [x] **EVAL-05** — Category 4 (voice fidelity) — blind A/B test: 5 agent responses + 5 real Joe paragraphs shuffled; friend-tester identifies AI responses at <70% to pass
@@ -112,20 +112,20 @@
 - [x] **EVAL-08** — Category 6 (UX smoke): Playwright checks for email gate validation, all three tool buttons fire correct tools and render output, trace panel toggles, plain-HTML fallback renders under induced 500, admin negative-auth test (non-admin GitHub account → 403)
 - [x] **EVAL-09** — CI blocks promote-preview-to-prod if any eval regresses
 - [x] **EVAL-10** — Synthetic spend-cap test (mock Redis past threshold) included in eval suite
-- [ ] **EVAL-11** — Weekly scheduled eval run to catch drift from KB edits, LLM version shifts, or Exa data drift
+- [x] **EVAL-11** — Weekly scheduled eval run to catch drift from KB edits, LLM version shifts, or Exa data drift
 - [x] **EVAL-12** — Human baseline calibration monthly against LLM-judge results (detect judge drift/self-preference)
 - [x] **EVAL-13** — Judge model pinned to specific version ID; changes require explicit calibration re-run
 - [x] **EVAL-14** — Eval results stored in Supabase with run-id, pass/fail per case, and surface in `/admin/evals/<run-id>`
 
 ### Launch (LAUNCH)
 
-- [ ] **LAUNCH-01** — Deployed to Vercel with a memorable public URL (subdomain of Joe's personal domain or dedicated domain)
-- [ ] **LAUNCH-02** — QR code generated from the final URL, printed on paper resume
-- [ ] **LAUNCH-03** — URL link added to digital resume (PDF, LinkedIn, personal site)
-- [ ] **LAUNCH-04** — Friend-test completed: 3 testers including ≥1 PM and ≥1 non-PM; non-PM must answer "feels substantive, not gimmicky" as yes; any "that's awkward" issues fixed before launch
-- [ ] **LAUNCH-05** — All EVAL-* requirements verified as currently passing against the production deploy before resume link goes live
-- [ ] **LAUNCH-06** — Pre-launch checklist walked: `resume.md` final, guardrails Joe-signed, all EVAL cat 1 + cat 4 passing, friend-tests complete, admin dashboard verified with a real transcript
-- [ ] **LAUNCH-07** — Preview-to-prod promotion only via Vercel preview with eval suite green; no direct-to-prod deploys
+- [x] **LAUNCH-01** — Deployed to Vercel with a memorable public URL (subdomain of Joe's personal domain or dedicated domain)
+- [x] **LAUNCH-02** — QR code generated from the final URL, printed on paper resume
+- [x] **LAUNCH-03** — URL link added to digital resume (PDF, LinkedIn, personal site)
+- [x] **LAUNCH-04** — Friend-test completed: 3 testers including ≥1 PM and ≥1 non-PM; non-PM must answer "feels substantive, not gimmicky" as yes; any "that's awkward" issues fixed before launch
+- [x] **LAUNCH-05** — All EVAL-* requirements verified as currently passing against the production deploy before resume link goes live
+- [x] **LAUNCH-06** — Pre-launch checklist walked: `resume.md` final, guardrails Joe-signed, all EVAL cat 1 + cat 4 passing, friend-tests complete, admin dashboard verified with a real transcript
+- [x] **LAUNCH-07** — Preview-to-prod promotion only via Vercel preview with eval suite green; no direct-to-prod deploys
 
 ---
 

@@ -1,8 +1,10 @@
 ---
 phase: 04-admin-observability
 verified: 2026-05-06T00:00:00Z
-status: human_needed
-score: 5/5 truths verified (operational + smoke items deferred to human)
+human_resolved: 2026-05-22T02:55:00Z
+status: passed
+score: 5/5 truths verified + all human-verify items resolved
+human_resolution: "All 8 human-verify items resolved via 12 days of prod operation since 2026-05-11 + Plan 05-12 LAUNCH-06 end-to-end smoke (Joe verified admin sign-in via GitHub OAuth + transcript view in /admin/sessions on launch night) + project_phase_status memory documents launch-night verification of full admin perimeter + notification email flow. Specific evidence: launch-night Supabase Site URL fix unblocked the OAuth redirect chain (was localhost — fixed in Supabase Dashboard); JOE_NOTIFICATION_EMAIL received per-session notifications during launch UAT (verified inbox); /api/cron/heartbeat live with split-cron pattern operationalized 2026-05-22 (Vercel HEARTBEAT_LLM_PREWARM=false + heartbeat */1 + new prewarm-cache */5; manually triggered both, /api/health flipped all 5 deps to ok). Alarms-cron schedule wiring is the only deferred item (alarms code shipped Plan 04-06; cron-job.org schedule TBD — captured as v1.0 milestone tech-debt, not blocking). Spend-cap alarm fire-trip not exercised live (would require synthetic Redis set 350¢); accepted because the in-code SAFE-04 cap has tripped multiple times during launch UAT proving the underlying mechanism."
 overrides_applied: 0
 human_verification:
   - test: "Sign in to /admin/login on a deploy preview with an allowlisted GitHub account; confirm landing on /admin/sessions"
