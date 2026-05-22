@@ -118,7 +118,7 @@ Plans:
 - [x] 05-09-PLAN.md — /admin/evals index + detail + calibrate + Cohen's kappa + AdminNav (EVAL-12, EVAL-14)
 - [x] 05-10-PLAN.md — Real eval workflow body + branch protection + Vercel Deployment Checks + A7 spot-test (EVAL-09, EVAL-13)
 - [x] 05-11-PLAN.md — /api/cron/run-eval + 5th alarm condition (weekly_eval_failure 24h NX) + cron-job.org schedule (EVAL-11)
-- [ ] 05-12-PLAN.md — Launch: domain CNAME + PDF + QR + LinkedIn/PDF/site URL + SAFE-12 evidence + friend-test + LAUNCH-CHECKLIST signed (LAUNCH-01..07, SAFE-12)
+- [x] 05-12-PLAN.md — Launch: domain CNAME + PDF + QR + LinkedIn/PDF/site URL + SAFE-12 evidence + friend-test + LAUNCH-CHECKLIST signed (LAUNCH-01..07, SAFE-12). **CLOSED 2026-05-22:** Joe-attested clean friend-test (3 testers, non-PM Q1=Y, no awkward issues); LAUNCH-CHECKLIST go/no-go=GO. Durable close-out artifact: [`05-12-SUMMARY.md`](./phases/05-eval-gates-launch/05-12-SUMMARY.md).
 - [x] 05-13-PLAN.md — Gap closure (UAT Test 1): add --target / --cats argv flags to eval CLI; back-compat env-fallback preserved (EVAL-09, EVAL-13)
 
 ## Progress
@@ -201,17 +201,18 @@ Plans:
 
 Unsequenced parking lot (999.x). Items captured during Phase 06 close-out triage (2026-05-13) from `.planning/phases/06-kb-enrichment-about-me-hardening/06-06-SUMMARY.md` "Phase 06 deferred items." None are launch-blocking. Promote with `/gsd-review-backlog`.
 
-### Phase 999.1: cat4-prompt-003 cold-cache borderline-ness fix (PLANNED 2026-05-14)
+### Phase 999.1: cat4-prompt-003 cold-cache borderline-ness fix (CLOSED 2026-05-22)
 
 **Goal:** Resolve cat4-prompt-003 ("What's a stance you hold that other PMs disagree with?") cold-cache flake — 5/7 PASS across N=7 runs with aggregate always ≥4.20. CONTEXT.md narrows the fix to (d) cold-cache warmup + (c) per_case threshold relax 4.0→3.8.
 **Source:** 06-06-SUMMARY.md deferred item #1; 06-06-VERIFICATION-LOG.md N=7 variance map; CONTEXT.md 2026-05-14; RESEARCH.md 2026-05-14.
 **Depends on:** Phase 6 (cat4 baseline established 2026-05-13)
 **Requirements**: None (backlog phase; CONTEXT D-01..D-08 IDs serve as the requirement surface)
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans executed
+**Verdict:** N=3 cold-cache CI verification 3/3 PASS (runs 26263750852, 26263945079, 26264146558; aggregate 4.16 / 4.20 / 4.32; per_case 5/5 across all three). Plan 05-12 cat4-PASS def amended forward-only to 3.8/4.0 per D-08; original 2026-05-13 launch sign-off preserved per D-07. Phase-close artifact: [`999.1-SUMMARY.md`](./phases/999.1-cat4-prompt-003-cold-cache-borderline-ness-fix/999.1-SUMMARY.md).
 
 Plans:
 - [x] 999.1-01-PLAN.md — Externalize cat4 thresholds (per_case 4.0→3.8 in evals/cat-04-voice.yaml; aggregate stays 4.0) + add warmupSonnetCache helper invoked once before cat4 case loop in src/lib/eval/cats/cat4-judge.ts; 6+ regression tests; npm test + tsc + build all green (D-01, D-06)
-- [ ] 999.1-02-PLAN.md — N=3 cold-cache CI verification via `gh workflow run eval.yml -f target_url=https://joe-dollinger-chat.com -f cats=cat4-judge` × 3 sequential; capture run-ids + scores in 999.1-VERIFICATION-LOG.md; if 3/3 PASS, amend Plan 05-12 PLAN.md + CONTEXT-ADDENDUM.md D-12-B-01 with forward-looking supersession note pointing at Phase 999.1 (D-04, D-05, D-07, D-08)
+- [x] 999.1-02-PLAN.md — N=3 cold-cache CI verification via `gh workflow run eval.yml -f target_url=https://joe-dollinger-chat.com -f cats=cat4-judge` × 3 sequential; 3/3 PASS captured in 999.1-VERIFICATION-LOG.md; Plan 05-12 PLAN.md + CONTEXT-ADDENDUM.md D-12-B-01 amended with forward-looking supersession note pointing at Phase 999.1 (D-04, D-05, D-07, D-08)
 
 ### Phase 999.3: kb/profile.yml target_roles[] expansion 3→9 (BACKLOG)
 

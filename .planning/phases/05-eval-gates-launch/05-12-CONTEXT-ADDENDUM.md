@@ -33,6 +33,20 @@ Plan 05-12 ships the public launch: domain live, QR + PDF in repo, LinkedIn/PDF/
 ### LAUNCH-05 EVAL-Pass Scope
 
 - **D-12-B-01:** **LAUNCH-05 narrowed to roadmap-aligned scope: cat1=15/15 + cat4 pass on PROD.** Other categories (cat2/cat3/cat5/cat6) reported in LAUNCH-CHECKLIST as documented baseline (current pass rates: cat2 1/9, cat3 0/6 → expected ≥1/6 post-Task-0, cat5 1/7, cat6 12/15) but NOT blocking. *Rationale: Phase 5 ROADMAP goal mandates only cat1 (fabrication, zero-tolerance) and cat4 (voice fidelity) as launch gates. The existing 05-12 must_haves bullet "All EVAL-* requirements PASSING" was over-specified vs the actual phase goal.*
+
+  > **Supersession note (added 2026-05-14 per Phase 999.1):**
+  >
+  > Effective 2026-05-14, the "cat4 PASS" definition is amended:
+  > - per_case_min_avg: **3.8** (relaxed from 4.0)
+  > - aggregate_min_avg: **4.0** (UNCHANGED)
+  >
+  > Per CONTEXT D-07, this is forward-looking only. Plan 05-12's original launch-gate sign-off (2026-05-13) was against the legacy 4.0/4.0 threshold and remains valid as the launch-time gate — preview 4.20/5-of-5 + prod 4.52/5-of-5 cleared the legacy gate by ≥ 0.20 on aggregate and 5/5 on per-case. The threshold relaxation applies to:
+  > - Ongoing CI evals (`gh workflow run eval.yml`)
+  > - Plan 05-12 friend-test sign-off if re-run
+  > - v1.1+ work
+  >
+  > Rationale: Phase 999.1 resolved cat4-prompt-003 cold-cache borderline-ness via (d) Sonnet prompt-cache warmup in `runCat4Judge` + (c) per_case threshold relaxation 4.0 → 3.8. Aggregate threshold stays at 4.0 because aggregate has never been the source of false-fails (all 7 Phase 6 variance-map runs had aggregate ≥ 4.20). See `.planning/phases/999.1-cat4-prompt-003-cold-cache-borderline-ness-fix/999.1-RESEARCH.md` for the full analysis and `999.1-VERIFICATION-LOG.md` for the N=3 cold-cache verification evidence (3/3 PASS on 2026-05-21/22 — aggregate 4.16 / 4.20 / 4.32 across cold-cache runs).
+
 - **D-12-B-02:** **Failing-cat documentation in LAUNCH-CHECKLIST.md.** Each non-blocking cat that's <100% gets a one-liner: pass rate + root cause if known + post-launch triage owner. Calibration work for cat2/cat5/cat6 becomes Phase 6 / decimal-phase scope.
 
 ### Item #11 — Classifier Over-Flagging (NEW Task 0)

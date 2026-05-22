@@ -1,7 +1,8 @@
 ---
 launch_date: 2026-05-11
 final_url: https://joe-dollinger-chat.com
-status: friend-test-pending
+status: signed-off
+friend_test_signed_off_date: 2026-05-22
 ---
 
 # Phase 5 Launch Checklist
@@ -54,20 +55,22 @@ status: friend-test-pending
 
 | Tester | Role | Q1 (substantive Y/N) | Q2 (awkward) | Q3 (favorite) | Q4 (cringe) | Q5 (open) |
 |--------|------|----------------------|--------------|---------------|-------------|-----------|
-| 1      | non-PM, non-technical, non-HR | _DM sent 2026-05-11; pending response_ | _pending_ | _pending_ | _pending_ | _pending_ |
-| 2      | PM with some technical ability | _DM sent 2026-05-11; pending response_ | _pending_ | _pending_ | _pending_ | _pending_ |
-| 3      | recruiter | _DM sent 2026-05-11; pending response_ | _pending_ | _pending_ | _pending_ | _pending_ |
+| 1      | non-PM, non-technical, non-HR | **Y** | none | (see notes) | none | (see notes) |
+| 2      | PM with some technical ability | **Y** | none | (see notes) | none | (see notes) |
+| 3      | recruiter | **Y** | none | (see notes) | none | (see notes) |
+
+**Sign-off note (Joe-attested 2026-05-22):** All 3 testers responded with clean feedback — non-PM Q1=Y satisfied (LAUNCH-04 hard gate cleared), no awkward / cringe / block-launch items surfaced. Full Q3/Q5 response text retained locally by Joe (not committed to repo per friend-tester privacy norm); per-tester sign-off lives in Joe's Google Form responses + DM threads.
 
 **Role-constraint check (LAUNCH-04 per CONTEXT D-D-03):**
 - ≥1 PM: ✓ Tester 2
-- ≥1 non-PM: ✓ Tester 1 (also satisfies the "non-PM Q1=Y is blocking" criterion)
+- ≥1 non-PM: ✓ Tester 1 (also satisfies the "non-PM Q1=Y is blocking" criterion — confirmed Y above)
 - Tester 3 is a recruiter — strongest signal of all (recruiters ARE the target user); doesn't change the role-constraint math but adds the most authentic feedback channel.
 
 ## Awkward-issues triage
 
 | Tester | Issue | Severity | Fix decision |
 |--------|-------|----------|--------------|
-| _none recorded yet_ | | block-launch / fix-before-launch / accept | |
+| _none — clean feedback across all 3 testers per Joe attestation 2026-05-22_ | | _n/a_ | _n/a_ |
 
 ## Pre-launch checklist (LAUNCH-06)
 
@@ -75,7 +78,7 @@ status: friend-test-pending
 - [x] `kb/guardrails.md` Joe-signed (line 37: `Signed: Joe Dollinger, 2026-04-24`)
 - [x] EVAL cat 1 (15/15) passing on prod — runId `sWLys5bpVsiHAfwvoln04`
 - [x] EVAL cat 4 (LLM-judge avg ≥4.0 + per_case all pass) passing on prod — runId `OPoI0ljuwE4GlbT_LFh4u`
-- [ ] Friend-test sign-off (3 testers, ≥1 PM, ≥1 non-PM, non-PM Q1=Y) — _pending responses_
+- [x] Friend-test sign-off (3 testers, ≥1 PM, ≥1 non-PM, non-PM Q1=Y) — Joe-attested clean 2026-05-22; no awkward issues
 - [x] Real transcript verified end-to-end in /admin/sessions (Joe sent chat as fake recruiter in incognito → row + transcript with traces visible in /admin/sessions)
   - **Launch-night finding:** Supabase Site URL was still `http://localhost:3000` (dev default). After successful GitHub OAuth, Supabase fell back to Site URL because `https://joe-dollinger-chat.com/auth/callback` was not in the Redirect URLs allowlist — admin login bounced to `localhost:3000`. Fixed in Supabase Dashboard → Authentication → URL Configuration: Site URL → `https://joe-dollinger-chat.com`; Redirect URLs added `https://joe-dollinger-chat.com/auth/callback` (kept `http://localhost:3000/auth/callback` for local dev).
 
@@ -91,8 +94,9 @@ status: friend-test-pending
 
 ## Resume link go-live
 
-- [ ] Paper resume printed with QR (date: _TBD_)
-- [ ] Final go/no-go: _pending friend-test_
+- [x] Digital channels live since 2026-05-11 — LinkedIn Featured + master resume PDF URL block updated, prod chat live at https://joe-dollinger-chat.com
+- [ ] Paper resume printed with QR (Joe action — schedule before next interview cycle)
+- [x] **Final go/no-go: GO** (Joe-attested 2026-05-22 — friend-test clean, cat1=15/15 + cat4 PASS on prod, all LAUNCH-* requirements met)
 
 ## Open follow-ups (deferred to Phase 6 / decimal-phase 5.x)
 
@@ -105,5 +109,7 @@ status: friend-test-pending
 
 ---
 
-Signed: _pending — awaiting friend-test responses + prod cat1=15/15_
-Date: _pending_
+Signed: _Joe Dollinger — fill on print day_
+Date: 2026-05-22 (friend-test sign-off attestation; physical-sign date TBD on paper-print day)
+
+**Status:** Plan 05-12 CLOSED — all hard gates met. v1.0 milestone ready for close-out via `/gsd-complete-milestone`.
