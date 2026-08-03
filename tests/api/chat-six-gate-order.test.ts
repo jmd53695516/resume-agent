@@ -14,6 +14,7 @@
 //   5. rate_limit_check  → checkRateLimits(...)
 //   6. classifier        → classifyUserMessage(...)
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import type { ClassifierResult } from '@/lib/classifier';
 
 // ---- env stub --------------------------------------------------------------
 vi.mock('@/lib/env', () => {
@@ -314,5 +315,28 @@ describe('/api/chat six-gate canonical order (W7 — durable defense; 260512-tku
     expect(gateOrderRecorder).not.toContain('rate_limit_check');
     expect(checkRateLimits).not.toHaveBeenCalled();
     expect(gateOrderRecorder).toContain('classifier');
+  });
+
+  // Fail-NEUTRAL (quick 260803-k97): when the classifier returns an error marker
+  // the route must deflect (deflection:classifier_error) and NOT reach streamText.
+  it('classifier error marker → neutral deflection, never reaches streamText', async () => {
+    const { persistDeflectionTurn } = await import('@/lib/persistence');
+    const { streamText } = await import('ai');
+    classifyUserMessage.mockImplementationOnce(async () => {
+      gateOrderRecorder.push('classifier');
+      return { label: 'normal', confidence: 0, error: true } as ClassifierResult;
+    });
+    const res = await postChat();
+    expect(res.status).toBe(200); // deflectionResponse is a streamed 200
+    expect(gateOrderRecorder).toEqual([
+      'body_parse',
+      'session_lookup',
+      'turnRows_check',
+      'classifier',
+    ]);
+    expect(persistDeflectionTurn).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: 'classifier_error', verdict: null }),
+    );
+    expect(streamText).not.toHaveBeenCalled(); // did NOT route to Sonnet
   });
 });

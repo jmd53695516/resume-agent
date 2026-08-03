@@ -24,6 +24,9 @@ function verdictLabel(
   if (verdict === 'sensitive') return { label: 'sensitive', color: 'text-amber-700' };
   if (stop === 'deflection:ratelimit') return { label: 'rate limit', color: 'text-red-700' };
   if (stop === 'deflection:spendcap') return { label: 'spend cap', color: 'text-red-700' };
+  // Classifier errored after retry; the turn was neutrally deflected (fail-neutral).
+  if (stop === 'deflection:classifier_error')
+    return { label: 'classifier error', color: 'text-red-700' };
   return { label: verdict ?? stop ?? 'unknown', color: 'text-amber-700' };
 }
 

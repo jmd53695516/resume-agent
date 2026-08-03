@@ -81,6 +81,8 @@ const DEFLECTIONS = {
     "I don't discuss compensation specifics via chat. Drop your email on the previous page and I'll reply directly. Same for anything related to former employers — I'd rather have that conversation with a human.",
   borderline:
     "Not sure I caught that. Can you rephrase? I'm good with background questions or running the three tools.",
+  classifier_error:
+    "Hit a snag on my end just now — mind sending that again? Should clear up in a sec.",
   ratelimit:
     "You've been at this a bit — my rate limit just kicked in. Give it a few minutes and come back, or email Joe directly.",
   spendcap:
@@ -286,6 +288,35 @@ export async function POST(req: Request): Promise<Response> {
   // to existing single-turn behavior.
   const lastAssistant = extractLastAssistantText(uiMessages);
   const verdict = await classifyUserMessage(lastUser, lastAssistant);
+  // Fail-NEUTRAL: the classifier errored after its retry. Deflect with a neutral
+  // "try again" message rather than routing unscreened input to Sonnet (fail-open
+  // cost/bypass risk) or falsely calling the recruiter off-topic (fail-closed).
+  // This path never reaches streamText/onFinish, so the classifier heartbeat is
+  // NOT refreshed — a real outage correctly degrades the banner (WR-01).
+  if (verdict.error) {
+    try {
+      await persistDeflectionTurn({
+        session_id,
+        user_text: lastUser,
+        verdict: null,
+        deflection_text: DEFLECTIONS.classifier_error,
+        reason: 'classifier_error',
+      });
+    } catch (e) {
+      log(
+        {
+          event: 'persistence_failed',
+          where: 'persistDeflectionTurn(classifier_error)',
+          error_class: (e as Error).name ?? 'Error',
+          error_message: (e as Error).message,
+          session_id,
+        },
+        'error',
+      );
+    }
+    log({ event: 'deflect', reason: 'classifier_error', session_id });
+    return deflectionResponse('classifier_error');
+  }
   if (verdict.confidence < 0.7) {
     try {
       await persistDeflectionTurn({
@@ -376,6 +407,11 @@ export async function POST(req: Request): Promise<Response> {
       // block persistence. The two concerns are decoupled.
       // Plan 03-04 reads these short-form keys via heartbeat-trust strategy.
       try {
+        // onFinish only runs on the success path — a classifier error deflects
+        // earlier (fail-neutral) and never reaches here — so both heartbeats are
+        // unconditionally fresh: Anthropic (Sonnet) and the classifier (Haiku)
+        // both just succeeded. A real classifier outage never refreshes this key,
+        // so it expires and the banner degrades (WR-01).
         await Promise.all([
           redis.set('heartbeat:anthropic', Date.now(), { ex: 120 }),
           redis.set('heartbeat:classifier', Date.now(), { ex: 120 }),
