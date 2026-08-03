@@ -2,9 +2,14 @@
 // SAFE-01/02/03 — synchronous preflight classifier.
 // Direct Anthropic SDK (not AI SDK) because this is a non-streaming one-shot JSON call.
 // Cache-control NOT set: Haiku min cache block is 4096 tokens; classifier prompt is ~500.
-// Fail-closed: any error is treated as 'offtopic' + confidence 1.0 so we deflect cleanly.
+// Fail-OPEN (revised 2026-08-03, quick 260803-k97): on error we retry once, then
+// return a normal verdict so the message reaches the main agent — the old
+// fail-closed 'offtopic' default was telling real recruiters their on-topic
+// question was off-topic on a transient Anthropic blip (58/74 all-time offtopic
+// deflections were this synthetic value). See classifyUserMessage below.
 import { z } from 'zod';
 import { anthropicClient, MODELS } from './anthropic';
+import { log } from './logger';
 
 const ClassifierOutput = z.object({
   label: z.enum(['normal', 'injection', 'offtopic', 'sensitive']),
@@ -115,15 +120,46 @@ export async function classifyUserMessageOrThrow(
   return ClassifierOutput.parse(parsed);
 }
 
+// Retry backoff for the fail-open path. Most classifier failures are transient
+// Anthropic 429 (eval-burst concurrency) / 529 / timeout blips that clear on a
+// second attempt a beat later.
+const RETRY_DELAY_MS = 250;
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+// FAIL-OPEN verdict. confidence 1.0 is a value the real Haiku model never emits
+// (genuine verdicts cap at 0.99), so `normal @ 1.0` is the durable DB signature
+// of a fail-open event — it replaces the old `offtopic @ 1.0` fail-closed
+// signature we used to diagnose this bug. Routing as `normal` above the 0.7
+// borderline threshold makes route.ts proceed to the main Sonnet agent, whose
+// HARDCODED_REFUSAL_RULES / HALLUCINATION_RULES remain the safety net.
+const FAIL_OPEN_VERDICT: ClassifierVerdict = { label: 'normal', confidence: 1 };
+
 export async function classifyUserMessage(
   userText: string,
   lastAssistantText?: string,
 ): Promise<ClassifierVerdict> {
   try {
     return await classifyUserMessageOrThrow(userText, lastAssistantText);
-  } catch (err) {
-    // Fail-closed (D-B-07). Log for Phase 4 observability; always return a safe verdict.
-    console.error('classifier error', err);
-    return { label: 'offtopic', confidence: 1.0 };
+  } catch {
+    // One retry with a short backoff before giving up.
+    await sleep(RETRY_DELAY_MS);
+    try {
+      return await classifyUserMessageOrThrow(userText, lastAssistantText);
+    } catch (err) {
+      // Fail OPEN (revised D-B-07). Deflecting as 'offtopic' on a transient error
+      // was the worst-case UX for a recruiter-facing agent — proceed to the main
+      // agent instead. Structured log keeps error rate greppable in Vercel even
+      // though this no longer produces a flagged DB row.
+      log(
+        {
+          event: 'classifier_error',
+          mode: 'fail_open',
+          error_class: (err as Error).name ?? 'Error',
+          error_message: (err as Error).message,
+        },
+        'error',
+      );
+      return FAIL_OPEN_VERDICT;
+    }
   }
 }

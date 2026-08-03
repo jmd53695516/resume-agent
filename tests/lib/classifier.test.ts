@@ -83,15 +83,32 @@ describe('classifyUserMessage', () => {
       confidence: 0.95,
     });
   });
-  it('fail-closed on API error → offtopic conf 1.0', async () => {
-    messagesCreate.mockRejectedValueOnce(new Error('rate limited'));
-    expect(await classifyUserMessage('anything')).toEqual({ label: 'offtopic', confidence: 1.0 });
+  // FAIL-OPEN (quick 260803-k97): a transient error must NOT deflect a real
+  // recruiter as off-topic. After one retry, return normal@1.0 so the message
+  // reaches the main agent (whose own guardrails remain the safety net).
+  it('fail-open on persistent API error → normal conf 1.0 (after retry)', async () => {
+    messagesCreate
+      .mockRejectedValueOnce(new Error('rate limited'))
+      .mockRejectedValueOnce(new Error('rate limited'));
+    expect(await classifyUserMessage('anything')).toEqual({ label: 'normal', confidence: 1.0 });
+    expect(messagesCreate).toHaveBeenCalledTimes(2); // original + one retry
   });
-  it('fail-closed on bad JSON → offtopic conf 1.0', async () => {
-    messagesCreate.mockResolvedValueOnce({
-      content: [{ type: 'text', text: 'not json at all' }],
+  it('fail-open on persistent bad JSON → normal conf 1.0 (after retry)', async () => {
+    messagesCreate
+      .mockResolvedValueOnce({ content: [{ type: 'text', text: 'not json at all' }] })
+      .mockResolvedValueOnce({ content: [{ type: 'text', text: 'not json at all' }] });
+    expect(await classifyUserMessage('anything')).toEqual({ label: 'normal', confidence: 1.0 });
+    expect(messagesCreate).toHaveBeenCalledTimes(2);
+  });
+  it('retry recovers: 1st call errors, 2nd call succeeds → returns real verdict', async () => {
+    messagesCreate
+      .mockRejectedValueOnce(new Error('529 overloaded'))
+      .mockResolvedValueOnce(mockResp({ label: 'normal', confidence: 0.93 }));
+    expect(await classifyUserMessage('Walk me through your projects')).toEqual({
+      label: 'normal',
+      confidence: 0.93,
     });
-    expect(await classifyUserMessage('anything')).toEqual({ label: 'offtopic', confidence: 1.0 });
+    expect(messagesCreate).toHaveBeenCalledTimes(2);
   });
 });
 
