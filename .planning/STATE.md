@@ -275,7 +275,7 @@ Resumed: 2026-05-13 — /gsd-resume-work after Phase 06-02 close-out; next actio
 | 260509-q00 | eval CLI session-mint fix | 2026-05-09 | 4da1c66 | DONE | [260509-q00-eval-cli-session-mint-fix](./quick/260509-q00-eval-cli-session-mint-fix/) |
 | 260509-r39 | swap eval judge to Claude Haiku 4.5 | 2026-05-10 | fe612a8 | PARTIAL | [260509-r39-swap-eval-judge-to-claude-haiku-4-5](./quick/260509-r39-swap-eval-judge-to-claude-haiku-4-5/) |
 | 260509-sgn | judge schema flakiness fix + live close-out (items #3/#4/#5) | 2026-05-10 | 261a19c | DONE-LIVE | [260509-sgn-judge-schema-flakiness-fix-swap-src-lib-](./quick/260509-sgn-judge-schema-flakiness-fix-swap-src-lib-/) |
-| 260803-k97 | classifier fail-OPEN on error (retry once, then reach main agent) — kills false off-topic deflections of real recruiters | 2026-08-03 | pending | DONE-LOCAL | [260803-k97-classifier-fail-open](./quick/260803-k97-classifier-fail-open/) |
+| 260803-k97 | classifier fail-OPEN on error (retry once, then reach main agent) — kills false off-topic deflections of real recruiters | 2026-08-03 | 7d555e8 | DONE-LOCAL | [260803-k97-classifier-fail-open](./quick/260803-k97-classifier-fail-open/) |
 
 ## Operator Next Steps
 
