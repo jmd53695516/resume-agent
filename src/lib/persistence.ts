@@ -5,13 +5,13 @@
 import { supabaseAdmin } from './supabase-server';
 import { newMessageId } from './id';
 import { log } from './logger';
-import type { ClassifierVerdict } from './classifier';
+import type { ClassifierVerdict, ClassifierResult } from './classifier';
 import type { NormalizedUsage } from './cost';
 
 export async function persistNormalTurn(params: {
   session_id: string;
   user_text: string;
-  verdict: ClassifierVerdict;
+  verdict: ClassifierResult;
   assistant_text: string;
   assistant_usage: NormalizedUsage;
   assistant_cost_cents: number;
@@ -25,6 +25,9 @@ export async function persistNormalTurn(params: {
       session_id: params.session_id,
       role: 'user',
       content: params.user_text,
+      // persistNormalTurn only runs on the success path (a classifier error
+      // deflects earlier via persistDeflectionTurn with reason 'classifier_error'),
+      // so the verdict here is always a real classification.
       classifier_verdict: params.verdict.label,
       classifier_confidence: params.verdict.confidence,
       input_tokens: 0, // classifier tokens are logged on assistant row
@@ -74,6 +77,7 @@ export async function persistDeflectionTurn(params: {
     | 'offtopic'
     | 'sensitive'
     | 'borderline'
+    | 'classifier_error'
     | 'ratelimit'
     | 'spendcap'
     | 'turncap';

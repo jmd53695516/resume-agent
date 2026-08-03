@@ -83,26 +83,27 @@ describe('classifyUserMessage', () => {
       confidence: 0.95,
     });
   });
-  // FAIL-OPEN (quick 260803-k97): a transient error must NOT deflect a real
-  // recruiter as off-topic. After one retry, return normal@1.0 so the message
-  // reaches the main agent (whose own guardrails remain the safety net).
-  it('fail-open on persistent API error → normal conf 1.0 (after retry)', async () => {
-    messagesCreate
-      .mockRejectedValueOnce(new Error('rate limited'))
-      .mockRejectedValueOnce(new Error('rate limited'));
-    expect(await classifyUserMessage('anything')).toEqual({ label: 'normal', confidence: 1.0 });
+  // FAIL-NEUTRAL (quick 260803-k97): a transient error must NOT deflect a real
+  // recruiter as off-topic (fail-closed) NOR route unscreened input to Sonnet
+  // (fail-open). After one retry, return an `error` marker; the route deflects
+  // with a neutral "try again" message and records deflection:classifier_error.
+  const ERR_RESULT = { label: 'normal', confidence: 0, error: true };
+  const rlErr = () => Object.assign(new Error('rate limited'), { status: 429 });
+  it('fail-neutral on persistent retryable API error → error marker (after retry)', async () => {
+    messagesCreate.mockRejectedValueOnce(rlErr()).mockRejectedValueOnce(rlErr());
+    expect(await classifyUserMessage('anything')).toEqual(ERR_RESULT);
     expect(messagesCreate).toHaveBeenCalledTimes(2); // original + one retry
   });
-  it('fail-open on persistent bad JSON → normal conf 1.0 (after retry)', async () => {
+  it('fail-neutral on persistent bad JSON → error marker (SyntaxError is retryable)', async () => {
     messagesCreate
       .mockResolvedValueOnce({ content: [{ type: 'text', text: 'not json at all' }] })
       .mockResolvedValueOnce({ content: [{ type: 'text', text: 'not json at all' }] });
-    expect(await classifyUserMessage('anything')).toEqual({ label: 'normal', confidence: 1.0 });
+    expect(await classifyUserMessage('anything')).toEqual(ERR_RESULT);
     expect(messagesCreate).toHaveBeenCalledTimes(2);
   });
-  it('retry recovers: 1st call errors, 2nd call succeeds → returns real verdict', async () => {
+  it('retry recovers: 1st call errors (retryable), 2nd succeeds → real verdict, no error marker', async () => {
     messagesCreate
-      .mockRejectedValueOnce(new Error('529 overloaded'))
+      .mockRejectedValueOnce(Object.assign(new Error('529 overloaded'), { status: 529 }))
       .mockResolvedValueOnce(mockResp({ label: 'normal', confidence: 0.93 }));
     expect(await classifyUserMessage('Walk me through your projects')).toEqual({
       label: 'normal',
@@ -110,10 +111,33 @@ describe('classifyUserMessage', () => {
     });
     expect(messagesCreate).toHaveBeenCalledTimes(2);
   });
+  it('does NOT retry a non-retryable error (401) → error marker on first attempt', async () => {
+    messagesCreate.mockRejectedValueOnce(Object.assign(new Error('unauthorized'), { status: 401 }));
+    expect(await classifyUserMessage('anything')).toEqual(ERR_RESULT);
+    expect(messagesCreate).toHaveBeenCalledTimes(1); // no wasted retry on auth/config errors
+  });
+  // Regression for the dead-code retry bug: real Anthropic SDK connection/timeout
+  // errors inherit name==='Error' and have status===undefined, so they must be
+  // detected via constructor.name — not .name or .status.
+  it('retries a connection/timeout error (name==="Error", no status) via constructor.name', async () => {
+    class APIConnectionTimeoutError extends Error {} // instance.name === 'Error', constructor.name matches
+    const timeoutErr = new APIConnectionTimeoutError('Request timed out.');
+    expect(timeoutErr.name).toBe('Error'); // documents the SDK trait we're guarding against
+    messagesCreate
+      .mockRejectedValueOnce(timeoutErr)
+      .mockResolvedValueOnce(mockResp({ label: 'normal', confidence: 0.9 }));
+    expect(await classifyUserMessage('anything')).toEqual({ label: 'normal', confidence: 0.9 });
+    expect(messagesCreate).toHaveBeenCalledTimes(2); // it DID retry
+  });
+  it('returns the error marker safely when the rejection is null/undefined (never throws)', async () => {
+    messagesCreate.mockRejectedValueOnce(undefined);
+    expect(await classifyUserMessage('anything')).toEqual(ERR_RESULT);
+    expect(messagesCreate).toHaveBeenCalledTimes(1); // undefined is non-retryable
+  });
 });
 
 // WR-01: classifyUserMessageOrThrow is the throwing variant used by the heartbeat cron.
-// The chat route uses the fail-closed wrapper above; heartbeat wants errors to propagate
+// The chat route uses the fail-neutral wrapper above; heartbeat wants errors to propagate
 // so the /api/health banner can accurately report classifier=degraded during Anthropic
 // outages. These tests assert the contract that distinguishes the throwing variant from
 // the fail-closed wrapper — any test that previously asserted `await ...rejects.toThrow`

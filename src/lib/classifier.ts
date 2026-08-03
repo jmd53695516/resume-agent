@@ -2,11 +2,13 @@
 // SAFE-01/02/03 — synchronous preflight classifier.
 // Direct Anthropic SDK (not AI SDK) because this is a non-streaming one-shot JSON call.
 // Cache-control NOT set: Haiku min cache block is 4096 tokens; classifier prompt is ~500.
-// Fail-OPEN (revised 2026-08-03, quick 260803-k97): on error we retry once, then
-// return a normal verdict so the message reaches the main agent — the old
-// fail-closed 'offtopic' default was telling real recruiters their on-topic
-// question was off-topic on a transient Anthropic blip (58/74 all-time offtopic
-// deflections were this synthetic value). See classifyUserMessage below.
+// Fail-NEUTRAL (revised 2026-08-03, quick 260803-k97): on error we retry once,
+// then return an `error` marker so the route deflects with a neutral "try again"
+// message. The old fail-closed 'offtopic' default falsely told real recruiters
+// their on-topic question was off-topic on a transient Anthropic blip (58/74
+// all-time offtopic deflections were that synthetic value). Fail-neutral (rather
+// than fail-open → route to Sonnet) avoids the cost-drain + safety-bypass a code
+// review found in the fail-open approach. See classifyUserMessage below.
 import { z } from 'zod';
 import { anthropicClient, MODELS } from './anthropic';
 import { log } from './logger';
@@ -17,6 +19,17 @@ const ClassifierOutput = z.object({
 });
 
 export type ClassifierVerdict = z.infer<typeof ClassifierOutput>;
+
+// Result returned to callers. The success path is a pure ClassifierVerdict; the
+// terminal-failure path (classifier errored after a retry) sets `error: true` so
+// the route deflects with a NEUTRAL "try again" message instead of (a) accusing
+// a real recruiter of being off-topic — the old fail-closed bug — or (b) routing
+// unscreened, unthrottled input to the main Sonnet agent — the fail-open bug the
+// code review surfaced (cost drain + SAFE-01/02/03 bypass during an outage).
+// label/confidence are placeholders on the error result (the route keys on
+// `error` before reading them); confidence 0 makes it fail toward a deflect if
+// any caller ever checked it directly.
+export type ClassifierResult = ClassifierVerdict & { error?: boolean };
 
 const SYSTEM_PROMPT = `You are a safety classifier for Joe Dollinger's recruiter-facing agent. Classify the USER MESSAGE into exactly one label.
 
@@ -85,10 +98,16 @@ ANCHORED EXAMPLES — when a [Previous assistant turn] is provided, use it as yo
 
 // WR-01: throwing variant for callers (heartbeat cron) that need errors to
 // propagate so the banner accurately reports classifier outages. Chat route
-// uses the fail-closed wrapper below.
+// uses the fail-OPEN wrapper below (classifyUserMessage).
 export async function classifyUserMessageOrThrow(
   userText: string,
   lastAssistantText?: string,
+  // opts.maxRetries controls the Anthropic SDK's OWN internal retries. Defaults
+  // to 2 (the SDK default) so the heartbeat cron probe keeps riding through
+  // transient blips. The chat wrapper (classifyUserMessage) passes 0 because it
+  // does its own single, jittered retry — stacking the two would fan out to ~6
+  // HTTP attempts and risk the 60s route budget.
+  opts?: { maxRetries?: number; timeoutMs?: number },
 ): Promise<ClassifierVerdict> {
   const client = anthropicClient();
   // Build the messages array. When the prior assistant turn is available,
@@ -100,12 +119,18 @@ export async function classifyUserMessageOrThrow(
   const messages = lastAssistantText
     ? [{ role: 'assistant' as const, content: lastAssistantText }, userMessage]
     : [userMessage];
-  const resp = await client.messages.create({
-    model: MODELS.CLASSIFIER,
-    max_tokens: 60, // JSON output is small
-    system: SYSTEM_PROMPT,
-    messages,
-  });
+  const resp = await client.messages.create(
+    {
+      model: MODELS.CLASSIFIER,
+      max_tokens: 60, // JSON output is small
+      system: SYSTEM_PROMPT,
+      messages,
+    },
+    // Bound each attempt. maxRetries is caller-controlled (see opts doc above):
+    // heartbeat keeps the SDK default 2; the chat wrapper passes 0 to avoid
+    // stacking on top of its own retry.
+    { maxRetries: opts?.maxRetries ?? 2, timeout: opts?.timeoutMs ?? 8000 },
+  );
   const text = resp.content
     .filter((c) => c.type === 'text')
     .map((c) => (c as { type: 'text'; text: string }).text)
@@ -120,46 +145,89 @@ export async function classifyUserMessageOrThrow(
   return ClassifierOutput.parse(parsed);
 }
 
-// Retry backoff for the fail-open path. Most classifier failures are transient
-// Anthropic 429 (eval-burst concurrency) / 529 / timeout blips that clear on a
-// second attempt a beat later.
+// Retry backoff base for the fail-open path. Most classifier failures are
+// transient Anthropic 429 (eval-burst concurrency) / 529 / timeout blips that
+// clear on a second attempt a beat later.
 const RETRY_DELAY_MS = 250;
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-// FAIL-OPEN verdict. confidence 1.0 is a value the real Haiku model never emits
-// (genuine verdicts cap at 0.99), so `normal @ 1.0` is the durable DB signature
-// of a fail-open event — it replaces the old `offtopic @ 1.0` fail-closed
-// signature we used to diagnose this bug. Routing as `normal` above the 0.7
-// borderline threshold makes route.ts proceed to the main Sonnet agent, whose
-// HARDCODED_REFUSAL_RULES / HALLUCINATION_RULES remain the safety net.
-const FAIL_OPEN_VERDICT: ClassifierVerdict = { label: 'normal', confidence: 1 };
+// Defensive: a caught value is `unknown` and can be null/undefined (e.g. a bare
+// `Promise.reject()`); never dereference it directly inside the never-throw
+// wrapper or the wrapper itself would throw. NOTE: Anthropic SDK error
+// subclasses (RateLimitError, APIConnectionTimeoutError, …) do NOT set
+// `this.name`, so `.name` is always 'Error' — the concrete class name lives on
+// `.constructor.name`. Use that so logs actually distinguish 429 vs 529 vs
+// timeout.
+const errName = (e: unknown): string => {
+  if (e instanceof Error) return e.constructor?.name ?? e.name;
+  return typeof e; // null -> 'object', undefined -> 'undefined'
+};
+const errMessage = (e: unknown): string => (e instanceof Error ? e.message : String(e));
+
+// Only retry failures a second attempt can plausibly recover. Transient
+// server/rate-limit/timeout statuses and model-output-variance errors (bad JSON,
+// schema mismatch) qualify; structural failures (400/401/403/404) never recover
+// on retry, so retrying them just burns a wasted Haiku call + backoff.
+function isRetryableClassifierError(err: unknown): boolean {
+  if (err instanceof SyntaxError) return true; // JSON.parse of Haiku output
+  if (err instanceof z.ZodError) return true; // Haiku returned an off-schema label
+  const status = (err as { status?: unknown } | null)?.status;
+  if (typeof status === 'number') {
+    return status === 408 || status === 409 || status === 429 || status >= 500;
+  }
+  // SDK connection/timeout errors carry NO HTTP status AND inherit name==='Error',
+  // so the only reliable discriminator is the concrete class name on the
+  // constructor (e.g. 'APIConnectionTimeoutError'). Sniffing `.name` here would
+  // be dead code.
+  const ctorName = (err as { constructor?: { name?: unknown } } | null)?.constructor?.name;
+  if (typeof ctorName === 'string' && /Connection|Timeout/i.test(ctorName)) {
+    return true;
+  }
+  return false;
+}
+
+// FAIL NEUTRAL (revised D-B-07). On a terminal classifier failure we neither
+// deflect as 'offtopic' (the old fail-closed bug — accused real recruiters) nor
+// route unscreened input to Sonnet (the fail-open bug — cost drain + safety
+// bypass during an outage). We return an `error` marker; the route deflects with
+// a neutral "hit a snag, try again" message and records it as a
+// `deflection:classifier_error` turn. A fresh object is returned each call.
+function classifierErrored(err: unknown): ClassifierResult {
+  log(
+    { event: 'classifier_error', mode: 'fail_neutral', error_class: errName(err), error_message: errMessage(err) },
+    'error',
+  );
+  return { label: 'normal', confidence: 0, error: true };
+}
 
 export async function classifyUserMessage(
   userText: string,
   lastAssistantText?: string,
-): Promise<ClassifierVerdict> {
+): Promise<ClassifierResult> {
+  // maxRetries:0 — this wrapper is the sole retry authority (one jittered retry
+  // below); the SDK must not add its own on top.
+  const noSdkRetry = { maxRetries: 0 } as const;
   try {
-    return await classifyUserMessageOrThrow(userText, lastAssistantText);
-  } catch {
-    // One retry with a short backoff before giving up.
-    await sleep(RETRY_DELAY_MS);
+    return await classifyUserMessageOrThrow(userText, lastAssistantText, noSdkRetry);
+  } catch (firstErr) {
+    // Don't retry failures that can't recover on a second attempt (auth/config,
+    // malformed request) — return the error marker immediately.
+    if (!isRetryableClassifierError(firstErr)) {
+      return classifierErrored(firstErr);
+    }
+    // Log the first-attempt failure so recovered-on-retry degradation is visible
+    // in Vercel logs, not only total (both-attempt) failures.
+    log(
+      { event: 'classifier_retry', error_class: errName(firstErr), error_message: errMessage(firstErr) },
+      'warn',
+    );
+    // Jittered backoff so many concurrent retries (an eval-burst 429 storm) don't
+    // thundering-herd the already-throttled endpoint in lockstep.
+    await sleep(RETRY_DELAY_MS + Math.floor(Math.random() * RETRY_DELAY_MS));
     try {
-      return await classifyUserMessageOrThrow(userText, lastAssistantText);
-    } catch (err) {
-      // Fail OPEN (revised D-B-07). Deflecting as 'offtopic' on a transient error
-      // was the worst-case UX for a recruiter-facing agent — proceed to the main
-      // agent instead. Structured log keeps error rate greppable in Vercel even
-      // though this no longer produces a flagged DB row.
-      log(
-        {
-          event: 'classifier_error',
-          mode: 'fail_open',
-          error_class: (err as Error).name ?? 'Error',
-          error_message: (err as Error).message,
-        },
-        'error',
-      );
-      return FAIL_OPEN_VERDICT;
+      return await classifyUserMessageOrThrow(userText, lastAssistantText, noSdkRetry);
+    } catch (secondErr) {
+      return classifierErrored(secondErr);
     }
   }
 }
